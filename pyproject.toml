@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest"]
+dev = ["ruff", "mypy", "pytest", "httpx"]
 ingestion = ["ccxt", "yfinance"]
 broker = ["ibkr"]
 
