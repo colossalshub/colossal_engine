@@ -29,6 +29,9 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "TID", "T20", "UP", "N"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["quant"]
+
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 

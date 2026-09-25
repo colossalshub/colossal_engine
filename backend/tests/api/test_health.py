@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+
 from quant.api.main import app
 
 
