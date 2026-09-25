@@ -67,7 +67,7 @@ def test_to_epoch_ms_int_passthrough() -> None:
 
 
 def test_to_epoch_ms_aware_utc_datetime() -> None:
-    dt = datetime.datetime(2025, 1, 1, tzinfo=datetime.timezone.utc)
+    dt = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
     assert to_epoch_ms(dt) == EPOCH_MS_2025_01_01_UTC
 
 

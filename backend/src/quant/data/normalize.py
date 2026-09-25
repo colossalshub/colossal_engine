@@ -57,7 +57,7 @@ def to_epoch_ms(value: object) -> int:
         if value.tzinfo is None:
             msg = "Naive datetimes are not allowed; use timezone-aware UTC datetimes"
             raise ValueError(msg)
-        utc_dt = value.astimezone(datetime.timezone.utc)
+        utc_dt = value.astimezone(datetime.UTC)
         return int(utc_dt.timestamp() * 1000)
     if isinstance(value, str):
         normalized = value.replace("Z", "+00:00")
@@ -65,7 +65,7 @@ def to_epoch_ms(value: object) -> int:
         if parsed.tzinfo is None:
             msg = "Naive datetimes are not allowed; use timezone-aware UTC datetimes"
             raise ValueError(msg)
-        utc_dt = parsed.astimezone(datetime.timezone.utc)
+        utc_dt = parsed.astimezone(datetime.UTC)
         return int(utc_dt.timestamp() * 1000)
     type_name = type(value).__name__
     msg = f"Unsupported type for epoch-ms conversion: {type_name}"
