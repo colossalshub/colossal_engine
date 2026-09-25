@@ -223,10 +223,12 @@ def run_backtest(
         ]
         last_row = usdt_rows[-1] if usdt_rows else account_report[-1]
 
-        positions_df: pd.DataFrame = engine.trader.generate_positions_report()
+        positions_df: pd.DataFrame = (
+            engine.trader.generate_positions_report().reset_index()
+        )
         position_report = positions_df.to_dict(orient="records")
 
-        fills_df: pd.DataFrame = engine.trader.generate_fills_report()
+        fills_df: pd.DataFrame = engine.trader.generate_fills_report().reset_index()
         fills_report = fills_df.to_dict(orient="records")
     finally:
         engine.dispose()
