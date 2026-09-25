@@ -13,3 +13,6 @@ At the start of every response, before doing anything else:
 7. Never add a library outside §2 without explicit approval.
 8. Timestamps in API are epoch ms (int64). UTC always. Nulls are `null`, never `NaN`.
 9. All time-series responses MUST be `ORDER BY ts ASC` — no exceptions.
+10. Acceptance commands must be run from the repo root, on the whole tree, exactly as written in the task prompt. Do not run them on a subset of files. If a check fails, report the failure verbatim — do not silently fix and report green.
+11. Do not create scratch files at the repo root or anywhere outside the task's declared deliverables. If you need to explore behavior, use a test with tmp_path or a REPL. Delete any scratch file you create before reporting.
+12. Make exactly one commit per task, containing exactly the files the task lists. If a fix is discovered during acceptance (e.g. a ruff rule fired on a prior phase's file), do not fix it silently in a follow-up commit — STOP and report. The human will decide whether to amend, fold into the current commit, or create a new mini-phase.
