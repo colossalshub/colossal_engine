@@ -1,4 +1,4 @@
-from nautilus_trader.trading.strategy import Strategy  # type: ignore[import-not-found]
+from nautilus_trader.trading.strategy import Strategy
 
 from quant.strategies.buy_hold import BuyHold
 
@@ -13,9 +13,9 @@ def test_buy_hold_constructor_stores_attributes() -> None:
         bar_type="BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL",
         trade_size="2",
     )
-    assert strategy.instrument_id == "BTCUSDT.BINANCE"
-    assert strategy.bar_type == "BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL"
-    assert strategy.trade_size == "2"
+    assert strategy._instrument_id_str == "BTCUSDT.BINANCE"
+    assert strategy._bar_type_str == "BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL"
+    assert strategy._trade_size == "2"
 
 
 def test_buy_hold_default_trade_size() -> None:
@@ -23,7 +23,7 @@ def test_buy_hold_default_trade_size() -> None:
         instrument_id="BTCUSDT.BINANCE",
         bar_type="BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL",
     )
-    assert strategy.trade_size == "1"
+    assert strategy._trade_size == "1"
 
 
 def test_buy_hold_defines_lifecycle_methods() -> None:

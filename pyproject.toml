@@ -39,6 +39,10 @@ ban-relative-imports = "all"
 strict = true
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = "nautilus_trader.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 pythonpath = ["backend/src"]
