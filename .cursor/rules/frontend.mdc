@@ -1,0 +1,12 @@
+---
+description: TypeScript & React frontend conventions
+globs: ["frontend/**/*.{ts,tsx}"]
+alwaysApply: false
+---
+
+- Strict mode. No `any` — use `unknown` and narrow.
+- One component per file, filename matches component name.
+- Named exports for components; default export for pages only.
+- `interface` for object shapes; no `type` aliases for objects.
+- Explicitly handle `null` in every visual component (e.g., `benchmark: null`).
+- No new libraries outside §2 without asking.

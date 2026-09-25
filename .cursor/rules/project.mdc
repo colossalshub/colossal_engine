@@ -1,0 +1,15 @@
+---
+description: Bootloader — read PROJECT.md before every response
+alwaysApply: true
+---
+
+At the start of every response, before doing anything else:
+1. Read `PROJECT.md` at the workspace root. If it has changed since your last read, re-read it fully.
+2. Restate, in one short line, the current Phase and the specific task being worked on (e.g., "Phase 2.3 — extract/equity.py").
+3. If the user's request does not map to the current task in §6, or conflicts with §2/§4/§7, STOP and flag it before writing any code.
+4. Do not build, refactor, or scaffold anything outside the current task. One task = one file + one test.
+5. Every deliverable includes its test. No test → not done.
+6. If the spec is ambiguous, ask. Do not guess.
+7. Never add a library outside §2 without explicit approval.
+8. Timestamps in API are epoch ms (int64). UTC always. Nulls are `null`, never `NaN`.
+9. All time-series responses MUST be `ORDER BY ts ASC` — no exceptions.

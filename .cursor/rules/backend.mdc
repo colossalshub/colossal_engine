@@ -1,0 +1,12 @@
+---
+description: Python backend conventions
+globs: ["backend/**/*.py"]
+alwaysApply: false
+---
+
+- Python 3.12+, ruff, mypy strict, pydantic v2.
+- Type hints on every function. No exceptions.
+- `logging`, never `print()`.
+- Import from `quant.*`, never relative.
+- Every new function ships with a pytest in `backend/tests/` mirroring its path.
+- Surface errors: log + raise. Never swallow.

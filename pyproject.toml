@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "duckdb",
+    "pyarrow",
+    "pydantic>=2",
+    "nautilus_trader",
+]
+
+[project.optional-dependencies]
+dev = ["ruff", "mypy", "pytest"]
+ingestion = ["ccxt", "yfinance"]
+broker = ["ibkr"]
+
+[tool.setuptools.packages.find]
+where = ["backend/src"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "TID", "T20", "UP", "N"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend/src"]
