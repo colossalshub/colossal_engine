@@ -5,7 +5,7 @@ from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
 
 
-class BuyHold(Strategy):
+class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any without stubs
     def __init__(
         self,
         instrument_id: str,
