@@ -42,17 +42,6 @@ def _as_int(value: object) -> int:
     raise TypeError(msg)
 
 
-def _as_float(value: object) -> float:
-    if isinstance(value, bool):
-        return float(int(value))
-    if isinstance(value, int | float):
-        return float(value)
-    if isinstance(value, str):
-        return float(value)
-    msg = f"expected float-coercible value, got {type(value)!r}"
-    raise TypeError(msg)
-
-
 _BAR_TYPE_SUFFIX_RE = re.compile(
     r"^(?P<prefix>.+)-(?P<count>\d+)-"
     r"(?P<unit>MINUTE|HOUR|DAY|WEEK|MONTH)-"
@@ -176,12 +165,13 @@ def run_backtest(
     engine.add_data(bars)
 
     normalized_trade_size = f"{Decimal(trade_size):.6f}"
-    strategy = BuyHold(
-        instrument_id=str(instrument_id),
-        bar_type=bar_type_str,
-        trade_size=normalized_trade_size,
+    engine.add_strategy(
+        BuyHold(
+            instrument_id=str(instrument_id),
+            bar_type=bar_type_str,
+            trade_size=normalized_trade_size,
+        )
     )
-    engine.add_strategy(strategy)
 
     portfolio_returns: list[tuple[int, float]] = []
     starting_balance = float(starting_balance_usdt)
@@ -194,21 +184,33 @@ def run_backtest(
     try:
         engine.run()
 
-        returns_series: pd.Series = engine.portfolio.analyzer.portfolio_returns()
-        if returns_series.empty:
-            first_bar_ts = _as_int(rows[0]["ts"])
-            returns_series = pd.Series(
-                [0.0],
-                index=[pd.Timestamp(first_bar_ts, unit="ms", tz="UTC")],
-            )
-        for idx, value in returns_series.items():
-            if isinstance(idx, pd.Timestamp):
-                ts_ms = int(idx.value // 1_000_000)
-            else:
-                ts_ms = int(idx) // 1_000_000
-            portfolio_returns.append((ts_ms, float(value)))
-        portfolio_returns.sort(key=lambda pair: pair[0])
+        strategies = engine.trader.strategies()
+        if not strategies:
+            raise RuntimeError("no strategies registered after backtest run")
+        strategy_instance = strategies[0]
+        if not isinstance(strategy_instance, BuyHold):
+            msg = f"expected BuyHold strategy, got {type(strategy_instance)!r}"
+            raise RuntimeError(msg)
 
+        snapshots = strategy_instance.equity_snapshots
+        if len(snapshots) >= 2:
+            for i in range(1, len(snapshots)):
+                _prev_ts, prev_eq = snapshots[i - 1]
+                curr_ts, curr_eq = snapshots[i]
+                if prev_eq == 0:
+                    ret = 0.0
+                else:
+                    ret = (curr_eq - prev_eq) / prev_eq
+                portfolio_returns.append((curr_ts, float(ret)))
+
+        if snapshots:
+            starting_balance = snapshots[0][1]
+            ending_balance = snapshots[-1][1]
+        else:
+            starting_balance = float(starting_balance_usdt)
+            ending_balance = 0.0
+
+        # Per-currency snapshot at run end — not a time series; USDT row is cash-only.
         account_df: pd.DataFrame = engine.trader.generate_account_report(
             Venue(venue.upper())
         )
@@ -220,9 +222,6 @@ def run_backtest(
             row for row in account_report if row.get("currency") == "USDT"
         ]
         last_row = usdt_rows[-1] if usdt_rows else account_report[-1]
-        ending_balance = _as_float(
-            last_row.get("total", last_row.get("balance", last_row.get("equity", 0.0)))
-        )
 
         positions_df: pd.DataFrame = engine.trader.generate_positions_report()
         position_report = positions_df.to_dict(orient="records")

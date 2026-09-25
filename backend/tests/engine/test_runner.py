@@ -72,12 +72,16 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
     )
 
     assert isinstance(result, BacktestResult)
-    assert len(result.portfolio_returns) >= 1
+    assert len(result.portfolio_returns) >= 9
+    second_bar_ts = start_ts + _DAY_MS
+    assert result.portfolio_returns[0][0] == second_bar_ts
     ts_values = [pair[0] for pair in result.portfolio_returns]
     assert ts_values == sorted(ts_values)
     assert result.starting_balance == 100_000.0
+    assert any(abs(v) > 1e-9 for _, v in result.portfolio_returns)
     assert isinstance(result.ending_balance, float)
-    assert result.ending_balance > 0
+    assert result.ending_balance > 55_000
+    assert result.ending_balance < 105_000
     assert isinstance(result.account_report, dict)
     assert result.account_report
     assert isinstance(result.position_report, list)

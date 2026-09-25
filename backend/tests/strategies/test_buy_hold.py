@@ -16,6 +16,15 @@ def test_buy_hold_constructor_stores_attributes() -> None:
     assert strategy._instrument_id_str == "BTCUSDT.BINANCE"
     assert strategy._bar_type_str == "BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL"
     assert strategy._trade_size == "2"
+    assert strategy.equity_snapshots == []
+
+
+def test_buy_hold_equity_snapshots_empty_at_construction() -> None:
+    strategy = BuyHold(
+        instrument_id="BTCUSDT.BINANCE",
+        bar_type="BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL",
+    )
+    assert strategy.equity_snapshots == []
 
 
 def test_buy_hold_default_trade_size() -> None:
