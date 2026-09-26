@@ -388,18 +388,26 @@ def get_tearsheet(
 
     summary = _row_to_summary(row)
     params = _parse_json_or({}, row["params"])
+    params_dict = params if isinstance(params, dict) else {}
+
+    run_status = row["status"]
+    # Return empty shell for non-done statuses. Do not attempt to read parquet
+    # artifacts — they don't exist yet for queued/running, and may have been
+    # purged for archived.
+    if run_status != "done":
+        return _empty_tearsheet(
+            summary,
+            params_dict,
+            _kpi_block_from_metrics({}),
+            {},
+            run_status,
+        )
+
     metrics_dict = _parse_json_or({}, row["metrics"])
     artifacts_dict = _parse_json_or({}, row["artifacts"])
-    params_dict = params if isinstance(params, dict) else {}
     kpi_block = _kpi_block_from_metrics(
         metrics_dict if isinstance(metrics_dict, dict) else {}
     )
-
-    run_status = row["status"]
-    if run_status in ("queued", "running", "failed"):
-        return _empty_tearsheet(summary, params_dict, kpi_block, {}, run_status)
-    if run_status == "archived":
-        return _empty_tearsheet(summary, params_dict, kpi_block, {}, run_status)
 
     # run_status == "done" — proceed to load parquets.
     run_dir = get_artifacts_dir() / run_id

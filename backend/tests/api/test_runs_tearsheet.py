@@ -156,6 +156,8 @@ def test_non_terminal_status_returns_empty_tearsheet(
     assert body["monthly_returns"] == []
     assert body["verification"]["source"] == target_status
     assert body["verification"]["verified"] is True
+    assert body["verification"]["discrepancy_pct"] == 0.0
+    assert all(v is None for v in body["kpis"].values())
     assert body["artifacts"] == {}
 
 
@@ -173,6 +175,7 @@ def test_archived_status_returns_empty_artifacts(
     assert body["price"] == []
     assert body["artifacts"] == {}
     assert body["verification"]["source"] == "archived"
+    assert all(v is None for v in body["kpis"].values())
 
 
 def test_done_missing_artifacts_dir_500(client: TestClient, db_path: Path) -> None:

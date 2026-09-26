@@ -165,6 +165,12 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
   not just `main.tsx`. Vitest runs each test file in an isolated worker
   process; only `setupTests.ts` runs in every worker.
 
+### Tear sheet for non-done runs
+
+- `GET /api/runs/{id}/tearsheet` must return a 200 empty shell for any
+  non-done status (queued, running, failed, archived). Never read parquet
+  files for a non-done run — they may not exist.
+
 ---
 
 ## 7. API JSON contract (from `PROJECT.md` §4.4)
