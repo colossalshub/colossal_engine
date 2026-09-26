@@ -20,7 +20,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from quant.api.routers.runs import router as runs_router
 
-app = FastAPI(title="Quant Research Platform", version="0.1.0")
+app = FastAPI(title="Colossal Engine", version="0.1.0")
 
 # --- CORS --------------------------------------------------------------
 

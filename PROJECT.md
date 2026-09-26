@@ -1,4 +1,4 @@
-# Quant Research Platform — Project Context
+# Colossal Engine — Project Context
 Source of truth for all AI sessions. Read before every response.
 Do not deviate from locked decisions without explicit approval.
 

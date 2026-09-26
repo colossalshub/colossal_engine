@@ -22,7 +22,7 @@ describe('Shell', () => {
 
   it('renders the logo', () => {
     renderAt('/')
-    expect(screen.getByText('quant')).toBeInTheDocument()
+    expect(screen.getByText('colossal')).toBeInTheDocument()
   })
 
   it('renders topbar breadcrumb matching the route', () => {

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   return (
     <aside className="sidebar">
-      <div className="sidebar__logo">quant</div>
+      <div className="sidebar__logo">colossal</div>
       <nav className="sidebar__nav" aria-label="Primary">
         {NAV_ITEMS.map((item) => (
           <NavLink
