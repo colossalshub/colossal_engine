@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 
 import { getTrades } from '../../api/runs'
 import type { Trade } from '../../api/types'
+import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
 import '../../components/grid/agGridTheme.css'
 import './tradeLedger.css'
 
@@ -148,12 +149,10 @@ export function TradeLedger({ runId, pageSize = 50 }: TradeLedgerProps) {
 
   if (isError) {
     return (
-      <div className="trade-ledger__state trade-ledger__state--error">
-        <span>Failed to load trades: {String(error)}</span>
-        <button onClick={() => refetch()} type="button">
-          Retry
-        </button>
-      </div>
+      <ErrorDisplay
+        message={`Failed to load trades: ${String(error)}`}
+        onRetry={() => refetch()}
+      />
     )
   }
 

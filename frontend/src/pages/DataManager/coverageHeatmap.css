@@ -87,23 +87,6 @@
   font-size: var(--fs-sm);
 }
 
-.coverage-heatmap__state--error {
-  border-left: 2px solid var(--neg);
-  padding-left: var(--s-3);
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding-top: var(--s-4);
-}
-
-.coverage-heatmap__state--error button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: var(--s-2) var(--s-3);
-  border-radius: var(--radius);
-  font-size: var(--fs-sm);
-}
-
 .coverage-heatmap__legend {
   display: flex;
   gap: var(--s-4);

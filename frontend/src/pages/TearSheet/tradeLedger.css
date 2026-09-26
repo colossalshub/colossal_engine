@@ -66,17 +66,3 @@
   border: 1px dashed var(--border-2);
   border-radius: var(--radius);
 }
-
-.trade-ledger__state--error {
-  color: var(--neg);
-  border-color: var(--neg);
-}
-
-.trade-ledger__state--error button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: var(--s-2) var(--s-3);
-  border-radius: var(--radius);
-  font-size: var(--fs-sm);
-}

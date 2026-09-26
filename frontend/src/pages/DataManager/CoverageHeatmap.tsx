@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 
 import { getCoverage } from '../../api/data'
 import type { CoverageCell, CoverageRow } from '../../api/types'
+import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
 import './coverageHeatmap.css'
 
 const MONTH_LABELS = [
@@ -120,12 +121,10 @@ export function CoverageHeatmap() {
 
   if (isError) {
     return (
-      <div className="coverage-heatmap__state coverage-heatmap__state--error">
-        <span>Failed to load coverage: {String(error)}</span>
-        <button onClick={() => refetch()} type="button">
-          Retry
-        </button>
-      </div>
+      <ErrorDisplay
+        message={`Failed to load coverage: ${String(error)}`}
+        onRetry={() => refetch()}
+      />
     )
   }
 
