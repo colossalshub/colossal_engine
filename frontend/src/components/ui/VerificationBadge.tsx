@@ -13,24 +13,33 @@ function fmtPct(v: number): string {
 }
 
 export function VerificationBadge({ verification }: VerificationBadgeProps) {
-  const { verified, discrepancy_pct } = verification
+  const { verified, discrepancy_pct, source } = verification
+
+  // "account_report" means the reconstructed equity curve was checked
+  // against Nautilus's authoritative per-currency account balances — a
+  // genuinely independent check. Anything else (including the
+  // "self_consistent" fallback used when the account report is missing or
+  // predates this check) only proves the reconstruction agrees with itself.
+  const isAccountReport = source === 'account_report'
 
   if (verified) {
+    const label = isAccountReport ? 'Equity reconciled' : 'Equity verified (self-consistent)'
     return (
-      <span className="verification-badge verification-badge--ok" title={`Source: ${verification.source}`}>
+      <span className="verification-badge verification-badge--ok" title={`Source: ${source}`}>
         <span className="verification-badge__icon" aria-hidden="true">✓</span>
         <span className="verification-badge__label">
-          Equity verified · discrepancy {fmtPct(discrepancy_pct)}
+          {label} · discrepancy {fmtPct(discrepancy_pct)}
         </span>
       </span>
     )
   }
 
+  const label = isAccountReport ? 'Equity discrepancy' : 'Equity discrepancy (self-consistent)'
   return (
-    <span className="verification-badge verification-badge--warn" title={`Source: ${verification.source}`}>
+    <span className="verification-badge verification-badge--warn" title={`Source: ${source}`}>
       <span className="verification-badge__icon" aria-hidden="true">!</span>
       <span className="verification-badge__label">
-        Equity discrepancy {fmtPct(discrepancy_pct)}
+        {label} · discrepancy {fmtPct(discrepancy_pct)}
       </span>
     </span>
   )

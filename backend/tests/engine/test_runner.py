@@ -176,6 +176,57 @@ def test_run_backtest_higher_deploy_pct_produces_higher_ending_balance(
     assert high_deploy.ending_balance > low_deploy.ending_balance
 
 
+def test_run_backtest_independent_ending_balance_populated(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    result = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
+
+    assert result.independent_ending_balance is not None
+    assert result.independent_ending_balance > 0.0
+    assert result.independent_ending_balance == pytest.approx(
+        result.ending_balance, rel=0.05
+    )
+
+
+def test_run_backtest_independent_ending_balance_computed_independently(
+    tmp_path: Path,
+) -> None:
+    """Proves independent_ending_balance is derived from the account report,
+    not copied from the snapshot-derived ending_balance, by asserting a
+    small-but-nonzero relative difference on a clean run.
+    """
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_rising_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    result = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
+
+    assert result.independent_ending_balance is not None
+    assert result.ending_balance != 0.0
+    relative_diff = abs(
+        result.independent_ending_balance - result.ending_balance
+    ) / result.ending_balance
+    # Nonzero — proves it's an independent computation, not a copy.
+    assert relative_diff > 0.0
+    assert relative_diff < 0.01
+
+
 def test_run_backtest_raises_on_invalid_bar_type(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     start_ts = 1_735_689_600_000

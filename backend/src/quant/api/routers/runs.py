@@ -295,19 +295,50 @@ def _build_monthly_returns(equity_points: list[EquityPoint]) -> list[MonthlyRetu
     ]
 
 
+def _verification_from_metrics(metrics_dict: dict[str, Any]) -> Verification | None:
+    """Read the true verification block stored by `orchestrator.execute_run`.
+
+    Runs created after Trust T.4 carry a private `_verification` key in their
+    `metrics` JSON, computed at extraction time from `BacktestResult`
+    (potentially independent of the account report). Returns `None` when
+    absent (older runs) so the caller can fall back to the self-consistent
+    recompute from `equity.parquet`.
+    """
+    raw = metrics_dict.get("_verification")
+    if not isinstance(raw, dict):
+        return None
+    verified = raw.get("verified")
+    discrepancy_pct = raw.get("discrepancy_pct")
+    source = raw.get("source")
+    if not isinstance(verified, bool):
+        return None
+    if not isinstance(discrepancy_pct, int | float) or isinstance(
+        discrepancy_pct, bool
+    ):
+        return None
+    if not isinstance(source, str):
+        return None
+    return Verification(
+        verified=verified,
+        discrepancy_pct=float(discrepancy_pct),
+        source=source,
+    )
+
+
 def _build_verification(equity_points: list[EquityPoint]) -> Verification:
     """Recompute the pairwise-return reconstruction from `equity.parquet`.
 
     This recompute is trivially self-consistent because the equity parquet
     was written from the same snapshot series used to build this
     reconstruction. It proves the parquet is internally coherent; it is
-    not an independent verification of Nautilus's account balance.
+    not an independent verification of Nautilus's account balance. Used as
+    a fallback when `metrics["_verification"]` is absent (pre-T.4 runs).
     """
     if not equity_points:
         return Verification(
             verified=True,
             discrepancy_pct=0.0,
-            source="reconstructed_from_portfolio_returns",
+            source="self_consistent",
         )
 
     starting = equity_points[0].equity
@@ -325,7 +356,7 @@ def _build_verification(equity_points: list[EquityPoint]) -> Verification:
     return Verification(
         verified=discrepancy < 0.005,
         discrepancy_pct=discrepancy * 100.0,
-        source="reconstructed_from_portfolio_returns",
+        source="self_consistent",
     )
 
 
@@ -442,7 +473,9 @@ def get_tearsheet(
     price_points = [OHLCV(**r) for r in _sorted_dedup(price_rows)]
     markers = _build_markers(trades_rows)
     monthly_returns = _build_monthly_returns(equity_points)
-    verification = _build_verification(equity_points)
+    verification = _verification_from_metrics(
+        metrics_dict if isinstance(metrics_dict, dict) else {}
+    ) or _build_verification(equity_points)
 
     return TearSheet(
         run=summary,

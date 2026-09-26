@@ -84,6 +84,7 @@ class BacktestResult:
     portfolio_returns: list[tuple[int, float]]
     starting_balance: float
     ending_balance: float
+    independent_ending_balance: float | None
     position_report: list[dict[str, object]]
     fills_report: list[dict[str, object]]
     account_report: dict[str, object]
@@ -229,10 +230,27 @@ def run_backtest(
         if not account_report:
             raise RuntimeError("account report is empty — engine did not run")
 
-        usdt_rows = [
-            row for row in account_report if row.get("currency") == "USDT"
-        ]
-        last_row = usdt_rows[-1] if usdt_rows else account_report[-1]
+        usdt_row = next(
+            (row for row in account_report if row.get("currency") == "USDT"),
+            None,
+        )
+        base_row = next(
+            (row for row in account_report if row.get("currency") == base),
+            None,
+        )
+        last_row = usdt_row if usdt_row is not None else account_report[-1]
+
+        # Independent ending equity: USDT cash + base currency × last bar close.
+        # Computed from Nautilus's authoritative account report, not from the
+        # equity_snapshots reconstruction — this is what makes verification
+        # genuinely independent rather than self-consistent.
+        last_bar_close = float(rows[-1]["close"])  # type: ignore[arg-type]  # rows[-1]["close"] is float from read_bars_json
+        if usdt_row is not None and base_row is not None:
+            usdt_cash = float(usdt_row.get("total", 0.0))  # type: ignore[arg-type]  # account report values are numeric objects
+            base_qty = float(base_row.get("total", 0.0))  # type: ignore[arg-type]  # account report values are numeric objects
+            independent_ending: float | None = usdt_cash + base_qty * last_bar_close
+        else:
+            independent_ending = None
 
         positions_df: pd.DataFrame = (
             engine.trader.generate_positions_report().reset_index()
@@ -248,6 +266,7 @@ def run_backtest(
         portfolio_returns=portfolio_returns,
         starting_balance=starting_balance,
         ending_balance=ending_balance,
+        independent_ending_balance=independent_ending,
         position_report=position_report,
         fills_report=fills_report,
         account_report=last_row if account_report else {},

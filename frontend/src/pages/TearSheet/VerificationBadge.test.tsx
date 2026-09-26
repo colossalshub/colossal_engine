@@ -45,7 +45,8 @@ describe('VerificationBadge', () => {
         verification={{ verified: false, discrepancy_pct: 1.23, source: 'reconstructed' }}
       />,
     )
-    expect(screen.getByText(/Equity discrepancy 1\.23%/)).toBeInTheDocument()
+    expect(screen.getByText(/Equity discrepancy/)).toBeInTheDocument()
+    expect(screen.getByText(/1\.23%/)).toBeInTheDocument()
   })
 
   it('unverified applies the warn tone class', () => {

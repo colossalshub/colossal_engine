@@ -14,11 +14,13 @@ def _result(
     starting_balance: float,
     ending_balance: float,
     portfolio_returns: list[tuple[int, float]],
+    independent_ending_balance: float | None = None,
 ) -> BacktestResult:
     return BacktestResult(
         portfolio_returns=portfolio_returns,
         starting_balance=starting_balance,
         ending_balance=ending_balance,
+        independent_ending_balance=independent_ending_balance,
         position_report=_EMPTY_LIST,
         fills_report=_EMPTY_LIST,
         account_report=_EMPTY_REPORTS,
@@ -51,7 +53,7 @@ def test_verification_exact_reconstruction() -> None:
     extraction = extract_equity(result, first_bar_ts=1000)
     assert extraction.verification.verified is True
     assert extraction.verification.discrepancy_pct < 0.001
-    assert extraction.verification.source == "reconstructed_from_portfolio_returns"
+    assert extraction.verification.source == "self_consistent"
 
 
 def test_verification_drifted_ending_balance() -> None:
@@ -67,6 +69,46 @@ def test_verification_drifted_ending_balance() -> None:
         4.761904761904762,
         rel=1e-4,
     )
+
+
+def test_verification_against_account_report_agrees() -> None:
+    second_return = 50.0 / 1050.0
+    result = _result(
+        starting_balance=1000.0,
+        ending_balance=1050.0,  # deliberately different from independent
+        portfolio_returns=[(2000, 0.05), (3000, second_return)],
+        independent_ending_balance=1100.0,
+    )
+    extraction = extract_equity(result, first_bar_ts=1000)
+    assert extraction.verification.source == "account_report"
+    assert extraction.verification.verified is True
+    assert extraction.verification.discrepancy_pct < 0.001
+
+
+def test_verification_against_account_report_flags_discrepancy() -> None:
+    second_return = 50.0 / 1050.0
+    result = _result(
+        starting_balance=1000.0,
+        ending_balance=1050.0,
+        portfolio_returns=[(2000, 0.05), (3000, second_return)],
+        independent_ending_balance=1050.0,
+    )
+    extraction = extract_equity(result, first_bar_ts=1000)
+    assert extraction.verification.verified is False
+    assert extraction.verification.source == "account_report"
+    assert extraction.verification.discrepancy_pct > 0.5
+
+
+def test_verification_falls_back_to_self_consistent_when_independent_none() -> None:
+    second_return = 50.0 / 1050.0
+    result = _result(
+        starting_balance=1000.0,
+        ending_balance=1100.0,
+        portfolio_returns=[(2000, 0.05), (3000, second_return)],
+        independent_ending_balance=None,
+    )
+    extraction = extract_equity(result, first_bar_ts=1000)
+    assert extraction.verification.source == "self_consistent"
 
 
 def test_verification_zero_ending_balance() -> None:

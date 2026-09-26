@@ -241,6 +241,14 @@ def execute_run(
         periods_per_year=resolved_periods_per_year,
         starting_balance=starting_balance,
     )
+    # Private key, ignored by KpiBlock/frontend — carries the true (possibly
+    # account-report-independent) verification result alongside the KPIs so
+    # the tearsheet router can read it without re-deriving it from parquet.
+    metrics["_verification"] = {
+        "verified": extraction.verification.verified,
+        "discrepancy_pct": extraction.verification.discrepancy_pct,
+        "source": extraction.verification.source,
+    }
 
     price_bars = read_bars_json(
         db_path=bars_db_path,

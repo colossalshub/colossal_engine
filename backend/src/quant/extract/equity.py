@@ -1,8 +1,21 @@
 """Equity, drawdown, and verification extraction from ``BacktestResult``.
 
-Rebuilds the equity curve from ``portfolio_returns`` (§4.3) and verifies it
-against ``ending_balance``. Callers supply ``first_bar_ts`` so bar 1 is
-included at ``starting_balance``.
+Rebuilds the equity curve from ``portfolio_returns`` (§4.3) and verifies it.
+
+Two verification modes:
+
+* ``source="account_report"`` — the reconstructed equity curve (built purely
+  from ``portfolio_returns``) is compared against
+  ``independent_ending_balance``, an ending equity figure computed
+  independently from Nautilus's authoritative account report (USDT cash +
+  base-currency qty × last bar close). This is a genuine, independent check.
+* ``source="self_consistent"`` — used when ``independent_ending_balance`` is
+  missing or zero (e.g. older runs that predate the account-report wiring).
+  The reconstruction is compared against ``ending_balance``, which is itself
+  derived from the same snapshot series used to build the reconstruction.
+  This proves internal coherence only, not agreement with Nautilus.
+
+Callers supply ``first_bar_ts`` so bar 1 is included at ``starting_balance``.
 """
 
 from __future__ import annotations
@@ -12,7 +25,6 @@ from dataclasses import dataclass
 
 from quant.engine.runner import BacktestResult
 
-_VERIFICATION_SOURCE = "reconstructed_from_portfolio_returns"
 _VERIFICATION_THRESHOLD = 0.005
 
 
@@ -108,21 +120,30 @@ def _verify_ending_balance(result: BacktestResult) -> Verification:
     for _, ret in result.portfolio_returns:
         reconstructed_final *= 1.0 + ret
 
-    ending = result.ending_balance
-    if ending == 0:
+    independent = result.independent_ending_balance
+    if independent is None or independent == 0:
+        # Fall back to self-consistency (old behavior). This keeps older
+        # runs that predate the account-report wiring working.
+        ending = result.ending_balance
+        if ending == 0:
+            return Verification(
+                verified=True,
+                discrepancy_pct=0.0,
+                source="self_consistent",
+            )
+        discrepancy = abs(reconstructed_final - ending) / ending
         return Verification(
-            verified=True,
-            discrepancy_pct=0.0,
-            source=_VERIFICATION_SOURCE,
+            verified=discrepancy < _VERIFICATION_THRESHOLD,
+            discrepancy_pct=discrepancy * 100.0,
+            source="self_consistent",
         )
 
-    discrepancy = abs(reconstructed_final - ending) / ending
-    verified = discrepancy < _VERIFICATION_THRESHOLD
-    discrepancy_pct = discrepancy * 100.0
+    # Independent verification against Nautilus's authoritative account state.
+    discrepancy = abs(reconstructed_final - independent) / independent
     return Verification(
-        verified=verified,
-        discrepancy_pct=discrepancy_pct,
-        source=_VERIFICATION_SOURCE,
+        verified=discrepancy < _VERIFICATION_THRESHOLD,
+        discrepancy_pct=discrepancy * 100.0,
+        source="account_report",
     )
 
 
