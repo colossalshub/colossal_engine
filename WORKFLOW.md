@@ -240,13 +240,14 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of Phase 9
+## 11. State at end of trust pass
 
-- **Roadmap complete.** All phases 0–9 shipped.
-- **Test count:** 323 backend, 142 frontend
-- **Real data on disk:** multiple runs (done, failed, archived), 5 parquets each, BTC/USDT 1d + 1mo bars
-- **Known issues to fix next:**
-  - Fees are 10× too low (`0.0001` instead of `0.001`) — Trust pass T.1
-  - Benchmark is `null` on every run — Trust pass T.2
-  - Fill model uses Nautilus's default (no slippage) — documented limitation
-- **Post-roadmap backlog (deferred):** Monte Carlo, walk-forward, parameter optimization, multi-instrument, cloud deployment
+- **Roadmap complete.** Phases 0–9 + T.1 + T.1.1 + T.2 shipped.
+- **Test count:** 329 backend, 146 frontend
+- **Fees:** configurable per run via `params['maker_fee']` / `params['taker_fee']`, default 0.001 (0.1%). CLI flags `--maker-fee` / `--taker-fee`. Form has "Fee %" input.
+- **Benchmark:** optional via `params['benchmark_symbol']`. Empty string → no benchmark. CLI flag `--benchmark-symbol`. Form has "Benchmark" input.
+- **Known limitations (unchanged):**
+  - Fill model uses Nautilus's default (fills at bar price, zero slippage)
+  - Runner only fully supports BTC/USDT — `CurrencyPair` base/quote is hardcoded
+  - Single-instrument per run
+- **Backlog (deferred until after real use):** Monte Carlo, walk-forward, parameter optimization, multi-instrument, cloud
