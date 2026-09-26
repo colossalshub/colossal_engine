@@ -1,0 +1,14 @@
+.ag-theme-quartz-dark {
+  --ag-background-color:        #131722;
+  --ag-foreground-color:        #d1d5db;
+  --ag-border-color:            #1f2937;
+  --ag-header-background-color: #1a1f2e;
+  --ag-header-foreground-color: #9ca3af;
+  --ag-row-height:              28px;
+  --ag-header-height:           32px;
+  --ag-font-size:               12px;
+  --ag-font-family:             'JetBrains Mono', monospace;
+  --ag-odd-row-background-color: transparent;
+  --ag-row-border-color:        #1f2937;
+  --ag-cell-horizontal-padding: 12px;
+}

@@ -1,0 +1,54 @@
+.command-center {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.command-center__section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--s-3);
+}
+
+.command-center__heading {
+  margin: 0 0 var(--s-3) 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.run-history__grid {
+  height: 480px;
+  width: 100%;
+}
+
+.run-history__state {
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+}
+
+.run-history__state--error {
+  border-left: 2px solid var(--neg);
+  padding-left: var(--s-3);
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: var(--s-4);
+}
+
+.run-history__state--error button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+}

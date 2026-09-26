@@ -1,21 +1,17 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import App from './App'
+import { renderWithProviders } from './test-utils'
 
 function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<App />, { route: path })
 }
 
 describe('App routing', () => {
   it('renders Command Center at /', () => {
     renderAt('/')
-    expect(screen.getByText('Command Center placeholder')).toBeInTheDocument()
+    expect(screen.getByText('Run History')).toBeInTheDocument()
   })
 
   it('renders Tear Sheet at /runs/:id', () => {
@@ -30,7 +26,7 @@ describe('App routing', () => {
 
   it('renders nothing for an unknown route', () => {
     renderAt('/nope')
-    expect(screen.queryByText('Command Center placeholder')).not.toBeInTheDocument()
+    expect(screen.queryByText('Run History')).not.toBeInTheDocument()
     expect(screen.queryByText('Tear Sheet placeholder')).not.toBeInTheDocument()
     expect(screen.queryByText('Data Manager placeholder')).not.toBeInTheDocument()
   })

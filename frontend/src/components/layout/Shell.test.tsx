@@ -1,16 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import App from '../../App'
+import { renderWithProviders } from '../../test-utils'
 
 function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<App />, { route: path })
 }
 
 describe('Shell', () => {
@@ -44,7 +40,7 @@ describe('Shell', () => {
 
   it('renders the page content inside the shell', () => {
     renderAt('/')
-    expect(screen.getByText('Command Center placeholder')).toBeInTheDocument()
+    expect(screen.getByText('Run History')).toBeInTheDocument()
   })
 
   it('navigates when a nav item is clicked', async () => {
@@ -52,6 +48,6 @@ describe('Shell', () => {
     renderAt('/')
     await user.click(screen.getByRole('link', { name: 'Data Manager' }))
     expect(screen.getByText('Data Manager placeholder')).toBeInTheDocument()
-    expect(screen.queryByText('Command Center placeholder')).not.toBeInTheDocument()
+    expect(screen.queryByText('Run History')).not.toBeInTheDocument()
   })
 })
