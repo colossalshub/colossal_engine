@@ -176,10 +176,11 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of Phase 3.4
+## 11. State at end of Phase 3
 
-- **Last committed phase:** Phase 3.4 (`e517be5` — `GET /api/runs/{id}/tearsheet`)
-- **Next phase:** Phase 3.5 (`GET /api/runs/{id}/trades`)
-- **Phases remaining:** 3.5, 3.6, 4.x, 5.x, 6.x, 7.x, 8.x, 9.x
-- **Test count:** 234
+- **Last committed phase:** Phase 3.6 (`b89ee34` — main.py wiring + CORS + ApiError handlers)
+- **Next phase:** Phase 4.1 (`frontend/src/api/types.ts`)
+- **Phases remaining:** 4.x, 5.x, 6.x, 7.x, 8.x, 9.x
+- **Test count:** 257
 - **Real data on disk:** 2 runs in `data/quant.sqlite`, 5 parquets per run under `data/runs/`, 31 BTC/USDT 1d bars in `data/quant.duckdb`
+- **Untracked at last check:** (nothing)
