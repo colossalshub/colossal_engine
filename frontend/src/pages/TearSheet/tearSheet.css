@@ -139,3 +139,14 @@
   border: 1px dashed var(--border-2);
   border-radius: var(--radius);
 }
+
+.equity-curve__empty {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+}

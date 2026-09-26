@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
 import { Badge } from '../../components/ui/Badge'
+import { EquityCurve } from './EquityCurve'
 import { KpiCards } from './KpiCards'
 import { PriceChart } from './PriceChart'
 import './tearSheet.css'
@@ -91,7 +92,7 @@ export default function TearSheet() {
       <section className="tear-sheet__grid-2">
         <div className="tear-sheet__section">
           <h2 className="tear-sheet__section-heading">Equity</h2>
-          <div className="tear-sheet__placeholder">Phase 5.5</div>
+          <EquityCurve data={data.equity} />
         </div>
         <div className="tear-sheet__section">
           <h2 className="tear-sheet__section-heading">Underwater</h2>
