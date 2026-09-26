@@ -15,8 +15,9 @@ from ``params["venue"]``, defaulting to ``"binance"`` when absent. A non-string
 from __future__ import annotations
 
 import dataclasses
+import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from quant.data.read import read_bars_json
 from quant.engine.runner import run_backtest
@@ -26,6 +27,8 @@ from quant.extract.metrics import TradeSummary, extract_metrics
 
 if TYPE_CHECKING:
     from quant.data.runs_store import RunRecord
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT_VENUE = "binance"
 
@@ -121,6 +124,11 @@ def execute_run(
     bars are in range, or if the record's ``params`` lack a valid timeframe and
     ``periods_per_year`` cannot be inferred. The caller is responsible for
     updating status='failed' on exception.
+
+    When ``params["benchmark_symbol"]`` is a non-empty string, benchmark bars
+    are loaded from the same DuckDB (venue/timeframe as the run) and passed to
+    equity extraction; missing or insufficient bars degrade to ``benchmark:
+    null`` with a warning, without failing the run.
     """
     venue_value = record.params.get("venue")
     if venue_value is None:
@@ -174,7 +182,50 @@ def execute_run(
         taker_fee=taker_fee_raw,
     )
 
-    extraction = extract_equity(result, first_bar_ts=record.start_ts)
+    benchmark_symbol_raw = record.params.get("benchmark_symbol", "")
+    benchmark_symbol = (
+        str(benchmark_symbol_raw) if isinstance(benchmark_symbol_raw, str) else ""
+    )
+
+    benchmark_bars: list[tuple[int, float]] | None = None
+    if benchmark_symbol:
+        benchmark_rows = read_bars_json(
+            db_path=bars_db_path,
+            venue=venue,
+            symbol=benchmark_symbol,
+            timeframe=timeframe,
+            start_ts=record.start_ts,
+            end_ts=record.end_ts,
+        )
+        if len(benchmark_rows) < 2:
+            logger.warning(
+                "benchmark %s has %d bars in range, skipping",
+                benchmark_symbol,
+                len(benchmark_rows),
+            )
+        else:
+            candidate = [
+                (int(cast(int, r["ts"])), float(cast(float, r["close"])))
+                for r in benchmark_rows
+            ]
+            first_ts = record.start_ts
+            portfolio_returns = result.portfolio_returns
+            last_ts = (
+                portfolio_returns[-1][0] if portfolio_returns else first_ts
+            )
+            if candidate[0][0] <= first_ts and candidate[-1][0] >= last_ts:
+                benchmark_bars = candidate
+            else:
+                logger.warning(
+                    "benchmark %s does not cover the equity window, skipping",
+                    benchmark_symbol,
+                )
+
+    extraction = extract_equity(
+        result,
+        first_bar_ts=record.start_ts,
+        benchmark_bars=benchmark_bars,
+    )
     trades = _trade_summaries(result.position_report)
     metrics = extract_metrics(
         result.portfolio_returns,

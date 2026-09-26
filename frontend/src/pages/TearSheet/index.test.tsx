@@ -72,6 +72,17 @@ describe('TearSheet page', () => {
     })
   })
 
+  it('displays benchmark when params contain it', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      params: { benchmark_symbol: 'BTC/USDT' },
+    })
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByText('benchmark BTC/USDT')).toBeInTheDocument()
+    })
+  })
+
   it('renders the short git sha', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })

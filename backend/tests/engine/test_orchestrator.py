@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pyarrow.parquet as pq
 import pytest
 
 from quant.data.runs_store import RunRecord
@@ -10,8 +11,47 @@ from quant.engine.orchestrator import execute_run
 
 _VENUE = "binance"
 _SYMBOL = "BTC/USDT"
+_BENCH_SYMBOL = "BENCH/USDT"
 _DAY_MS = 86_400_000
 _START_TS = 1_735_689_600_000
+
+
+def _equity_benchmark_null_count(
+    artifacts_dir: Path,
+    run_id: str,
+) -> tuple[int, int]:
+    table = pq.read_table(artifacts_dir / run_id / "equity.parquet")
+    benchmark_col = table.column("benchmark")
+    return table.num_rows, benchmark_col.null_count
+
+
+def _store_daily_bars_for_symbol(
+    db_path: Path,
+    symbol: str,
+    *,
+    start_ts: int,
+    count: int = 10,
+) -> int:
+    ensure_canonical_bars(db_path)
+    rows: list[dict[str, object]] = []
+    for i in range(count):
+        ts = start_ts + i * _DAY_MS
+        rows.append(
+            {
+                "venue": _VENUE,
+                "symbol": symbol,
+                "asset_class": "crypto",
+                "timeframe": "1d",
+                "ts": ts,
+                "open": 100.0,
+                "high": 110.0,
+                "low": 90.0,
+                "close": 100.0 + float(i),
+                "volume": 1.0,
+            }
+        )
+    upsert_bars(db_path, rows)
+    return start_ts + (count - 1) * _DAY_MS
 
 
 def _store_daily_bars(db_path: Path, *, start_ts: int, count: int = 10) -> int:
@@ -220,3 +260,86 @@ def test_execute_run_missing_venue_defaults_to_binance(tmp_path: Path) -> None:
     assert updated.metrics
     for key in ("sharpe", "cagr", "max_drawdown"):
         assert key in updated.metrics
+
+
+def test_execute_run_benchmark_bars_flow_through(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    _store_daily_bars_for_symbol(
+        db_path, _BENCH_SYMBOL, start_ts=_START_TS, count=10
+    )
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "benchmark_symbol": _BENCH_SYMBOL,
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    rows, nulls = _equity_benchmark_null_count(artifacts_dir, updated.run_id)
+    assert rows > 0
+    assert nulls == 0
+
+
+def test_execute_run_missing_benchmark_bars_graceful(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "benchmark_symbol": "GHOST/USDT",
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    rows, nulls = _equity_benchmark_null_count(artifacts_dir, updated.run_id)
+    assert rows > 0
+    assert nulls == rows
+
+
+def test_execute_run_empty_benchmark_symbol_disables(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "benchmark_symbol": "",
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    rows, nulls = _equity_benchmark_null_count(artifacts_dir, updated.run_id)
+    assert rows > 0
+    assert nulls == rows

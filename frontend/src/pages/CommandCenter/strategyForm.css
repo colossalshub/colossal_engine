@@ -16,6 +16,12 @@
   gap: var(--s-3);
 }
 
+.strategy-form__row--4col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: var(--s-3);
+}
+
 .strategy-form__field {
   display: flex;
   flex-direction: column;

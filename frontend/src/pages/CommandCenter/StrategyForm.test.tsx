@@ -126,6 +126,7 @@ describe('StrategyForm', () => {
           venue: 'binance',
           maker_fee: '0.001',
           taker_fee: '0.001',
+          benchmark_symbol: '',
         },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
@@ -155,11 +156,34 @@ describe('StrategyForm', () => {
           venue: 'binance',
           maker_fee: '0.0005',
           taker_fee: '0.0005',
+          benchmark_symbol: '',
         },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),
       })
+    })
+  })
+
+  it('entering a benchmark sends it in params', async () => {
+    const user = userEvent.setup()
+    const createRunSpy = vi
+      .spyOn(runsApi, 'createRun')
+      .mockResolvedValue(sampleRun)
+    renderForm()
+
+    const benchmarkInput = screen.getByPlaceholderText('e.g. BTC/USDT')
+    await user.type(benchmarkInput, 'BTC/USDT')
+    await user.click(screen.getByRole('button', { name: /Run/ }))
+
+    await waitFor(() => {
+      expect(createRunSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({
+            benchmark_symbol: 'BTC/USDT',
+          }),
+        }),
+      )
     })
   })
 
@@ -182,6 +206,7 @@ describe('StrategyForm', () => {
           venue: 'binance',
           maker_fee: '0.001',
           taker_fee: '0.001',
+          benchmark_symbol: '',
         },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),

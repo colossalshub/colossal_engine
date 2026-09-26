@@ -105,6 +105,15 @@ export default function TearSheet() {
               </span>
             </>
           ) : null}
+          {typeof data.params.benchmark_symbol === 'string' &&
+          data.params.benchmark_symbol ? (
+            <>
+              <span className="tear-sheet__meta-sep">·</span>
+              <span className="tear-sheet__meta-mono">
+                benchmark {data.params.benchmark_symbol}
+              </span>
+            </>
+          ) : null}
           {run.git_sha ? (
             <>
               <span className="tear-sheet__meta-sep">·</span>

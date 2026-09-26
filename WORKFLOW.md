@@ -233,6 +233,10 @@ Things agents have actually tried, that need to be caught:
 - Fees: `params['maker_fee']` / `params['taker_fee']` are decimal
   strings, default '0.001' (0.1%). Set per run via CLI flags
   `--maker-fee` / `--taker-fee` or the StrategyForm's "Fee %" input.
+- Benchmark: `params['benchmark_symbol']` (string, default '') enables a
+  benchmark overlay on the equity chart. The symbol must have bars in the
+  same venue/timeframe as the run. Empty string or missing bars → no
+  benchmark. Never fails the run.
 
 ---
 

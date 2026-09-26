@@ -114,6 +114,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Taker fee as decimal string (default: 0.001 = 0.1%%)",
     )
     parser.add_argument(
+        "--benchmark-symbol",
+        default="",
+        help="Benchmark symbol for equity overlay (default: disabled)",
+    )
+    parser.add_argument(
         "--name",
         default=None,
         help="Run display name (auto if omitted)",
@@ -187,6 +192,7 @@ def main() -> None:
             "venue": args.venue,
             "maker_fee": args.maker_fee,
             "taker_fee": args.taker_fee,
+            "benchmark_symbol": args.benchmark_symbol,
         },
         universe=[symbol],
         start_ts=start_ms,
