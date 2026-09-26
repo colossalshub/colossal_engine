@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { AgGridReact } from 'ag-grid-react'
-import type { ColDef } from 'ag-grid-community'
-import { useMemo } from 'react'
+import type { ColDef, RowClickedEvent } from 'ag-grid-community'
+import { useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { listRuns } from '../../api/runs'
 import type { RunSummary } from '../../api/types'
@@ -54,6 +55,18 @@ const colDefs: ColDef<RunSummary>[] = [
 ]
 
 export function RunHistoryTable() {
+  const navigate = useNavigate()
+
+  const onRowClicked = useCallback(
+    (event: RowClickedEvent<RunSummary>) => {
+      const runId = event.data?.run_id
+      if (runId) {
+        navigate(`/runs/${runId}`)
+      }
+    },
+    [navigate],
+  )
+
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['runs'],
     queryFn: () => listRuns(),
@@ -99,6 +112,8 @@ export function RunHistoryTable() {
         rowData={rows}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
+        onRowClicked={onRowClicked}
+        rowStyle={{ cursor: 'pointer' }}
         suppressCellFocus
       />
     </div>

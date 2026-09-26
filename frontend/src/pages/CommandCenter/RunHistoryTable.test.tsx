@@ -1,6 +1,8 @@
 import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import App from '../../App'
 import type { RunList, RunSummary } from '../../api/types'
 import { RunHistoryTable } from './RunHistoryTable'
 import * as runsApi from '../../api/runs'
@@ -66,6 +68,25 @@ describe('RunHistoryTable', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to load runs/)).toBeInTheDocument()
+    })
+  })
+
+  it('navigates to the tear sheet when a row is clicked', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(runsApi, 'listRuns').mockResolvedValue({
+      items: [sampleRun],
+      total: 1,
+      page: 1,
+      page_size: 50,
+    })
+
+    renderWithProviders(<App />, { route: '/' })
+
+    const cell = await screen.findByText('buy_hold BTC/USDT 1d')
+    await user.click(cell)
+
+    await waitFor(() => {
+      expect(screen.getByText('Tear Sheet placeholder')).toBeInTheDocument()
     })
   })
 })
