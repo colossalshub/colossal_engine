@@ -1,0 +1,39 @@
+.base-chart {
+  position: relative;
+  width: 100%;
+}
+
+.base-chart__container {
+  position: absolute;
+  inset: 0;
+}
+
+.base-chart__tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: var(--s-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  color: var(--text);
+  z-index: 10;
+  min-width: 120px;
+}
+
+.base-chart__tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  line-height: 1.5;
+}
+
+.base-chart__tooltip-label {
+  color: var(--text-dim);
+}
+
+.base-chart__tooltip-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
