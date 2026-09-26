@@ -425,10 +425,10 @@ Goal: Complete tear sheet.
 
 Goal: Fire new runs from UI.
 
-* **7.1** — `StrategyForm.tsx` (params + universe + date range)
-* **7.2** — `POST /api/runs` router (inserts `meta_runs` row with `status='queued'`, returns `run_id`; does not touch `heartbeat_ts`)
-* **7.3** — worker polling + status polling. Frontend polls every 2s, stops when done. Watchdog per §4.5 fails runs with stale heartbeat.
-* **7.4** — Compare view (select 2 or more, side-by-side)
+- **7.1** — `POST /api/runs` router (inserts `meta_runs` row with `status='queued'`, returns `RunSummary`; does not touch `heartbeat_ts`)
+- **7.2** — `StrategyForm.tsx` (strategy + params + universe + date range; submits to 7.1; invalidates runs query on success)
+- **7.3** — worker polling + status polling. Frontend polls every 2s for queued/running runs, stops when done. Watchdog per §4.5 fails runs with stale heartbeat.
+- **7.4** — Compare view (select 2 or more, side-by-side)
 
 **Done:** submit form → status flips `queued→done` → redirect to tear sheet.
 
