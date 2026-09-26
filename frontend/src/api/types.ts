@@ -174,3 +174,16 @@ export interface CoverageRow {
 export interface CoverageResponse {
   rows: CoverageRow[];
 }
+
+export interface IngestRequest {
+  venue: string;
+  symbol: string;
+  timeframe: string;
+  start: string;
+  end: string;
+}
+
+export interface IngestResponse {
+  status: string;
+  command: string;
+}

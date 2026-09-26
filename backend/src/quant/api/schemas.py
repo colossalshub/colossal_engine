@@ -38,6 +38,8 @@ __all__ = [
     "CoverageCell",
     "CoverageRow",
     "CoverageResponse",
+    "IngestRequest",
+    "IngestResponse",
 ]
 
 
@@ -258,3 +260,20 @@ class CoverageResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     rows: list[CoverageRow]
+
+
+class IngestRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    venue: str
+    symbol: str
+    timeframe: str
+    start: str
+    end: str
+
+
+class IngestResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: str
+    command: str

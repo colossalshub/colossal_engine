@@ -4,14 +4,36 @@ from __future__ import annotations
 
 import calendar
 import math
+import subprocess
+import sys
+from pathlib import Path
 
 import duckdb
 from fastapi import APIRouter, HTTPException, status
 
 from quant.api.deps import BarsDb
-from quant.api.schemas import ApiError, CoverageCell, CoverageResponse, CoverageRow
+from quant.api.schemas import (
+    ApiError,
+    CoverageCell,
+    CoverageResponse,
+    CoverageRow,
+    IngestRequest,
+    IngestResponse,
+)
 
 router = APIRouter(prefix="/api/data", tags=["data"])
+
+_VALID_TIMEFRAMES = frozenset({"1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1mo"})
+
+
+def _repo_root() -> Path:
+    here = Path(__file__).resolve()
+    for parent in (here, *here.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    msg = "cannot find repo root (pyproject.toml)"
+    raise RuntimeError(msg)
+
 
 _TIMEFRAME_BARS_PER_DAY: dict[str, float] = {
     "1m": 1440.0,
@@ -101,3 +123,70 @@ def get_coverage(bars_db: BarsDb) -> CoverageResponse:
         )
 
     return CoverageResponse(rows=rows)
+
+
+@router.post(
+    "/ingest",
+    response_model=IngestResponse,
+    status_code=202,
+    responses={422: {"model": ApiError}, 500: {"model": ApiError}},
+)
+def post_ingest(payload: IngestRequest) -> IngestResponse:
+    if payload.timeframe not in _VALID_TIMEFRAMES:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": {
+                    "code": "VALIDATION",
+                    "message": f"invalid timeframe: {payload.timeframe}",
+                    "details": None,
+                }
+            },
+        )
+    if not payload.start or not payload.end:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": {
+                    "code": "VALIDATION",
+                    "message": "start and end are required",
+                    "details": None,
+                }
+            },
+        )
+
+    argv = [
+        sys.executable,
+        str(_repo_root() / "scripts" / "ingest_bars.py"),
+        "--venue",
+        payload.venue,
+        "--symbol",
+        payload.symbol,
+        "--timeframe",
+        payload.timeframe,
+        "--start",
+        payload.start,
+        "--end",
+        payload.end,
+    ]
+
+    try:
+        subprocess.Popen(  # noqa: S603 — inputs are validated above
+            argv,
+            cwd=str(_repo_root()),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": {
+                    "code": "INTERNAL",
+                    "message": str(exc),
+                    "details": None,
+                }
+            },
+        ) from exc
+
+    return IngestResponse(status="started", command=" ".join(argv))
