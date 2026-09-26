@@ -6,6 +6,7 @@ import { Badge } from '../../components/ui/Badge'
 import { DrawdownChart } from './DrawdownChart'
 import { EquityCurve } from './EquityCurve'
 import { KpiCards } from './KpiCards'
+import { MonthlyHeatmap } from './MonthlyHeatmap'
 import { PriceChart } from './PriceChart'
 import './tearSheet.css'
 
@@ -103,7 +104,7 @@ export default function TearSheet() {
 
       <section className="tear-sheet__section">
         <h2 className="tear-sheet__section-heading">Monthly Returns</h2>
-        <div className="tear-sheet__placeholder">Phase 6.2</div>
+        <MonthlyHeatmap data={data.monthly_returns} />
       </section>
 
       <section className="tear-sheet__section">

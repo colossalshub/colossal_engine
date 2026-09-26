@@ -1,0 +1,69 @@
+.monthly-heatmap {
+  display: flex;
+  justify-content: center;
+  padding: var(--s-2) 0;
+}
+
+.monthly-heatmap__svg-wrap {
+  position: relative;
+}
+
+.monthly-heatmap__header-label {
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  fill: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.monthly-heatmap__year-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  fill: var(--text-dim);
+}
+
+.monthly-heatmap__cell {
+  cursor: default;
+  transition: stroke 120ms ease;
+}
+
+.monthly-heatmap__cell:hover {
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.monthly-heatmap__tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: var(--s-1) var(--s-2);
+  display: flex;
+  gap: var(--s-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.monthly-heatmap__tooltip-label {
+  color: var(--text-dim);
+}
+
+.monthly-heatmap__tooltip-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.monthly-heatmap__empty {
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+}
