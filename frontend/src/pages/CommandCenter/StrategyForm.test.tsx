@@ -120,7 +120,7 @@ describe('StrategyForm', () => {
     await waitFor(() => {
       expect(createRunSpy).toHaveBeenCalledWith({
         strategy: 'buy_hold',
-        params: { trade_size: '1', timeframe: '1d' },
+        params: { trade_size: '1', timeframe: '1d', venue: 'binance' },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),
@@ -141,7 +141,7 @@ describe('StrategyForm', () => {
     await waitFor(() => {
       expect(createRunSpy).toHaveBeenCalledWith({
         strategy: 'buy_hold',
-        params: { trade_size: '1', timeframe: '4h' },
+        params: { trade_size: '1', timeframe: '4h', venue: 'binance' },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),

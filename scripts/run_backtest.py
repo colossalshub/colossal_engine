@@ -185,6 +185,7 @@ def main() -> None:
             "trade_size": trade_size,
             "starting_balance": starting_balance,
             "timeframe": timeframe,
+            "venue": args.venue,
         },
         universe=[symbol],
         start_ts=start_ms,

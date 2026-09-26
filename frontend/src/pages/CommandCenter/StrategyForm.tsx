@@ -92,7 +92,7 @@ export function StrategyForm() {
 
     const payload: RunCreate = {
       strategy,
-      params: { trade_size: '1', timeframe },
+      params: { trade_size: '1', timeframe, venue: 'binance' },
       universe,
       start_ts,
       end_ts,

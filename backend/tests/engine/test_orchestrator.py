@@ -137,3 +137,40 @@ def test_execute_run_no_bars_in_range_raises(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="no bars"):
         execute_run(record, bars_db_path=db_path, artifacts_dir=artifacts_dir)
+
+
+def test_execute_run_venue_from_params(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={"timeframe": "1d", "trade_size": "1", "venue": "kraken"},
+    )
+
+    with pytest.raises(ValueError, match="no bars in range for kraken"):
+        execute_run(record, bars_db_path=db_path, artifacts_dir=artifacts_dir)
+
+
+def test_execute_run_missing_venue_defaults_to_binance(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={"timeframe": "1d", "trade_size": "1"},
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    for key in ("sharpe", "cagr", "max_drawdown"):
+        assert key in updated.metrics

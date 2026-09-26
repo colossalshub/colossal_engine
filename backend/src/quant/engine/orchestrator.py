@@ -7,9 +7,9 @@ CLI args, does NOT spawn subprocesses, and does NOT write to any database —
 the caller (CLI script today, worker in Phase 7.3b) decides what to persist
 and how to handle ``status`` transitions.
 
-**Phase-8 assumption:** ``record`` has no ``venue`` field yet (§4.1's
-``meta_runs`` schema does not carry one). This module hardcodes
-``venue="binance"`` until multi-venue support lands.
+**Venue:** ``record`` has no top-level ``venue`` field (§4.1). Venue is read
+from ``params["venue"]``, defaulting to ``"binance"`` when absent. A non-string
+``params["venue"]`` raises ``ValueError``.
 """
 
 from __future__ import annotations
@@ -114,11 +114,21 @@ def execute_run(
     ``metrics`` and ``artifacts`` populated. Does NOT write to the DB —
     the caller decides what to persist.
 
-    Raises ValueError if no bars are in range, or if the record's
-    ``params`` lack a valid timeframe and periods_per_year cannot be
-    inferred. The caller is responsible for updating status='failed' on
-    exception.
+    Reads ``venue`` from ``params["venue"]``, defaulting to ``"binance"`` when
+    absent. Raises ValueError if ``params["venue"]`` is present but not a
+    string, if no bars are in range, or if the record's ``params`` lack a
+    valid timeframe and ``periods_per_year`` cannot be inferred. The caller is
+    responsible for updating status='failed' on exception.
     """
+    venue_value = record.params.get("venue")
+    if venue_value is None:
+        venue = _DEFAULT_VENUE
+    elif not isinstance(venue_value, str):
+        msg = f"record.params['venue'] must be a string, got {type(venue_value)!r}"
+        raise ValueError(msg)
+    else:
+        venue = venue_value
+
     timeframe = record.params.get("timeframe")
     if not isinstance(timeframe, str) or timeframe not in _CANONICAL_TIMEFRAMES:
         msg = (
@@ -132,7 +142,6 @@ def execute_run(
         raise ValueError(msg)
     symbol = record.universe[0]
 
-    venue = _DEFAULT_VENUE
     base, quote = symbol.split("/")
     instrument_str = f"{base}{quote}.{venue.upper()}"
     nt_unit = _TIMEFRAME_TO_NT_UNIT[timeframe]
