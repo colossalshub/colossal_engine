@@ -120,7 +120,28 @@ describe('StrategyForm', () => {
     await waitFor(() => {
       expect(createRunSpy).toHaveBeenCalledWith({
         strategy: 'buy_hold',
-        params: { trade_size: '1' },
+        params: { trade_size: '1', timeframe: '1d' },
+        universe: ['BTC/USDT'],
+        start_ts: expect.any(Number),
+        end_ts: expect.any(Number),
+      })
+    })
+  })
+
+  it('changing the timeframe dropdown sends the new value in params', async () => {
+    const user = userEvent.setup()
+    const createRunSpy = vi
+      .spyOn(runsApi, 'createRun')
+      .mockResolvedValue(sampleRun)
+    renderForm()
+
+    await user.selectOptions(screen.getByLabelText('Timeframe'), '4h')
+    await user.click(screen.getByRole('button', { name: /Run/ }))
+
+    await waitFor(() => {
+      expect(createRunSpy).toHaveBeenCalledWith({
+        strategy: 'buy_hold',
+        params: { trade_size: '1', timeframe: '4h' },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),

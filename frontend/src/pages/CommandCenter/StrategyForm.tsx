@@ -10,6 +10,14 @@ import './strategyForm.css'
 
 const STRATEGIES = [{ value: 'buy_hold', label: 'Buy & Hold' }] as const
 
+const TIMEFRAMES = [
+  { value: '15m', label: '15m' },
+  { value: '1h', label: '1h' },
+  { value: '4h', label: '4h' },
+  { value: '1d', label: '1d' },
+  { value: '1w', label: '1w' },
+] as const
+
 function dateStrToEpochMs(dateStr: string): number {
   // dateStr is "YYYY-MM-DD" from <input type="date">. Interpret as UTC midnight.
   const [y, m, d] = dateStr.split('-').map((s) => Number(s))
@@ -25,6 +33,7 @@ export function StrategyForm() {
   const queryClient = useQueryClient()
 
   const [strategy, setStrategy] = useState<string>('buy_hold')
+  const [timeframe, setTimeframe] = useState<string>('1d')
   const [universe, setUniverse] = useState<string[]>(['BTC/USDT'])
   const [symbolInput, setSymbolInput] = useState<string>('')
   const [startDate, setStartDate] = useState<string>('2024-01-01')
@@ -83,7 +92,7 @@ export function StrategyForm() {
 
     const payload: RunCreate = {
       strategy,
-      params: { trade_size: '1' },
+      params: { trade_size: '1', timeframe },
       universe,
       start_ts,
       end_ts,
@@ -103,7 +112,7 @@ export function StrategyForm() {
 
   return (
     <form className="strategy-form" onSubmit={handleSubmit}>
-      <div className="strategy-form__row">
+      <div className="strategy-form__row strategy-form__row--3col">
         <label className="strategy-form__field">
           <span className="strategy-form__label">Strategy</span>
           <select
@@ -114,6 +123,21 @@ export function StrategyForm() {
             {STRATEGIES.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="strategy-form__field">
+          <span className="strategy-form__label">Timeframe</span>
+          <select
+            className="strategy-form__input"
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value)}
+          >
+            {TIMEFRAMES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
               </option>
             ))}
           </select>
