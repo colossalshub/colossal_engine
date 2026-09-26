@@ -8,6 +8,7 @@ import { EquityCurve } from './EquityCurve'
 import { KpiCards } from './KpiCards'
 import { MonthlyHeatmap } from './MonthlyHeatmap'
 import { PriceChart } from './PriceChart'
+import { TradeLedger } from './TradeLedger'
 import './tearSheet.css'
 
 function formatDate(tsMs: number): string {
@@ -109,9 +110,7 @@ export default function TearSheet() {
 
       <section className="tear-sheet__section">
         <h2 className="tear-sheet__section-heading">Trade Ledger</h2>
-        <div className="tear-sheet__placeholder tear-sheet__placeholder--tall">
-          Phase 6.3
-        </div>
+        <TradeLedger runId={data.run.run_id} />
       </section>
     </div>
   )
