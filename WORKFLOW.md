@@ -68,6 +68,14 @@ This pattern saved Phase 2.2 (Nautilus engine construction), Phase 2.2.2 (`portf
 - If a check fails, report the failure verbatim — **do not silently fix and report green**.
 - This rule exists because Phase 1.1 reported `ruff check .` green when the file used `datetime.timezone.utc` (UP017 violation). Phase 1.2's full-tree run caught it. If the rule had been in place earlier, the fix would have been in the original commit.
 
+**Frontend TypeScript (from `frontend/`):**
+
+Note: the root `tsconfig.json` uses project references with `"files": []`. Plain `npx tsc --noEmit` checks nothing. Use `npx tsc -b`.
+
+`tsc -b` follows project references and type-checks every file under `src/`, including test files. The referenced configs already set `noEmit: true`, so `-b` doesn't write output — it's a pure check.
+
+- Standard frontend type-check: `npx tsc -b`
+
 ---
 
 ## 6. Nautilus 1.231.0 gotchas
