@@ -97,4 +97,17 @@ describe('TearSheet page', () => {
       expect(screen.getByText(/Failed to load tear sheet/)).toBeInTheDocument()
     })
   })
+
+  it('shows the empty state for a queued run instead of charts', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      run: { ...sampleTearsheet.run, status: 'queued' },
+    })
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByText('Backtest in progress…')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('KPIs')).not.toBeInTheDocument()
+    expect(screen.queryByText('Price + Fills')).not.toBeInTheDocument()
+  })
 })

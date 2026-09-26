@@ -1,0 +1,36 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-6) var(--s-4);
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.empty-state__icon {
+  font-size: 40px;
+  line-height: 1;
+  color: var(--text-mute);
+  opacity: 0.6;
+}
+
+.empty-state__message {
+  font-size: 14px;
+  max-width: 400px;
+}
+
+.empty-state__action {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-sm);
+  transition: background 120ms ease;
+}
+
+.empty-state__action:hover {
+  background: #2563eb;
+}

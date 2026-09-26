@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
+import type { RunStatus } from '../../api/types'
 import { Badge } from '../../components/ui/Badge'
+import { EmptyState } from '../../components/ui/EmptyState'
 import { VerificationBadge } from '../../components/ui/VerificationBadge'
 import { DrawdownChart } from './DrawdownChart'
 import { EquityCurve } from './EquityCurve'
@@ -14,6 +16,21 @@ import './tearSheet.css'
 
 function formatDate(tsMs: number): string {
   return new Date(tsMs).toISOString().slice(0, 10)
+}
+
+function emptyStateForStatus(status: RunStatus): { icon: string; message: string } {
+  switch (status) {
+    case 'queued':
+      return { icon: '⏳', message: 'Backtest in progress…' }
+    case 'running':
+      return { icon: '⏳', message: 'Backtest in progress…' }
+    case 'failed':
+      return { icon: '⚠', message: 'This backtest failed.' }
+    case 'archived':
+      return { icon: '📦', message: 'Artifacts expired.' }
+    case 'done':
+      return { icon: '', message: '' } // not used
+  }
 }
 
 export default function TearSheet() {
@@ -84,36 +101,47 @@ export default function TearSheet() {
         </div>
       </header>
 
-      <section className="tear-sheet__section">
-        <h2 className="tear-sheet__section-heading">KPIs</h2>
-        <KpiCards kpis={data.kpis} />
-      </section>
+      {run.status !== 'done' ? (
+        <section className="tear-sheet__section">
+          <EmptyState
+            icon={emptyStateForStatus(run.status).icon}
+            message={emptyStateForStatus(run.status).message}
+          />
+        </section>
+      ) : (
+        <>
+          <section className="tear-sheet__section">
+            <h2 className="tear-sheet__section-heading">KPIs</h2>
+            <KpiCards kpis={data.kpis} />
+          </section>
 
-      <section className="tear-sheet__section">
-        <h2 className="tear-sheet__section-heading">Price + Fills</h2>
-        <PriceChart data={data.price} markers={data.markers} />
-      </section>
+          <section className="tear-sheet__section">
+            <h2 className="tear-sheet__section-heading">Price + Fills</h2>
+            <PriceChart data={data.price} markers={data.markers} />
+          </section>
 
-      <section className="tear-sheet__grid-2">
-        <div className="tear-sheet__section">
-          <h2 className="tear-sheet__section-heading">Equity</h2>
-          <EquityCurve data={data.equity} />
-        </div>
-        <div className="tear-sheet__section">
-          <h2 className="tear-sheet__section-heading">Underwater</h2>
-          <DrawdownChart data={data.drawdown} />
-        </div>
-      </section>
+          <section className="tear-sheet__grid-2">
+            <div className="tear-sheet__section">
+              <h2 className="tear-sheet__section-heading">Equity</h2>
+              <EquityCurve data={data.equity} />
+            </div>
+            <div className="tear-sheet__section">
+              <h2 className="tear-sheet__section-heading">Underwater</h2>
+              <DrawdownChart data={data.drawdown} />
+            </div>
+          </section>
 
-      <section className="tear-sheet__section">
-        <h2 className="tear-sheet__section-heading">Monthly Returns</h2>
-        <MonthlyHeatmap data={data.monthly_returns} />
-      </section>
+          <section className="tear-sheet__section">
+            <h2 className="tear-sheet__section-heading">Monthly Returns</h2>
+            <MonthlyHeatmap data={data.monthly_returns} />
+          </section>
 
-      <section className="tear-sheet__section">
-        <h2 className="tear-sheet__section-heading">Trade Ledger</h2>
-        <TradeLedger runId={data.run.run_id} />
-      </section>
+          <section className="tear-sheet__section">
+            <h2 className="tear-sheet__section-heading">Trade Ledger</h2>
+            <TradeLedger runId={data.run.run_id} />
+          </section>
+        </>
+      )}
     </div>
   )
 }
