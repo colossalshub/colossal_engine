@@ -1,20 +1,23 @@
 import {
   CandlestickSeries,
+  createSeriesMarkers,
   type CandlestickData,
   type IChartApi,
   type ISeriesApi,
   type MouseEventParams,
+  type SeriesMarker,
   type SeriesType,
   type Time,
   type UTCTimestamp,
 } from 'lightweight-charts'
 import { useCallback } from 'react'
 
-import type { OHLCV } from '../../api/types'
+import type { OHLCV, TradeMarker } from '../../api/types'
 import { BaseChart, type TooltipPayload } from '../../components/charts/BaseChart'
 
 interface PriceChartProps {
   data: OHLCV[]
+  markers?: TradeMarker[]
   height?: number
 }
 
@@ -22,7 +25,17 @@ function toTime(tsMs: number): UTCTimestamp {
   return (tsMs / 1000) as UTCTimestamp
 }
 
-export function PriceChart({ data, height = 420 }: PriceChartProps) {
+function toSeriesMarkers(markers: TradeMarker[]): SeriesMarker<Time>[] {
+  return markers.map((m) => ({
+    time: toTime(m.ts),
+    position: m.side === 'buy' ? 'belowBar' : 'aboveBar',
+    color: m.side === 'buy' ? '#22c55e' : '#ef4444',
+    shape: m.side === 'buy' ? 'arrowUp' : 'arrowDown',
+    text: m.side === 'buy' ? 'B' : 'S',
+  }))
+}
+
+export function PriceChart({ data, markers = [], height = 420 }: PriceChartProps) {
   const createSeries = useCallback(
     (chart: IChartApi) => {
       const series = chart.addSeries(CandlestickSeries, {
@@ -43,9 +56,14 @@ export function PriceChart({ data, height = 420 }: PriceChartProps) {
           }),
         ),
       )
+      // NOTE: LWC v5 moved series markers to a plugin API. `ISeriesApi` no
+      // longer has `setMarkers` — see WORKFLOW.md §6 "LWC v5.2.1 specifics".
+      if (markers.length > 0) {
+        void createSeriesMarkers(series, toSeriesMarkers(markers))
+      }
       return series
     },
-    [data],
+    [data, markers],
   )
 
   const buildTooltip = useCallback(

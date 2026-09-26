@@ -138,6 +138,17 @@ For buy-and-hold with an open position in a CASH account, this returns an empty 
 ### `pandas.Timestamp.utcnow` deprecation warning
 Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautilus updates.
 
+### LWC v5.2.1 specifics
+
+- **Series marker API:** use `createSeriesMarkers(series, markers)` from
+  `'lightweight-charts'`. The series object does **not** have a
+  `setMarkers` method in v5 — that moved to a plugin API. It returns
+  `ISeriesMarkersPluginApi` with `.setMarkers()`, `.markers()`, `.detach()`.
+  Chart disposal (`chart.remove()`) handles plugin cleanup; no manual
+  `detach()` call is needed for a chart that lives for the component's
+  lifetime. Discovered in Phase 6.1 — the original task spec assumed the
+  v4 API (`series.setMarkers(...)`), which doesn't exist in v5.
+
 ---
 
 ## 7. API JSON contract (from `PROJECT.md` §4.4)

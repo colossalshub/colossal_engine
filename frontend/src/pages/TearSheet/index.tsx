@@ -87,7 +87,7 @@ export default function TearSheet() {
 
       <section className="tear-sheet__section">
         <h2 className="tear-sheet__section-heading">Price + Fills</h2>
-        <PriceChart data={data.price} />
+        <PriceChart data={data.price} markers={data.markers} />
       </section>
 
       <section className="tear-sheet__grid-2">
