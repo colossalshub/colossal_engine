@@ -230,14 +230,14 @@ def run_backtest(
         if not account_report:
             raise RuntimeError("account report is empty — engine did not run")
 
-        usdt_row = next(
-            (row for row in account_report if row.get("currency") == "USDT"),
-            None,
-        )
-        base_row = next(
-            (row for row in account_report if row.get("currency") == base),
-            None,
-        )
+        # The account report contains one row per state change. We want the last
+        # row per currency — the post-fill, end-of-run state. Do NOT use next()
+        # or [0]; those pick the initial pre-fill row and inflate the independent
+        # ending balance by the starting cash.
+        usdt_rows = [r for r in account_report if r.get("currency") == "USDT"]
+        base_rows = [r for r in account_report if r.get("currency") == base]
+        usdt_row = usdt_rows[-1] if usdt_rows else None
+        base_row = base_rows[-1] if base_rows else None
         last_row = usdt_row if usdt_row is not None else account_report[-1]
 
         # Independent ending equity: USDT cash + base currency × last bar close.
