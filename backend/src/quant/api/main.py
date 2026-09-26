@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from quant.api.routers.data import router as data_router
 from quant.api.routers.runs import router as runs_router
 
 app = FastAPI(title="Colossal Engine", version="0.1.0")
@@ -39,6 +40,7 @@ app.add_middleware(
 # --- Routers -----------------------------------------------------------
 
 app.include_router(runs_router)
+app.include_router(data_router)
 
 # --- Exception handlers ------------------------------------------------
 

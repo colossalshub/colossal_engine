@@ -15,7 +15,7 @@ representations to these models happens in the routers/deps layer, not here.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,6 +35,9 @@ __all__ = [
     "TearSheet",
     "Trade",
     "TradePage",
+    "CoverageCell",
+    "CoverageRow",
+    "CoverageResponse",
 ]
 
 
@@ -230,3 +233,28 @@ class TradePage(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class CoverageCell(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    year: int
+    month: Annotated[int, Field(ge=1, le=12)]
+    bars: int
+    expected: int
+    coverage: Annotated[float, Field(ge=0.0, le=1.0)]
+
+
+class CoverageRow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    venue: str
+    symbol: str
+    timeframe: str
+    cells: list[CoverageCell]
+
+
+class CoverageResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rows: list[CoverageRow]

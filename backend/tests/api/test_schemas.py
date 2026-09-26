@@ -12,6 +12,8 @@ from quant.api.schemas import (
     OHLCV,
     ApiError,
     ApiErrorDetail,
+    CoverageCell,
+    CoverageResponse,
     DrawdownPoint,
     EquityPoint,
     KpiBlock,
@@ -379,3 +381,27 @@ def test_tear_sheet_model_dump_json_mode_is_json_serializable() -> None:
     reparsed = json.loads(serialized)
     assert reparsed["run"]["status"] == "done"
     assert reparsed["equity"][1]["benchmark"] is None
+
+
+def test_coverage_cell_rejects_month_13() -> None:
+    with pytest.raises(ValidationError):
+        CoverageCell(
+            year=2024,
+            month=13,
+            bars=1,
+            expected=31,
+            coverage=0.5,
+        )
+
+
+def test_coverage_cell_accepts_coverage_bounds() -> None:
+    low = CoverageCell(year=2024, month=1, bars=0, expected=31, coverage=0.0)
+    high = CoverageCell(year=2024, month=1, bars=31, expected=31, coverage=1.0)
+    assert low.coverage == 0.0
+    assert high.coverage == 1.0
+
+
+def test_coverage_response_empty_rows_round_trips() -> None:
+    resp = CoverageResponse(rows=[])
+    rebuilt = CoverageResponse(**resp.model_dump())
+    assert rebuilt.rows == []
