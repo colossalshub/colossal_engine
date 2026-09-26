@@ -1,5 +1,5 @@
-import { apiGet } from './client'
-import type { RunList, TearSheet, TradePage } from './types'
+import { apiGet, apiPost } from './client'
+import type { RunCreate, RunList, RunSummary, TearSheet, TradePage } from './types'
 
 export async function listRuns(params?: {
   strategy?: string
@@ -31,4 +31,8 @@ export async function getTrades(
   return apiGet<TradePage>(
     `/runs/${encodeURIComponent(runId)}/trades${qs ? `?${qs}` : ''}`,
   )
+}
+
+export async function createRun(payload: RunCreate): Promise<RunSummary> {
+  return apiPost<RunSummary>('/runs', payload)
 }

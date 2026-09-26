@@ -1,0 +1,133 @@
+.strategy-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.strategy-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
+
+.strategy-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.strategy-form__label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+}
+
+.strategy-form__input,
+.strategy-form__chip-input {
+  height: 32px;
+  padding: 0 var(--s-2);
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+}
+
+.strategy-form__input:focus,
+.strategy-form__chip-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.strategy-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  align-items: center;
+  min-height: 32px;
+  padding: var(--s-1);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.strategy-form__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 22px;
+  padding: 0 var(--s-1) 0 var(--s-2);
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  color: var(--text);
+}
+
+.strategy-form__chip-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-mute);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.strategy-form__chip-remove:hover {
+  color: var(--neg);
+}
+
+.strategy-form__chip-input {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
+  border: none;
+  height: 22px;
+  padding: 0 var(--s-1);
+}
+
+.strategy-form__chip-input:focus {
+  outline: none;
+}
+
+.strategy-form__error {
+  color: var(--neg);
+  font-size: var(--fs-sm);
+  padding: var(--s-2);
+  border-left: 2px solid var(--neg);
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: var(--radius);
+}
+
+.strategy-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.strategy-form__submit {
+  height: 40px;
+  min-width: 120px;
+  padding: 0 var(--s-4);
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: background 120ms ease;
+}
+
+.strategy-form__submit:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.strategy-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
