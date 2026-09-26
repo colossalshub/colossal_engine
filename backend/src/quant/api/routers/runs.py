@@ -29,7 +29,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import UTC, datetime
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 
 import pyarrow.parquet as pq  # type: ignore[import-untyped]  # pyarrow ships without py.typed
 from fastapi import APIRouter, HTTPException, Query, status
@@ -46,7 +46,9 @@ from quant.api.schemas import (
     RunList,
     RunSummary,
     TearSheet,
+    Trade,
     TradeMarker,
+    TradePage,
     Verification,
 )
 
@@ -434,4 +436,122 @@ def get_tearsheet(
         monthly_returns=monthly_returns,
         verification=verification,
         artifacts=artifacts_dict if isinstance(artifacts_dict, dict) else {},
+    )
+
+
+def _trade_from_parquet_row(row: dict[str, Any]) -> Trade:
+    side_raw = str(row["side"])
+    if side_raw not in ("long", "short"):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": {
+                    "code": "INTERNAL",
+                    "message": (
+                        f"invalid trade side {side_raw!r} "
+                        f"for trade {row.get('trade_id')!r}"
+                    ),
+                    "details": None,
+                }
+            },
+        )
+    side = cast(Literal["long", "short"], side_raw)
+    exit_ts_raw = row.get("exit_ts")
+    exit_px_raw = row.get("exit_px")
+    return Trade(
+        trade_id=str(row["trade_id"]),
+        symbol=str(row["symbol"]),
+        side=side,
+        entry_ts=int(row["entry_ts"]),
+        exit_ts=int(exit_ts_raw) if exit_ts_raw is not None else None,
+        entry_px=float(row["entry_px"]),
+        exit_px=float(exit_px_raw) if exit_px_raw is not None else None,
+        qty=float(row["qty"]),
+        pnl=float(row["pnl"]),
+        pnl_pct=float(row["pnl_pct"]),
+        fees=float(row["fees"]),
+        duration_s=float(row["duration_s"]),
+    )
+
+
+@router.get(
+    "/{run_id}/trades",
+    response_model=TradePage,
+    responses={404: {"model": ApiError}, 500: {"model": ApiError}},
+)
+def get_trades(
+    db: RunsDb,
+    run_id: Annotated[str, PathParam()],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> TradePage:
+    db.row_factory = sqlite3.Row
+    row = db.execute(
+        "SELECT run_id, status FROM meta_runs WHERE run_id = ?",
+        (run_id,),
+    ).fetchone()
+
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": f"run {run_id} not found",
+                    "details": None,
+                }
+            },
+        )
+
+    run_status = row["status"]
+    if run_status != "done":
+        return TradePage(items=[], total=0, page=page, page_size=page_size)
+
+    run_dir = get_artifacts_dir() / run_id
+    parquet_path = run_dir / "trades.parquet"
+
+    if not parquet_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": {
+                    "code": "INTERNAL",
+                    "message": f"trades.parquet missing for run {run_id}",
+                    "details": None,
+                }
+            },
+        )
+
+    try:
+        table = pq.read_table(parquet_path)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": {"code": "INTERNAL", "message": str(exc), "details": None}
+            },
+        ) from exc
+
+    rows = table.to_pylist()
+    sorted_rows = sorted(rows, key=lambda r: int(r["entry_ts"]))
+    seen_ids: set[str] = set()
+    deduped: list[dict[str, Any]] = []
+    for r in sorted_rows:
+        tid = str(r["trade_id"])
+        if tid in seen_ids:
+            continue
+        seen_ids.add(tid)
+        deduped.append(r)
+    total = len(deduped)
+
+    offset = (page - 1) * page_size
+    paged = deduped[offset : offset + page_size]
+
+    trade_items = [_trade_from_parquet_row(r) for r in paged]
+
+    return TradePage(
+        items=trade_items,
+        total=total,
+        page=page,
+        page_size=page_size,
     )
