@@ -714,7 +714,7 @@ Rules:
 | BaseChart | `components/charts/BaseChart.tsx` | LWC lifecycle wrapper + HTML tooltip |
 | AgGrid | `components/grid/AgGrid.tsx` | Themed wrapper + defaults |
 | Shell | `components/layout/Shell.tsx` | Sidebar + TopBar + Outlet |
-| MonthlyHeatmap | `components/charts/MonthlyHeatmap.tsx` | Year × 12-month SVG heatmap |
+| MonthlyHeatmap | `pages/TearSheet/MonthlyHeatmap.tsx` | Year × 12-month SVG heatmap |
 | TradeLedger | `components/grid/TradeLedger.tsx` | Server-paginated trade table |
 
 *Inventory is not exhaustive — additional presentational components may be added as needed, matching the conventions in §5.*
