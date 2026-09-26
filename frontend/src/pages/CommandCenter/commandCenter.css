@@ -20,6 +20,28 @@
   color: var(--text);
 }
 
+.command-center__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-3);
+}
+
+.command-center__section-header .command-center__heading {
+  margin-bottom: 0;
+}
+
+.command-center__compare-btn {
+  height: 28px;
+  padding: 0 var(--s-3);
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--fs-xs);
+  font-family: 'JetBrains Mono', monospace;
+}
+
 .run-history__grid {
   height: 480px;
   width: 100%;

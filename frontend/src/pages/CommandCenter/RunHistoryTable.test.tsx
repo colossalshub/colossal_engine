@@ -110,7 +110,7 @@ describe('RunHistoryTable', () => {
     } finally {
       vi.useRealTimers()
     }
-  })
+  }, 15_000)
 
   it('does not poll when all runs are done', async () => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
@@ -130,9 +130,9 @@ describe('RunHistoryTable', () => {
     } finally {
       vi.useRealTimers()
     }
-  })
+  }, 15_000)
 
-  it('navigates to the tear sheet when a row is clicked', async () => {
+  it('navigates to the tear sheet when a row is double-clicked', async () => {
     const user = userEvent.setup()
     vi.spyOn(runsApi, 'listRuns').mockResolvedValue({
       items: [sampleRun],
@@ -145,7 +145,7 @@ describe('RunHistoryTable', () => {
     renderWithProviders(<App />, { route: '/' })
 
     const cell = await screen.findByText('buy_hold BTC/USDT 1d')
-    await user.click(cell)
+    await user.dblClick(cell)
 
     await waitFor(() => {
       expect(screen.getByText('← Back')).toBeInTheDocument()

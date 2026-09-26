@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { AgGridReact } from 'ag-grid-react'
-import type { ColDef, RowClickedEvent } from 'ag-grid-community'
+import type { ColDef, RowDoubleClickedEvent } from 'ag-grid-community'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -9,6 +9,12 @@ import type { RunSummary } from '../../api/types'
 import '../../components/grid/agGridTheme.css'
 
 const colDefs: ColDef<RunSummary>[] = [
+  {
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 40,
+    pinned: 'left',
+  },
   { field: 'name', headerName: 'Name', flex: 2, minWidth: 200 },
   { field: 'strategy', headerName: 'Strategy', flex: 1, minWidth: 120 },
   {
@@ -54,11 +60,15 @@ const colDefs: ColDef<RunSummary>[] = [
   },
 ]
 
-export function RunHistoryTable() {
+interface RunHistoryTableProps {
+  onSelectionChange?: (runIds: string[]) => void
+}
+
+export function RunHistoryTable({ onSelectionChange }: RunHistoryTableProps) {
   const navigate = useNavigate()
 
-  const onRowClicked = useCallback(
-    (event: RowClickedEvent<RunSummary>) => {
+  const onRowDoubleClicked = useCallback(
+    (event: RowDoubleClickedEvent<RunSummary>) => {
       const runId = event.data?.run_id
       if (runId) {
         navigate(`/runs/${runId}`)
@@ -120,9 +130,14 @@ export function RunHistoryTable() {
         rowData={rows}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
-        onRowClicked={onRowClicked}
-        rowStyle={{ cursor: 'pointer' }}
+        onRowDoubleClicked={onRowDoubleClicked}
+        rowSelection="multiple"
         suppressCellFocus
+        onSelectionChanged={(e) => {
+          const selected = e.api.getSelectedRows() as RunSummary[]
+          onSelectionChange?.(selected.map((r) => r.run_id))
+        }}
+        rowStyle={{ cursor: 'pointer' }}
       />
     </div>
   )
