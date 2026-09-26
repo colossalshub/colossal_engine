@@ -57,6 +57,19 @@ def _bars_db_path() -> Path:
     return Path(os.environ.get("QUANT_BARS_DB", default))
 
 
+def get_artifacts_dir() -> Path:
+    """Directory containing per-run parquet artifacts (`data/runs/`).
+
+    Env-driven via ``QUANT_ARTIFACTS_DIR``, mirroring the ``_runs_db_path``/
+    ``_bars_db_path`` pattern above. Public (unlike the two path helpers)
+    because Phase 3.4's tearsheet router needs it and duplicating the
+    `pyproject.toml` repo-root walk there would violate §5's no-premature-
+    duplication rule.
+    """
+    default = str(_default_data_dir() / "runs")
+    return Path(os.environ.get("QUANT_ARTIFACTS_DIR", default))
+
+
 def get_runs_db() -> Iterator[sqlite3.Connection]:
     """Per-request SQLite connection. Caller must not close it — FastAPI does."""
     conn = sqlite3.connect(_runs_db_path())
