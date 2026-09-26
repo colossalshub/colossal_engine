@@ -126,3 +126,36 @@ def insert_run(db_path: Path, record: RunRecord) -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+def insert_run_with_connection(conn: sqlite3.Connection, record: RunRecord) -> None:
+    """Insert one meta_runs row using an existing connection.
+
+    Caller owns schema setup and commit lifecycle (e.g. a FastAPI
+    per-request connection from `quant.api.deps.get_runs_db`). Unlike
+    `insert_run`, this does not open or close its own connection.
+    """
+    conn.execute(
+        _INSERT_RUN_SQL,
+        (
+            record.run_id,
+            record.name,
+            record.strategy,
+            json.dumps(record.params, separators=(",", ":")),
+            json.dumps(record.universe, separators=(",", ":")),
+            record.start_ts,
+            record.end_ts,
+            record.created_at,
+            record.finished_at,
+            record.heartbeat_ts,
+            record.status,
+            record.error,
+            record.git_sha,
+            1 if record.git_dirty else 0,
+            record.data_snapshot,
+            record.seed,
+            json.dumps(record.metrics, separators=(",", ":")),
+            json.dumps(record.artifacts, separators=(",", ":")),
+        ),
+    )
+    conn.commit()

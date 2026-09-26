@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Any, Literal, cast
 
@@ -43,6 +44,7 @@ from quant.api.schemas import (
     EquityPoint,
     KpiBlock,
     MonthlyReturns,
+    RunCreate,
     RunList,
     RunSummary,
     TearSheet,
@@ -51,6 +53,9 @@ from quant.api.schemas import (
     TradePage,
     Verification,
 )
+from quant.data.runs_store import RunRecord, insert_run_with_connection
+
+_VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold"})
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
 
@@ -554,4 +559,79 @@ def get_trades(
         total=total,
         page=page,
         page_size=page_size,
+    )
+
+
+def _validation_error(message: str) -> HTTPException:
+    return HTTPException(
+        status_code=422,
+        detail={
+            "error": {
+                "code": "VALIDATION",
+                "message": message,
+                "details": None,
+            }
+        },
+    )
+
+
+@router.post(
+    "",
+    response_model=RunSummary,
+    status_code=status.HTTP_201_CREATED,
+    responses={422: {"model": ApiError}, 500: {"model": ApiError}},
+)
+def create_run(
+    db: RunsDb,
+    payload: RunCreate,
+) -> RunSummary:
+    if not payload.universe:
+        raise _validation_error("universe must contain at least one symbol")
+    if not payload.start_ts < payload.end_ts:
+        raise _validation_error("start_ts must be before end_ts")
+    if payload.strategy not in _VALID_STRATEGIES:
+        raise _validation_error(f"unknown strategy: {payload.strategy}")
+
+    run_id = str(uuid.uuid4())
+    now_ms = int(datetime.now(UTC).timestamp() * 1000)
+
+    name = payload.name or f"{payload.strategy} {','.join(payload.universe)}"
+
+    record = RunRecord(
+        run_id=run_id,
+        name=name,
+        strategy=payload.strategy,
+        params=payload.params,
+        universe=payload.universe,
+        start_ts=payload.start_ts,
+        end_ts=payload.end_ts,
+        created_at=now_ms,
+        finished_at=None,
+        heartbeat_ts=now_ms,
+        status="queued",
+        error=None,
+        git_sha=None,
+        git_dirty=False,
+        data_snapshot=None,
+        seed=0,
+        metrics={},
+        artifacts={},
+    )
+
+    insert_run_with_connection(db, record)
+
+    return RunSummary(
+        run_id=run_id,
+        name=name,
+        strategy=payload.strategy,
+        universe=payload.universe,
+        start_ts=payload.start_ts,
+        end_ts=payload.end_ts,
+        created_at=now_ms,
+        git_sha=None,
+        git_dirty=False,
+        status="queued",
+        sharpe=None,
+        cagr=None,
+        max_drawdown=None,
     )

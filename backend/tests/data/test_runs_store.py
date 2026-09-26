@@ -8,7 +8,13 @@ from typing import Any
 
 import pytest
 
-from quant.data.runs_store import RunRecord, _now_ms, init_runs_schema, insert_run
+from quant.data.runs_store import (
+    RunRecord,
+    _now_ms,
+    init_runs_schema,
+    insert_run,
+    insert_run_with_connection,
+)
 
 META_RUNS_COLUMNS: frozenset[str] = frozenset(
     {
@@ -249,3 +255,28 @@ def test_insert_run_json_is_compact(tmp_path: Path) -> None:
     insert_run(db_path, record)
     row = _fetch_run(db_path, record.run_id)
     assert row["params"] == '{"a":1,"b":2}'
+
+
+def test_insert_run_with_connection_round_trip(tmp_path: Path) -> None:
+    """Insert via an existing connection, close it, then read back the row
+    through a fresh connection (mirrors the FastAPI per-request pattern)."""
+    db_path = _init(tmp_path)
+    record = _record()
+
+    conn = sqlite3.connect(db_path)
+    try:
+        insert_run_with_connection(conn, record)
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, record.run_id)
+    assert row["run_id"] == record.run_id
+    assert row["name"] == record.name
+    assert row["strategy"] == record.strategy
+    assert json.loads(row["params"]) == record.params
+    assert json.loads(row["universe"]) == record.universe
+    assert row["status"] == record.status
+    assert row["git_dirty"] == 1
+    assert json.loads(row["metrics"]) == record.metrics
+    assert json.loads(row["artifacts"]) == record.artifacts
+    assert _count_runs(db_path) == 1
