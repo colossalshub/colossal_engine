@@ -171,6 +171,7 @@ Things agents have actually tried, that need to be caught:
 - **"Improving" a spec while transcribing.** Composer's failure mode. Verify field names match §4.4 exactly.
 - **Adding `/api/health` alias or proxy rewrites to "fix" Phase 0.3.** No — Phase 3.6 mounts the router under `/api`.
 - **Scaffolding ahead.** §7. Only build the current task.
+- **Screenshot-based browser verification.** Cursor's CDP browser tooling (screenshot, zoom, image-read) consumes context fast and is unreliable on Windows. Instruct agents to verify UI via plain DOM assertions in tests, or by opening the browser manually and describing what they see in text. Never allow screenshot-then-read-image loops in a session.
 
 ---
 
