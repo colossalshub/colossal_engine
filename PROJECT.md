@@ -25,7 +25,7 @@ metrics from raw PnL, charting library, grid library.
 | Store | DuckDB (bars/OLAP) + SQLite (runs/OLTP) |
 | Artifacts | Parquet on local disk |
 | Frontend | React 18 + Vite + TypeScript |
-| Router | React Router v6 |
+| Router | React Router v7 |
 | Server state | TanStack Query |
 | Charts | lightweight-charts |
 | Tables | AG Grid (community) |
