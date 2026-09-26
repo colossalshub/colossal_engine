@@ -1,3 +1,7 @@
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
+
+ModuleRegistry.registerModules([AllCommunityModule])
+
 import '@testing-library/jest-dom/vitest'
 
 class ResizeObserverStub {

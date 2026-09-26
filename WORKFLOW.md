@@ -161,6 +161,10 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
   red/green because this registration call was missing since Phase 4.5
   first wired up AG Grid. Fixed in Phase 6.3.1.
 
+- AG Grid modules must be registered in `frontend/src/setupTests.ts`,
+  not just `main.tsx`. Vitest runs each test file in an isolated worker
+  process; only `setupTests.ts` runs in every worker.
+
 ---
 
 ## 7. API JSON contract (from `PROJECT.md` §4.4)
