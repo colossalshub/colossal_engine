@@ -22,6 +22,7 @@ from quant.data.runs_store import (
     update_run_status,
 )
 from quant.engine.orchestrator import execute_run
+from quant.logging_setup import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +129,7 @@ def _execute_claimed_run(
 
 
 def main() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
-    )
+    configure_logging()
 
     repo_root = _find_repo_root(Path(__file__).parent)
     db_path = _runs_db_path(repo_root)

@@ -18,6 +18,7 @@ import ccxt
 
 from quant.data.normalize import normalize_timeframe, to_epoch_ms
 from quant.data.store import ensure_canonical_bars, upsert_bars
+from quant.logging_setup import configure_logging
 
 _MAX_PAGES = 100
 _PAGE_LIMIT = 1000
@@ -188,7 +189,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """CLI entrypoint."""
-    logging.basicConfig(level=logging.WARNING)
+    configure_logging()
     args = build_arg_parser().parse_args()
 
     try:

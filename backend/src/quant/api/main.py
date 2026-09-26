@@ -20,6 +20,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from quant.api.routers.data import router as data_router
 from quant.api.routers.runs import router as runs_router
+from quant.logging_setup import configure_logging
+
+configure_logging()
 
 app = FastAPI(title="Colossal Engine", version="0.1.0")
 

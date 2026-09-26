@@ -18,6 +18,7 @@ from pathlib import Path
 from quant.data.normalize import to_epoch_ms
 from quant.data.runs_store import RunRecord, init_runs_schema, insert_run
 from quant.engine.orchestrator import _CANONICAL_TIMEFRAMES, execute_run
+from quant.logging_setup import configure_logging
 
 _DATE_ONLY_LEN = 10
 
@@ -137,7 +138,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """CLI entrypoint."""
-    logging.basicConfig(level=logging.WARNING)
+    configure_logging()
     args = build_arg_parser().parse_args()
     repo_root = find_repo_root(Path(__file__).parent)
 
