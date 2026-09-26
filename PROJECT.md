@@ -387,7 +387,7 @@ Goal: Three endpoints return §4.4 shapes.
 
 Goal: Navigate, see runs, click one.
 
-* **4.1** — `api/types.ts` (mirror §4.4) → `tsc --noEmit` passes
+* **4.1** — `api/types.ts` (mirror §4.4) → `tsc -b` passes
 * **4.2** — `api/client.ts` + `api/runs.ts` (fetch wrappers) → mock call returns data
 * **4.3** — `App.tsx` (React Router, 3 routes) → clicking links changes URL
 * **4.4** — `components/layout/Shell.tsx` (sidebar + outlet) → renders on all routes
