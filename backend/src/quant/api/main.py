@@ -9,7 +9,6 @@ Wires:
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -18,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from quant import config
 from quant.api.routers.data import router as data_router
 from quant.api.routers.runs import router as runs_router
 from quant.logging_setup import configure_logging
@@ -28,9 +28,7 @@ app = FastAPI(title="Colossal Engine", version="0.1.0")
 
 # --- CORS --------------------------------------------------------------
 
-_default_origins = "*"
-_raw_origins = os.environ.get("QUANT_CORS_ORIGINS", _default_origins)
-_allow_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+_allow_origins = config.cors_origins()
 
 app.add_middleware(
     CORSMiddleware,

@@ -15,6 +15,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
+from quant import config
 from quant.data.normalize import to_epoch_ms
 from quant.data.runs_store import RunRecord, init_runs_schema, insert_run
 from quant.engine.orchestrator import _CANONICAL_TIMEFRAMES, execute_run
@@ -23,16 +24,6 @@ from quant.logging_setup import configure_logging
 _DATE_ONLY_LEN = 10
 
 logger = logging.getLogger(__name__)
-
-
-def find_repo_root(start: Path) -> Path:
-    """Walk up from ``start`` to the directory that contains ``pyproject.toml``."""
-    resolved = start.resolve()
-    for directory in (resolved, *resolved.parents):
-        if (directory / "pyproject.toml").is_file():
-            return directory
-    msg = f"Could not find repo root (pyproject.toml) from {start}"
-    raise RuntimeError(msg)
 
 
 def parse_cli_timestamp(raw: str) -> int:
@@ -78,7 +69,6 @@ def _metric_token(value: object) -> str:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     """Configure CLI arguments."""
-    repo_root = find_repo_root(Path(__file__).parent)
     parser = argparse.ArgumentParser(
         description=(
             "Run a Nautilus backtest and persist meta_runs + parquet artifacts."
@@ -121,17 +111,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--db",
         default=None,
-        help=f"DuckDB bars file (default: {repo_root / 'data' / 'quant.duckdb'})",
+        help=f"DuckDB bars file (default: {config.bars_db_path()})",
     )
     parser.add_argument(
         "--runs-db",
         default=None,
-        help=f"SQLite meta_runs file (default: {repo_root / 'data' / 'quant.sqlite'})",
+        help=f"SQLite meta_runs file (default: {config.runs_db_path()})",
     )
     parser.add_argument(
         "--artifacts-dir",
         default=None,
-        help=f"Parquet base directory (default: {repo_root / 'data' / 'runs'})",
+        help=f"Parquet base directory (default: {config.artifacts_dir()})",
     )
     return parser
 
@@ -140,7 +130,7 @@ def main() -> None:
     """CLI entrypoint."""
     configure_logging()
     args = build_arg_parser().parse_args()
-    repo_root = find_repo_root(Path(__file__).parent)
+    repo_root = config.repo_root()
 
     timeframe = args.timeframe.strip()
     if timeframe not in _CANONICAL_TIMEFRAMES:
@@ -164,12 +154,10 @@ def main() -> None:
     starting_balance = args.starting_balance
     name = args.name or f"{strategy} {symbol} {timeframe} {args.start}..{args.end}"
 
-    db_path = Path(args.db) if args.db else repo_root / "data" / "quant.duckdb"
-    runs_db_path = (
-        Path(args.runs_db) if args.runs_db else repo_root / "data" / "quant.sqlite"
-    )
+    db_path = Path(args.db) if args.db else config.bars_db_path()
+    runs_db_path = Path(args.runs_db) if args.runs_db else config.runs_db_path()
     artifacts_dir = (
-        Path(args.artifacts_dir) if args.artifacts_dir else repo_root / "data" / "runs"
+        Path(args.artifacts_dir) if args.artifacts_dir else config.artifacts_dir()
     )
 
     run_id = str(uuid.uuid4())

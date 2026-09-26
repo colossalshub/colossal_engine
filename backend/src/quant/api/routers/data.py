@@ -6,11 +6,11 @@ import calendar
 import math
 import subprocess
 import sys
-from pathlib import Path
 
 import duckdb
 from fastapi import APIRouter, HTTPException, status
 
+from quant import config
 from quant.api.deps import BarsDb
 from quant.api.schemas import (
     ApiError,
@@ -24,15 +24,6 @@ from quant.api.schemas import (
 router = APIRouter(prefix="/api/data", tags=["data"])
 
 _VALID_TIMEFRAMES = frozenset({"1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1mo"})
-
-
-def _repo_root() -> Path:
-    here = Path(__file__).resolve()
-    for parent in (here, *here.parents):
-        if (parent / "pyproject.toml").is_file():
-            return parent
-    msg = "cannot find repo root (pyproject.toml)"
-    raise RuntimeError(msg)
 
 
 _TIMEFRAME_BARS_PER_DAY: dict[str, float] = {
@@ -157,7 +148,7 @@ def post_ingest(payload: IngestRequest) -> IngestResponse:
 
     argv = [
         sys.executable,
-        str(_repo_root() / "scripts" / "ingest_bars.py"),
+        str(config.repo_root() / "scripts" / "ingest_bars.py"),
         "--venue",
         payload.venue,
         "--symbol",
@@ -173,7 +164,7 @@ def post_ingest(payload: IngestRequest) -> IngestResponse:
     try:
         subprocess.Popen(  # noqa: S603 — inputs are validated above
             argv,
-            cwd=str(_repo_root()),
+            cwd=str(config.repo_root()),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )

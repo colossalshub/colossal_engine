@@ -6,13 +6,13 @@ Single-worker design (§4.5). Exit with Ctrl+C.
 from __future__ import annotations
 
 import logging
-import os
 import sqlite3
 import threading
 import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+from quant import config
 from quant.data.runs_store import (
     RunRecord,
     claim_next_queued,
@@ -28,31 +28,6 @@ logger = logging.getLogger(__name__)
 
 _POLL_INTERVAL_S = 1.0
 _HEARTBEAT_INTERVAL_S = 5.0
-
-
-def _find_repo_root(start: Path) -> Path:
-    """Walk up from `start` to the directory containing pyproject.toml."""
-    resolved = start.resolve()
-    for directory in (resolved, *resolved.parents):
-        if (directory / "pyproject.toml").is_file():
-            return directory
-    msg = f"could not find repo root (pyproject.toml) from {start}"
-    raise RuntimeError(msg)
-
-
-def _runs_db_path(repo_root: Path) -> Path:
-    default = str(repo_root / "data" / "quant.sqlite")
-    return Path(os.environ.get("QUANT_RUNS_DB", default))
-
-
-def _bars_db_path(repo_root: Path) -> Path:
-    default = str(repo_root / "data" / "quant.duckdb")
-    return Path(os.environ.get("QUANT_BARS_DB", default))
-
-
-def _artifacts_dir(repo_root: Path) -> Path:
-    default = str(repo_root / "data" / "runs")
-    return Path(os.environ.get("QUANT_ARTIFACTS_DIR", default))
 
 
 def _now_ms() -> int:
@@ -131,10 +106,9 @@ def _execute_claimed_run(
 def main() -> None:
     configure_logging()
 
-    repo_root = _find_repo_root(Path(__file__).parent)
-    db_path = _runs_db_path(repo_root)
-    bars_db_path = _bars_db_path(repo_root)
-    artifacts_dir = _artifacts_dir(repo_root)
+    db_path = config.runs_db_path()
+    bars_db_path = config.bars_db_path()
+    artifacts_dir = config.artifacts_dir()
 
     init_runs_schema(db_path)
 

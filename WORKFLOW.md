@@ -222,6 +222,9 @@ Things agents have actually tried, that need to be caught:
 - **OS:** Windows (PowerShell 5.x — `&&` is not supported, use `;`)
 - **Path issue:** `pip`/`pytest`/`ruff`/`mypy` are not on PATH — use `python -m pip`, `python -m pytest`, etc.
 - **Repo root:** `E:\Documents\Projects\colossal_engine`
+- All env vars are documented in `.env.example`. Read env vars via
+  `quant.config`, not `os.environ`, in new code. The config module loads
+  `.env` at import; real env vars always take precedence.
 - **`git status --short` shows `M .cursor/rules/project.mdc`** whenever rules are edited — commit as a mini-phase (`Phase X.Y.1: add rule N`).
 - Start the API with `--reload` during development: `python -m uvicorn quant.api.main:app --port 8000 --reload`
 

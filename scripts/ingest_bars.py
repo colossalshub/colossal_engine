@@ -16,6 +16,7 @@ from pathlib import Path
 
 import ccxt
 
+from quant import config
 from quant.data.normalize import normalize_timeframe, to_epoch_ms
 from quant.data.store import ensure_canonical_bars, upsert_bars
 from quant.logging_setup import configure_logging
@@ -27,19 +28,9 @@ _DATE_ONLY_LEN = 10
 logger = logging.getLogger(__name__)
 
 
-def find_repo_root(start: Path) -> Path:
-    """Walk up from ``start`` to the directory that contains ``pyproject.toml``."""
-    resolved = start.resolve()
-    for directory in (resolved, *resolved.parents):
-        if (directory / "pyproject.toml").is_file():
-            return directory
-    msg = f"Could not find repo root (pyproject.toml) from {start}"
-    raise RuntimeError(msg)
-
-
 def default_db_path() -> Path:
-    """Default DuckDB path at ``<repo_root>/data/quant.duckdb``."""
-    return find_repo_root(Path(__file__).parent) / "data" / "quant.duckdb"
+    """Default DuckDB path from ``quant.config``."""
+    return config.bars_db_path()
 
 
 def infer_asset_class(symbol: str) -> str:

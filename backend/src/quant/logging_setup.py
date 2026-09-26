@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sys
 from datetime import UTC, datetime
 from typing import Any
+
+from quant import config
 
 _CONFIGURED = False
 
@@ -35,12 +36,12 @@ def configure_logging() -> None:
     if _CONFIGURED:
         return
 
-    level_name = os.environ.get("QUANT_LOG_LEVEL", "INFO").upper()
+    level_name = config.log_level()
     level = getattr(logging, level_name, logging.INFO)
 
     handler = logging.StreamHandler(sys.stderr)
 
-    if os.environ.get("QUANT_LOG_JSON") == "1":
+    if config.log_json():
         handler.setFormatter(_JsonFormatter())
     else:
         handler.setFormatter(
