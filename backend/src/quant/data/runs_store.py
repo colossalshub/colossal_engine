@@ -159,3 +159,134 @@ def insert_run_with_connection(conn: sqlite3.Connection, record: RunRecord) -> N
         ),
     )
     conn.commit()
+
+
+_CLAIM_NEXT_QUEUED_SELECT_SQL = """
+SELECT run_id, name, strategy, params, universe, start_ts, end_ts,
+       created_at, finished_at, heartbeat_ts, status, error, git_sha,
+       git_dirty, data_snapshot, seed, metrics, artifacts
+FROM meta_runs
+WHERE status = 'queued'
+ORDER BY created_at ASC, run_id ASC
+LIMIT 1
+"""
+
+
+def claim_next_queued(conn: sqlite3.Connection) -> RunRecord | None:
+    """Atomically claim the oldest queued run for the (single) worker.
+
+    Uses `BEGIN IMMEDIATE` to take SQLite's exclusive write lock before
+    reading, so two workers racing this call cannot both claim the same
+    row (§4.5 — only one worker runs at a time, but this makes the claim
+    itself safe regardless). Returns `None` if no queued rows exist.
+    """
+    conn.execute("BEGIN IMMEDIATE")
+    row = conn.execute(_CLAIM_NEXT_QUEUED_SELECT_SQL).fetchone()
+
+    if row is None:
+        conn.commit()
+        return None
+
+    run_id = row[0]
+    now = _now_ms()
+    conn.execute(
+        "UPDATE meta_runs SET status = 'running', heartbeat_ts = ? WHERE run_id = ?",
+        (now, run_id),
+    )
+    conn.commit()
+
+    return RunRecord(
+        run_id=run_id,
+        name=row[1],
+        strategy=row[2],
+        params=json.loads(row[3]),
+        universe=json.loads(row[4]),
+        start_ts=row[5],
+        end_ts=row[6],
+        created_at=row[7],
+        finished_at=row[8],
+        heartbeat_ts=now,
+        status="running",
+        error=row[11],
+        git_sha=row[12],
+        git_dirty=bool(row[13]),
+        data_snapshot=row[14],
+        seed=row[15],
+        metrics=json.loads(row[16]),
+        artifacts=json.loads(row[17]),
+    )
+
+
+def update_heartbeat(conn: sqlite3.Connection, run_id: str) -> None:
+    """Bump `heartbeat_ts` to now for the given run. Caller owns the connection."""
+    conn.execute(
+        "UPDATE meta_runs SET heartbeat_ts = ? WHERE run_id = ?",
+        (_now_ms(), run_id),
+    )
+    conn.commit()
+
+
+def update_run_status(
+    conn: sqlite3.Connection,
+    run_id: str,
+    *,
+    status: str,
+    error: str | None = None,
+    finished_at: int | None = None,
+    metrics: dict[str, Any] | None = None,
+    artifacts: dict[str, Any] | None = None,
+    git_sha: str | None = None,
+    git_dirty: bool | None = None,
+) -> None:
+    """Update a run's terminal/transitional fields with a dynamic SET clause.
+
+    `status` and `error` are always written (error explicitly, possibly to
+    `None`, to clear a prior failure message). Every other column is only
+    included when its kwarg is not `None`. `metrics` and `artifacts` are
+    JSON-encoded; `git_dirty` is stored as 0/1. Caller owns the connection.
+    """
+    set_clauses: list[str] = ["status = ?", "error = ?"]
+    values: list[Any] = [status, error]
+
+    if finished_at is not None:
+        set_clauses.append("finished_at = ?")
+        values.append(finished_at)
+    if metrics is not None:
+        set_clauses.append("metrics = ?")
+        values.append(json.dumps(metrics, separators=(",", ":")))
+    if artifacts is not None:
+        set_clauses.append("artifacts = ?")
+        values.append(json.dumps(artifacts, separators=(",", ":")))
+    if git_sha is not None:
+        set_clauses.append("git_sha = ?")
+        values.append(git_sha)
+    if git_dirty is not None:
+        set_clauses.append("git_dirty = ?")
+        values.append(1 if git_dirty else 0)
+
+    values.append(run_id)
+    conn.execute(
+        f"UPDATE meta_runs SET {', '.join(set_clauses)} WHERE run_id = ?",  # noqa: S608 - column list is a fixed internal allowlist, not user input
+        values,
+    )
+    conn.commit()
+
+
+def fail_stale_running(conn: sqlite3.Connection, *, stale_ms: int = 60_000) -> int:
+    """Fail any `running` row whose heartbeat is older than `stale_ms` (§4.5).
+
+    Called by both the worker (before claiming new work) and the API's
+    `list_runs` (on every read), so a crashed worker self-heals without
+    manual intervention. Returns the number of rows updated.
+    """
+    now = _now_ms()
+    cursor = conn.execute(
+        """
+        UPDATE meta_runs
+        SET status = 'failed', error = 'heartbeat timeout', finished_at = ?
+        WHERE status = 'running' AND heartbeat_ts < ?
+        """,
+        (now, now - stale_ms),
+    )
+    conn.commit()
+    return cursor.rowcount

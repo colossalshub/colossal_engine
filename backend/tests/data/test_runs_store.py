@@ -1,3 +1,15 @@
+"""Tests for `runs_store.py`, including Phase 7.3b's worker-support functions.
+
+Note (Phase 7.3b): `scripts/run_worker.py` has no dedicated test file by
+design. Its behavior is fully covered here by testing `claim_next_queued`,
+`update_heartbeat`, `update_run_status`, and `fail_stale_running` in
+isolation — those are exactly the DB-touching pieces of the worker's
+contract. The remaining glue in the script (a `time.sleep(1)` poll loop
+and a daemon heartbeat thread) is orchestration, not logic; mocking
+`threading`/`time` to "test" it would just re-assert the mock's own
+behavior and wouldn't catch real regressions.
+"""
+
 from __future__ import annotations
 
 import json
@@ -11,9 +23,13 @@ import pytest
 from quant.data.runs_store import (
     RunRecord,
     _now_ms,
+    claim_next_queued,
+    fail_stale_running,
     init_runs_schema,
     insert_run,
     insert_run_with_connection,
+    update_heartbeat,
+    update_run_status,
 )
 
 META_RUNS_COLUMNS: frozenset[str] = frozenset(
@@ -280,3 +296,233 @@ def test_insert_run_with_connection_round_trip(tmp_path: Path) -> None:
     assert json.loads(row["metrics"]) == record.metrics
     assert json.loads(row["artifacts"]) == record.artifacts
     assert _count_runs(db_path) == 1
+
+
+# --- claim_next_queued -------------------------------------------------
+
+
+def test_claim_next_queued_empty_table_returns_none(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    conn = sqlite3.connect(db_path)
+    try:
+        assert claim_next_queued(conn) is None
+    finally:
+        conn.close()
+
+
+def test_claim_next_queued_one_row_claims_it(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(run_id="run-a", status="queued", heartbeat_ts=None)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        claimed = claim_next_queued(conn)
+    finally:
+        conn.close()
+
+    assert claimed is not None
+    assert claimed.run_id == "run-a"
+    assert claimed.status == "running"
+    assert claimed.heartbeat_ts is not None
+
+    row = _fetch_run(db_path, "run-a")
+    assert row["status"] == "running"
+    assert row["heartbeat_ts"] == claimed.heartbeat_ts
+
+
+def test_claim_next_queued_claims_the_older_row(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    older = _record(run_id="run-old", status="queued", created_at=1000)
+    newer = _record(run_id="run-new", status="queued", created_at=2000)
+    insert_run(db_path, newer)
+    insert_run(db_path, older)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        claimed = claim_next_queued(conn)
+    finally:
+        conn.close()
+
+    assert claimed is not None
+    assert claimed.run_id == "run-old"
+    assert _fetch_run(db_path, "run-new")["status"] == "queued"
+
+
+def test_claim_next_queued_ignores_running_rows(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    running = _record(run_id="run-running", status="running", created_at=500)
+    queued = _record(run_id="run-queued", status="queued", created_at=1500)
+    insert_run(db_path, running)
+    insert_run(db_path, queued)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        claimed = claim_next_queued(conn)
+    finally:
+        conn.close()
+
+    assert claimed is not None
+    assert claimed.run_id == "run-queued"
+    assert _fetch_run(db_path, "run-running")["status"] == "running"
+
+
+# --- update_heartbeat ----------------------------------------------------
+
+
+def test_update_heartbeat_sets_new_value(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(run_id="run-hb", heartbeat_ts=1)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        update_heartbeat(conn, "run-hb")
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, "run-hb")
+    assert row["heartbeat_ts"] is not None
+    assert row["heartbeat_ts"] > 1
+
+
+# --- update_run_status -----------------------------------------------------
+
+
+def test_update_run_status_done_with_metrics_and_artifacts(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(run_id="run-done", status="running", metrics={}, artifacts={})
+    insert_run(db_path, record)
+
+    metrics = {"sharpe": 1.1, "cagr": 0.15}
+    artifacts = {"equity": "equity.parquet"}
+
+    conn = sqlite3.connect(db_path)
+    try:
+        update_run_status(
+            conn,
+            "run-done",
+            status="done",
+            metrics=metrics,
+            artifacts=artifacts,
+        )
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, "run-done")
+    assert row["status"] == "done"
+    assert json.loads(row["metrics"]) == metrics
+    assert json.loads(row["artifacts"]) == artifacts
+
+
+def test_update_run_status_failed_with_error(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(run_id="run-fail", status="running", error=None)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        update_run_status(conn, "run-fail", status="failed", error="boom")
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, "run-fail")
+    assert row["status"] == "failed"
+    assert row["error"] == "boom"
+
+
+def test_update_run_status_sets_finished_at(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(run_id="run-finished", status="running", finished_at=None)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        update_run_status(conn, "run-finished", status="done", finished_at=12345)
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, "run-finished")
+    assert row["status"] == "done"
+    assert row["finished_at"] == 12345
+
+
+# --- fail_stale_running ------------------------------------------------
+
+
+def test_fail_stale_running_marks_old_heartbeat_as_failed(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    now = _now_ms()
+    record = _record(run_id="run-stale", status="running", heartbeat_ts=now - 61_000)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        count = fail_stale_running(conn, stale_ms=60_000)
+    finally:
+        conn.close()
+
+    assert count == 1
+    row = _fetch_run(db_path, "run-stale")
+    assert row["status"] == "failed"
+    assert row["error"] == "heartbeat timeout"
+
+
+def test_fail_stale_running_leaves_fresh_heartbeat_unchanged(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    now = _now_ms()
+    record = _record(run_id="run-fresh", status="running", heartbeat_ts=now)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        count = fail_stale_running(conn, stale_ms=60_000)
+    finally:
+        conn.close()
+
+    assert count == 0
+    row = _fetch_run(db_path, "run-fresh")
+    assert row["status"] == "running"
+
+
+def test_fail_stale_running_ignores_queued_rows(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    now = _now_ms()
+    record = _record(run_id="run-queued", status="queued", heartbeat_ts=now - 61_000)
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        count = fail_stale_running(conn, stale_ms=60_000)
+    finally:
+        conn.close()
+
+    assert count == 0
+    row = _fetch_run(db_path, "run-queued")
+    assert row["status"] == "queued"
+
+
+def test_fail_stale_running_multiple_rows(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    now = _now_ms()
+    stale_a = _record(
+        run_id="run-stale-a", status="running", heartbeat_ts=now - 100_000
+    )
+    stale_b = _record(
+        run_id="run-stale-b", status="running", heartbeat_ts=now - 200_000
+    )
+    fresh = _record(run_id="run-stale-c", status="running", heartbeat_ts=now)
+    insert_run(db_path, stale_a)
+    insert_run(db_path, stale_b)
+    insert_run(db_path, fresh)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        count = fail_stale_running(conn, stale_ms=60_000)
+    finally:
+        conn.close()
+
+    assert count == 2
+    assert _fetch_run(db_path, "run-stale-a")["status"] == "failed"
+    assert _fetch_run(db_path, "run-stale-b")["status"] == "failed"
+    assert _fetch_run(db_path, "run-stale-c")["status"] == "running"

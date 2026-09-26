@@ -53,7 +53,11 @@ from quant.api.schemas import (
     TradePage,
     Verification,
 )
-from quant.data.runs_store import RunRecord, insert_run_with_connection
+from quant.data.runs_store import (
+    RunRecord,
+    fail_stale_running,
+    insert_run_with_connection,
+)
 
 _VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold"})
 
@@ -152,6 +156,8 @@ def list_runs(
     page_size: Annotated[int, Query(ge=1, le=500)] = 50,
 ) -> RunList:
     db.row_factory = sqlite3.Row
+
+    fail_stale_running(db)
 
     where_clauses: list[str] = []
     params: list[str] = []
