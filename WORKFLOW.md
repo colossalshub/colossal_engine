@@ -149,6 +149,18 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
   lifetime. Discovered in Phase 6.1 — the original task spec assumed the
   v4 API (`series.setMarkers(...)`), which doesn't exist in v5.
 
+### AG Grid v33+ module registration
+
+- **AG Grid v33+ requires `ModuleRegistry.registerModules([AllCommunityModule])`
+  at app initialization (`main.tsx`).** Without it, `AgGridReact` still
+  renders rows/columns/sorting/`valueFormatter`/theme CSS variables, but
+  features backed by an unregistered module — e.g. `cellStyle` (needs
+  `CellStyleModule`, bundled inside `AllCommunityModule`) — **silently
+  no-op with no console warning or error**. Discovered in Phase 6.3:
+  `TradeLedger.tsx`'s conditional PnL coloring rendered gray instead of
+  red/green because this registration call was missing since Phase 4.5
+  first wired up AG Grid. Fixed in Phase 6.3.1.
+
 ---
 
 ## 7. API JSON contract (from `PROJECT.md` §4.4)
