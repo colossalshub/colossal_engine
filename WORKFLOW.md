@@ -242,16 +242,17 @@ Things agents have actually tried, that need to be caught:
 
 ## 11. State at end of trust pass
 
-- **Roadmap complete.** Phases 0–9 + T.1 + T.1.1 + T.2 shipped.
-- **Test count:** 329 backend, 146 frontend
-- **Fees:** configurable per run via `params['maker_fee']` / `params['taker_fee']`, default 0.001 (0.1%). CLI flags `--maker-fee` / `--taker-fee`. Form has "Fee %" input.
-- **Benchmark:** optional via `params['benchmark_symbol']`. Empty string → no benchmark. CLI flag `--benchmark-symbol`. Form has "Benchmark" input.
-- BuyHold sizing: `params['deploy_pct']` (string decimal, default '1.0'
-  = 100% of equity deployed). '0' falls back to a fixed `trade_size`.
-  Position sizes as `deploy_pct × equity / bar.close × 0.999` (buffer for
-  fees) on the first bar.
-- **Known limitations (unchanged):**
-  - Fill model uses Nautilus's default (fills at bar price, zero slippage)
-  - Runner only fully supports BTC/USDT — `CurrencyPair` base/quote is hardcoded
-  - Single-instrument per run
-- **Backlog (deferred until after real use):** Monte Carlo, walk-forward, parameter optimization, multi-instrument, cloud
+- **Roadmap complete.** Phases 0–9 + T.1 + T.1.1 + T.2 + T.3 + T.4 + T.4.1 shipped.
+- **Test count:** 340 backend, 153 frontend
+- **Verified platform:**
+  - Fees: configurable per run, default 0.1% (Binance retail)
+  - Sizing: `deploy_pct` param, default 100% of equity
+  - Benchmark: optional `benchmark_symbol` param
+  - Verification: reconciled against Nautilus account report (`source="account_report"`)
+- **Trust pass verified against real data:**
+  - 2020-2024 BTC/USDT buy-hold, 100% deployed → 67% CAGR, -77% max DD
+  - Verification discrepancy: 5.56e-13 (float rounding)
+- **Known limitations (documented in README):**
+  - Fill model uses Nautilus default (fills at bar price, matches against bar volume)
+  - Single-instrument per run (BTC/USDT pair hardcoded in `CurrencyPair`)
+  - No walk-forward, Monte Carlo, or parameter optimization
