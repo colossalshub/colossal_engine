@@ -21,13 +21,13 @@ describe('App routing', () => {
 
   it('renders Data Manager at /data', () => {
     renderAt('/data')
-    expect(screen.getByText('Data Manager placeholder')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Coverage' })).toBeInTheDocument()
   })
 
   it('renders nothing for an unknown route', () => {
     renderAt('/nope')
     expect(screen.queryByText('Run History')).not.toBeInTheDocument()
     expect(screen.queryByText('Loading tear sheet…')).not.toBeInTheDocument()
-    expect(screen.queryByText('Data Manager placeholder')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Coverage' })).not.toBeInTheDocument()
   })
 })

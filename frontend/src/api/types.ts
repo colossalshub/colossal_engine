@@ -155,3 +155,22 @@ export interface TradePage {
   page: number;
   page_size: number;
 }
+
+export interface CoverageCell {
+  year: number;
+  month: number;
+  bars: number;
+  expected: number;
+  coverage: number;
+}
+
+export interface CoverageRow {
+  venue: string;
+  symbol: string;
+  timeframe: string;
+  cells: CoverageCell[];
+}
+
+export interface CoverageResponse {
+  rows: CoverageRow[];
+}

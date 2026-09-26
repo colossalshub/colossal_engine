@@ -1,0 +1,128 @@
+.coverage-heatmap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--s-2) 0;
+}
+
+.coverage-heatmap__svg-wrap {
+  position: relative;
+}
+
+.coverage-heatmap__header-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  fill: var(--text-dim);
+}
+
+.coverage-heatmap__row-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  fill: var(--text-dim);
+}
+
+.coverage-heatmap__cell {
+  cursor: default;
+  transition: stroke 120ms ease;
+}
+
+.coverage-heatmap__cell:hover {
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.coverage-heatmap__tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: var(--s-1) var(--s-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.coverage-heatmap__tooltip-label {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.coverage-heatmap__tooltip-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.coverage-heatmap__tooltip-months {
+  color: var(--text-mute);
+  font-size: 10px;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.coverage-heatmap__empty {
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+}
+
+.coverage-heatmap__state {
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+}
+
+.coverage-heatmap__state--error {
+  border-left: 2px solid var(--neg);
+  padding-left: var(--s-3);
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: var(--s-4);
+}
+
+.coverage-heatmap__state--error button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+}
+
+.coverage-heatmap__legend {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  padding-top: var(--s-3);
+}
+
+.coverage-heatmap__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.coverage-heatmap__legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}

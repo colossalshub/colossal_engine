@@ -47,7 +47,7 @@ describe('Shell', () => {
     const user = userEvent.setup()
     renderAt('/')
     await user.click(screen.getByRole('link', { name: 'Data Manager' }))
-    expect(screen.getByText('Data Manager placeholder')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Coverage' })).toBeInTheDocument()
     expect(screen.queryByText('Run History')).not.toBeInTheDocument()
   })
 })
