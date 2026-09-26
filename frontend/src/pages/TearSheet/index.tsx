@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
 import { Badge } from '../../components/ui/Badge'
+import { VerificationBadge } from '../../components/ui/VerificationBadge'
 import { DrawdownChart } from './DrawdownChart'
 import { EquityCurve } from './EquityCurve'
 import { KpiCards } from './KpiCards'
@@ -63,6 +64,7 @@ export default function TearSheet() {
           <Link to="/" className="tear-sheet__back">← Back</Link>
           <h1 className="tear-sheet__name">{run.name}</h1>
           <Badge status={run.status} />
+          <VerificationBadge verification={data.verification} />
         </div>
         <div className="tear-sheet__meta">
           <span>{run.universe.join(' · ')}</span>
