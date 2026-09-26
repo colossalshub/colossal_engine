@@ -218,10 +218,11 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of Phase 6
+## 11. State at end of Phase 7
 
-- **Last committed phase:** Phase 6.5 (`f8d6c18` — EmptyState)
-- **Next phase:** Phase 7.1 (POST /api/runs router)
-- **Phases remaining:** 7.x, 8.x, 9.x
-- **Test count:** 105 frontend, 257 backend
-- **Real data on disk:** 2 runs, 5 parquets each, 31 BTC/USDT 1d bars
+- **Last committed phase:** Phase 7.4 (`c0f268a` — compare view)
+- **Next phase:** Phase 8.1 (`GET /api/data/coverage`)
+- **Phases remaining:** 8.x, 9.x
+- **Test count:** 125 frontend, 289 backend
+- **Real data on disk:** multiple runs (done + failed + queued), 5 parquets each, 31 BTC/USDT 1d bars
+- **Worker:** `scripts/run_worker.py` — start manually to drain queued runs
