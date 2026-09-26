@@ -251,9 +251,10 @@ interface TearSheet {
 }
 
 interface KpiBlock {
-  sharpe: number; sortino: number; cagr: number; volatility: number;
-  max_drawdown: number; calmar: number; win_rate: number; profit_factor: number;
-  turnover: number; total_trades: number; avg_duration_days: number;
+  sharpe: number | null; sortino: number | null; cagr: number | null;
+  volatility: number | null; max_drawdown: number | null; calmar: number | null;
+  win_rate: number | null; profit_factor: number | null; turnover: number | null;
+  total_trades: number | null; avg_duration_days: number | null;
 }
 
 interface EquityPoint    { ts: number; equity: number; benchmark: number | null; }
