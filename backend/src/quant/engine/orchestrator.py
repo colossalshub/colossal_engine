@@ -119,11 +119,14 @@ def execute_run(
 
     Reads ``venue`` from ``params["venue"]``, defaulting to ``"binance"`` when
     absent. Reads ``maker_fee`` / ``taker_fee`` from ``params``, each defaulting
-    to ``"0.001"`` when absent. Raises ValueError if ``params["venue"]`` is
-    present but not a string, if fee params are present but not strings, if no
-    bars are in range, or if the record's ``params`` lack a valid timeframe and
-    ``periods_per_year`` cannot be inferred. The caller is responsible for
-    updating status='failed' on exception.
+    to ``"0.001"`` when absent. Reads ``deploy_pct`` from ``params``, defaulting
+    to ``"1.0"`` (100% of equity) when absent; forwarded to ``run_backtest`` /
+    ``BuyHold`` for equity-based position sizing. Raises ValueError if
+    ``params["venue"]`` is present but not a string, if fee or ``deploy_pct``
+    params are present but not strings, if no bars are in range, or if the
+    record's ``params`` lack a valid timeframe and ``periods_per_year`` cannot
+    be inferred. The caller is responsible for updating status='failed' on
+    exception.
 
     When ``params["benchmark_symbol"]`` is a non-empty string, benchmark bars
     are loaded from the same DuckDB (venue/timeframe as the run) and passed to
@@ -169,6 +172,10 @@ def execute_run(
     if not isinstance(taker_fee_raw, str):
         raise ValueError("params['taker_fee'] must be a string")
 
+    deploy_pct_raw = record.params.get("deploy_pct", "1.0")
+    if not isinstance(deploy_pct_raw, str):
+        raise ValueError("params['deploy_pct'] must be a string")
+
     result = run_backtest(
         venue=venue,
         symbol=symbol,
@@ -178,6 +185,7 @@ def execute_run(
         end_ts=record.end_ts,
         starting_balance_usdt=starting_balance,
         trade_size=trade_size,
+        deploy_pct=deploy_pct_raw,
         maker_fee=maker_fee_raw,
         taker_fee=taker_fee_raw,
     )

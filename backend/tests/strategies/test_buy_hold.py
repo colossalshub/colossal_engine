@@ -35,6 +35,23 @@ def test_buy_hold_default_trade_size() -> None:
     assert strategy._trade_size == "1"
 
 
+def test_buy_hold_default_deploy_pct_is_disabled() -> None:
+    strategy = BuyHold(
+        instrument_id="BTCUSDT.BINANCE",
+        bar_type="BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL",
+    )
+    assert strategy._deploy_pct == "0"
+
+
+def test_buy_hold_constructor_stores_deploy_pct() -> None:
+    strategy = BuyHold(
+        instrument_id="BTCUSDT.BINANCE",
+        bar_type="BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL",
+        deploy_pct="1.0",
+    )
+    assert strategy._deploy_pct == "1.0"
+
+
 def test_buy_hold_defines_lifecycle_methods() -> None:
     assert hasattr(BuyHold, "on_start")
     assert hasattr(BuyHold, "on_bar")

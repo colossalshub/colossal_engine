@@ -122,6 +122,7 @@ describe('StrategyForm', () => {
         strategy: 'buy_hold',
         params: {
           trade_size: '1',
+          deploy_pct: '1',
           timeframe: '1d',
           venue: 'binance',
           maker_fee: '0.001',
@@ -152,6 +153,7 @@ describe('StrategyForm', () => {
         strategy: 'buy_hold',
         params: {
           trade_size: '1',
+          deploy_pct: '1',
           timeframe: '1d',
           venue: 'binance',
           maker_fee: '0.0005',
@@ -202,6 +204,7 @@ describe('StrategyForm', () => {
         strategy: 'buy_hold',
         params: {
           trade_size: '1',
+          deploy_pct: '1',
           timeframe: '4h',
           venue: 'binance',
           maker_fee: '0.001',
@@ -212,6 +215,29 @@ describe('StrategyForm', () => {
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),
       })
+    })
+  })
+
+  it('changing deploy % updates the payload', async () => {
+    const user = userEvent.setup()
+    const createRunSpy = vi
+      .spyOn(runsApi, 'createRun')
+      .mockResolvedValue(sampleRun)
+    renderForm()
+
+    const deployInput = screen.getByLabelText('% Deployed')
+    await user.clear(deployInput)
+    await user.type(deployInput, '50')
+    await user.click(screen.getByRole('button', { name: /Run/ }))
+
+    await waitFor(() => {
+      expect(createRunSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({
+            deploy_pct: '0.5',
+          }),
+        }),
+      )
     })
   })
 

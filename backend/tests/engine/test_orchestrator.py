@@ -70,7 +70,7 @@ def _store_daily_bars(db_path: Path, *, start_ts: int, count: int = 10) -> int:
                 "high": 110.0,
                 "low": 90.0,
                 "close": 100.0,
-                "volume": 1.0,
+                "volume": 1_000_000.0,
             }
         )
     upsert_bars(db_path, rows)
@@ -205,6 +205,7 @@ def test_execute_run_params_fees_flow_through(tmp_path: Path) -> None:
         params={
             "timeframe": "1d",
             "trade_size": "1",
+            "deploy_pct": "0",
             "maker_fee": "0.01",
             "taker_fee": "0.01",
         },
@@ -317,6 +318,51 @@ def test_execute_run_missing_benchmark_bars_graceful(tmp_path: Path) -> None:
     rows, nulls = _equity_benchmark_null_count(artifacts_dir, updated.run_id)
     assert rows > 0
     assert nulls == rows
+
+
+def test_execute_run_params_deploy_pct_flows_through(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "deploy_pct": "1.0",
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    for key in ("sharpe", "cagr", "max_drawdown"):
+        assert key in updated.metrics
+
+
+def test_execute_run_non_string_deploy_pct_raises(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "deploy_pct": 1.0,
+        },
+    )
+
+    with pytest.raises(ValueError, match="deploy_pct"):
+        execute_run(record, bars_db_path=db_path, artifacts_dir=artifacts_dir)
 
 
 def test_execute_run_empty_benchmark_symbol_disables(tmp_path: Path) -> None:

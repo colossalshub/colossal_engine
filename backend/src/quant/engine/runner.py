@@ -99,9 +99,17 @@ def run_backtest(
     end_ts: int,
     starting_balance_usdt: float = 100_000.0,
     trade_size: str = "1",
+    deploy_pct: str = "0",
     maker_fee: str = "0.001",
     taker_fee: str = "0.001",
 ) -> BacktestResult:
+    """Run a ``BuyHold`` backtest and return the raw result.
+
+    ``deploy_pct`` (string decimal, default ``"0"``) is forwarded to
+    ``BuyHold``: when positive, the entry is sized as a fraction of equity
+    (``deploy_pct * equity / bar.close``, buffered by 0.999 for fees);
+    when ``"0"`` or empty, the fixed ``trade_size`` is used instead.
+    """
     canonical_timeframe = _canonical_from_bar_type(bar_type_str)
     rows = read_bars_json(
         db_path=bars_db_path,
@@ -172,6 +180,7 @@ def run_backtest(
             instrument_id=str(instrument_id),
             bar_type=bar_type_str,
             trade_size=normalized_trade_size,
+            deploy_pct=deploy_pct,
         )
     )
 

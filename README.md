@@ -115,6 +115,9 @@ REVIEWER.md     Playbook for the reviewer role
 - Benchmark is `null` on every run — no reference index is wired yet.
 - Fill model uses Nautilus's default (fills at bar price, zero slippage).
   Realistic for daily bars; optimistic for intraday.
+- `BuyHold` deploys 100% of equity by default. Change "% Deployed" in
+  the run form (or `--deploy-pct` on the CLI) to size positions
+  differently.
 - Single-worker. Only one backtest runs at a time.
 - Single-instrument per run. No cross-sectional strategies.
 - No walk-forward, no Monte Carlo, no parameter optimization.

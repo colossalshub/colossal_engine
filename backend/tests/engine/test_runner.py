@@ -117,6 +117,65 @@ def test_run_backtest_custom_fees_change_pnl(tmp_path: Path) -> None:
     assert high_fee.ending_balance < low_fee.ending_balance
 
 
+def _store_rising_daily_bars(
+    db_path: Path,
+    *,
+    start_ts: int,
+    count: int = 10,
+) -> tuple[int, int]:
+    ensure_canonical_bars(db_path)
+    rows: list[dict[str, object]] = []
+    for i in range(count):
+        ts = start_ts + i * _DAY_MS
+        close = 100.0 + float(i)
+        rows.append(
+            {
+                "venue": _VENUE,
+                "symbol": _SYMBOL,
+                "asset_class": "crypto",
+                "timeframe": "1d",
+                "ts": ts,
+                "open": close,
+                "high": close + 10.0,
+                "low": close - 10.0,
+                "close": close,
+                "volume": 1_000_000.0,
+            }
+        )
+    upsert_bars(db_path, rows)
+    end_ts = start_ts + (count - 1) * _DAY_MS
+    return start_ts, end_ts
+
+
+def test_run_backtest_higher_deploy_pct_produces_higher_ending_balance(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_rising_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    low_deploy = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        deploy_pct="0.5",
+    )
+    high_deploy = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        deploy_pct="1.0",
+    )
+
+    assert high_deploy.ending_balance > low_deploy.ending_balance
+
+
 def test_run_backtest_raises_on_invalid_bar_type(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     start_ts = 1_735_689_600_000

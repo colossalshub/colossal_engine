@@ -39,6 +39,7 @@ export function StrategyForm() {
   const [startDate, setStartDate] = useState<string>('2024-01-01')
   const [endDate, setEndDate] = useState<string>(todayISO())
   const [feePercent, setFeePercent] = useState<string>('0.1')
+  const [deployPercent, setDeployPercent] = useState<string>('100')
   const [benchmark, setBenchmark] = useState<string>('')
   const [name, setName] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
@@ -96,10 +97,15 @@ export function StrategyForm() {
     const feeDecimal = Number.isFinite(parsedFee)
       ? (parsedFee / 100).toString()
       : '0.001'
+    const parsedDeploy = parseFloat(deployPercent)
+    const deployPct = Number.isFinite(parsedDeploy)
+      ? (parsedDeploy / 100).toString()
+      : '1.0'
     const payload: RunCreate = {
       strategy,
       params: {
-        trade_size: '1',
+        trade_size: '1', // kept for backwards compat
+        deploy_pct: deployPct,
         timeframe,
         venue: 'binance',
         maker_fee: feeDecimal,
@@ -193,6 +199,21 @@ export function StrategyForm() {
             placeholder="BTC/USDT then Enter"
           />
         </div>
+      </div>
+
+      <div className="strategy-form__row">
+        <label className="strategy-form__field">
+          <span className="strategy-form__label">% Deployed</span>
+          <input
+            className="strategy-form__input"
+            type="number"
+            step="1"
+            min="0"
+            max="100"
+            value={deployPercent}
+            onChange={(e) => setDeployPercent(e.target.value)}
+          />
+        </label>
       </div>
 
       <div className="strategy-form__row strategy-form__row--4col">

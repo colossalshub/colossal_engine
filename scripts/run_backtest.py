@@ -98,6 +98,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Trade size in base units (default: 1)",
     )
     parser.add_argument(
+        "--deploy-pct",
+        default="1.0",
+        help=(
+            "Fraction of equity to deploy on entry, decimal string "
+            "(default: 1.0 = 100%%; 0 falls back to --trade-size)"
+        ),
+    )
+    parser.add_argument(
         "--starting-balance",
         type=float,
         default=100_000.0,
@@ -187,6 +195,7 @@ def main() -> None:
         strategy=strategy,
         params={
             "trade_size": trade_size,
+            "deploy_pct": args.deploy_pct,
             "starting_balance": starting_balance,
             "timeframe": timeframe,
             "venue": args.venue,
