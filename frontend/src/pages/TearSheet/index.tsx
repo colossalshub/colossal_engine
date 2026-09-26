@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
 import { Badge } from '../../components/ui/Badge'
+import { PriceChart } from './PriceChart'
 import './tearSheet.css'
 
 function formatDate(tsMs: number): string {
@@ -83,9 +84,7 @@ export default function TearSheet() {
 
       <section className="tear-sheet__section">
         <h2 className="tear-sheet__section-heading">Price + Fills</h2>
-        <div className="tear-sheet__placeholder tear-sheet__placeholder--tall">
-          Phase 5.3
-        </div>
+        <PriceChart data={data.price} />
       </section>
 
       <section className="tear-sheet__grid-2">
