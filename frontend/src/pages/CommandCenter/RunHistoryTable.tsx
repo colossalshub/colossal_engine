@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { listRuns } from '../../api/runs'
 import type { RunSummary } from '../../api/types'
+import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
 import '../../components/grid/agGridTheme.css'
 
 const colDefs: ColDef<RunSummary>[] = [
@@ -105,12 +106,10 @@ export function RunHistoryTable({ onSelectionChange }: RunHistoryTableProps) {
 
   if (isError) {
     return (
-      <div className="run-history__state run-history__state--error">
-        <span>Failed to load runs: {String(error)}</span>
-        <button onClick={() => refetch()} type="button">
-          Retry
-        </button>
-      </div>
+      <ErrorDisplay
+        message={`Failed to load runs: ${String(error)}`}
+        onRetry={() => refetch()}
+      />
     )
   }
 

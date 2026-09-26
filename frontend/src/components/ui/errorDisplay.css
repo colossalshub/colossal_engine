@@ -1,0 +1,25 @@
+.error-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border-left: 2px solid var(--neg);
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+  color: var(--neg);
+}
+
+.error-display__message {
+  word-break: break-word;
+}
+
+.error-display__retry {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--radius);
+  font-size: var(--fs-xs);
+}

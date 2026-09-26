@@ -5,6 +5,7 @@ import { getTearsheet } from '../../api/runs'
 import type { RunStatus } from '../../api/types'
 import { Badge } from '../../components/ui/Badge'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
 import { VerificationBadge } from '../../components/ui/VerificationBadge'
 import { DrawdownChart } from './DrawdownChart'
 import { EquityCurve } from './EquityCurve'
@@ -65,12 +66,12 @@ export default function TearSheet() {
 
   if (isError) {
     return (
-      <div className="tear-sheet__state tear-sheet__state--error">
-        <span>Failed to load tear sheet: {String(error)}</span>
-        <div className="tear-sheet__actions">
-          <button onClick={() => refetch()} type="button">Retry</button>
-          <Link to="/">Back to Command Center</Link>
-        </div>
+      <div className="tear-sheet__error-wrap">
+        <ErrorDisplay
+          message={`Failed to load tear sheet: ${String(error)}`}
+          onRetry={() => refetch()}
+        />
+        <Link to="/" className="tear-sheet__back">← Back to Command Center</Link>
       </div>
     )
   }
