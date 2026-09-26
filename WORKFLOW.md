@@ -227,6 +227,9 @@ Things agents have actually tried, that need to be caught:
   `.env` at import; real env vars always take precedence.
 - **`git status --short` shows `M .cursor/rules/project.mdc`** whenever rules are edited — commit as a mini-phase (`Phase X.Y.1: add rule N`).
 - Start the API with `--reload` during development: `python -m uvicorn quant.api.main:app --port 8000 --reload`
+- `scripts/cleanup.py` archives parquet artifacts older than 30 days
+  (default). It flips `meta_runs.status` to 'archived' and nulls the
+  `artifacts` JSON. Run `--dry-run` first to preview.
 
 ---
 
