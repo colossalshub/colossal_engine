@@ -233,11 +233,13 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of Phase 7
+## 11. State at end of Phase 9
 
-- **Last committed phase:** Phase 7.4 (`c0f268a` — compare view)
-- **Next phase:** Phase 8.1 (`GET /api/data/coverage`)
-- **Phases remaining:** 8.x, 9.x
-- **Test count:** 125 frontend, 289 backend
-- **Real data on disk:** multiple runs (done + failed + queued), 5 parquets each, 31 BTC/USDT 1d bars
-- **Worker:** `scripts/run_worker.py` — start manually to drain queued runs
+- **Roadmap complete.** All phases 0–9 shipped.
+- **Test count:** 323 backend, 142 frontend
+- **Real data on disk:** multiple runs (done, failed, archived), 5 parquets each, BTC/USDT 1d + 1mo bars
+- **Known issues to fix next:**
+  - Fees are 10× too low (`0.0001` instead of `0.001`) — Trust pass T.1
+  - Benchmark is `null` on every run — Trust pass T.2
+  - Fill model uses Nautilus's default (no slippage) — documented limitation
+- **Post-roadmap backlog (deferred):** Monte Carlo, walk-forward, parameter optimization, multi-instrument, cloud deployment
