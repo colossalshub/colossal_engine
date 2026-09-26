@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from '../../App'
-import type { RunList, RunSummary } from '../../api/types'
+import type { RunList, RunSummary, TearSheet } from '../../api/types'
 import { RunHistoryTable } from './RunHistoryTable'
 import * as runsApi from '../../api/runs'
 import { renderWithProviders } from '../../test-utils'
@@ -24,6 +24,24 @@ const sampleRun: RunSummary = {
   sharpe: 1.23,
   cagr: 0.15,
   max_drawdown: -0.08,
+}
+
+const sampleTearsheet: TearSheet = {
+  run: sampleRun,
+  params: {},
+  kpis: {
+    sharpe: null, sortino: null, cagr: null, volatility: null,
+    max_drawdown: null, calmar: null, win_rate: null,
+    profit_factor: null, turnover: null, total_trades: null,
+    avg_duration_days: null,
+  },
+  equity: [],
+  drawdown: [],
+  price: [],
+  markers: [],
+  monthly_returns: [],
+  verification: { verified: true, discrepancy_pct: 0, source: 'reconstructed' },
+  artifacts: {},
 }
 
 describe('RunHistoryTable', () => {
@@ -79,6 +97,7 @@ describe('RunHistoryTable', () => {
       page: 1,
       page_size: 50,
     })
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
 
     renderWithProviders(<App />, { route: '/' })
 
@@ -86,7 +105,7 @@ describe('RunHistoryTable', () => {
     await user.click(cell)
 
     await waitFor(() => {
-      expect(screen.getByText('Tear Sheet placeholder')).toBeInTheDocument()
+      expect(screen.getByText('← Back')).toBeInTheDocument()
     })
   })
 })

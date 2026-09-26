@@ -1,5 +1,5 @@
 import { apiGet } from './client'
-import type { RunList } from './types'
+import type { RunList, TearSheet } from './types'
 
 export async function listRuns(params?: {
   strategy?: string
@@ -14,4 +14,8 @@ export async function listRuns(params?: {
   if (params?.page_size !== undefined) search.set('page_size', String(params.page_size))
   const qs = search.toString()
   return apiGet<RunList>(`/runs${qs ? `?${qs}` : ''}`)
+}
+
+export async function getTearsheet(runId: string): Promise<TearSheet> {
+  return apiGet<TearSheet>(`/runs/${encodeURIComponent(runId)}/tearsheet`)
 }

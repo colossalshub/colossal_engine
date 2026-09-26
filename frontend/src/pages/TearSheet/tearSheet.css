@@ -1,0 +1,130 @@
+.tear-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  width: 100%;
+}
+
+/* Header --------------------------------------------------------------- */
+
+.tear-sheet__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.tear-sheet__header-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.tear-sheet__back {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+}
+
+.tear-sheet__back:hover {
+  color: var(--text);
+}
+
+.tear-sheet__name {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.tear-sheet__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+}
+
+.tear-sheet__meta-sep {
+  color: var(--text-mute);
+}
+
+.tear-sheet__meta-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+}
+
+/* Sections ------------------------------------------------------------- */
+
+.tear-sheet__section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.tear-sheet__section-heading {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--text);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.tear-sheet__grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+
+.tear-sheet__placeholder {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mute);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+}
+
+.tear-sheet__placeholder--tall {
+  height: 420px;
+}
+
+/* State messages ------------------------------------------------------- */
+
+.tear-sheet__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  height: 60vh;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+}
+
+.tear-sheet__state--error {
+  color: var(--neg);
+}
+
+.tear-sheet__actions {
+  display: flex;
+  gap: var(--s-3);
+}
+
+.tear-sheet__actions button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+}

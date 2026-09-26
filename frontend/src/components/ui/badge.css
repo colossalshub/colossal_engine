@@ -1,0 +1,36 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 20px;
+  padding: 0 var(--s-2);
+  border-radius: var(--radius);
+  font-size: var(--fs-xs);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.badge--queued   { background: rgba(107, 114, 128, 0.15); color: var(--text-mute); }
+.badge--running  { background: rgba(59, 130, 246, 0.15);  color: var(--accent); }
+.badge--done     { background: rgba(34, 197, 94, 0.15);   color: var(--pos); }
+.badge--failed   { background: rgba(239, 68, 68, 0.15);   color: var(--neg); }
+.badge--archived { background: rgba(107, 114, 128, 0.15); color: var(--text-mute); }
+
+.badge--running .badge__dot {
+  animation: badge-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
