@@ -1,0 +1,101 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  background: var(--bg);
+}
+
+/* Sidebar ------------------------------------------------------------- */
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__logo {
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-3);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-2) 0;
+}
+
+.sidebar__item {
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.sidebar__item:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.sidebar__item--active {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.sidebar__item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+/* Main area ----------------------------------------------------------- */
+
+.shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s-4);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar__breadcrumb {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+}
+
+.topbar__status {
+  min-width: 40px;
+}
+
+.shell__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s-4);
+}
