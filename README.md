@@ -109,9 +109,9 @@ REVIEWER.md     Playbook for the reviewer role
 
 ## Known limitations
 
-- Fees default to 0.01% (maker/taker); real Binance retail is 0.1%. Adjust
-  `maker_fee`/`taker_fee` in `backend/src/quant/engine/runner.py` before
-  relying on PnL absolute values.
+- Fees default to 0.1% (maker/taker), matching Binance retail. Adjust
+  `maker_fee`/`taker_fee` in `backend/src/quant/engine/runner.py` for
+  higher or lower fee tiers.
 - Benchmark is `null` on every run — no reference index is wired yet.
 - Fill model uses Nautilus's default (fills at bar price, zero slippage).
   Realistic for daily bars; optimistic for intraday.

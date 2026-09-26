@@ -143,8 +143,8 @@ def run_backtest(
         size_increment=Quantity.from_str("0.000001"),
         ts_event=start_ts * 1_000_000,
         ts_init=start_ts * 1_000_000,
-        maker_fee=Decimal("0.0001"),
-        taker_fee=Decimal("0.0001"),
+        maker_fee=Decimal("0.001"),   # Binance retail 0.1% (Phase T.1)
+        taker_fee=Decimal("0.001"),
     )
     engine.add_instrument(instrument)
 
