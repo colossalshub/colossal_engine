@@ -98,6 +98,51 @@ describe('TearSheet page', () => {
     })
   })
 
+  it('polls when the run is queued', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      const getTearsheetSpy = vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+        ...sampleTearsheet,
+        run: { ...sampleTearsheet.run, status: 'queued' },
+      })
+
+      renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+
+      await waitFor(() => {
+        expect(getTearsheetSpy).toHaveBeenCalledTimes(1)
+      })
+
+      await vi.advanceTimersByTimeAsync(2000)
+
+      await waitFor(() => {
+        expect(getTearsheetSpy.mock.calls.length).toBeGreaterThanOrEqual(2)
+      })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not poll when the run is done', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      const getTearsheetSpy = vi
+        .spyOn(runsApi, 'getTearsheet')
+        .mockResolvedValue(sampleTearsheet)
+
+      renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+
+      await waitFor(() => {
+        expect(getTearsheetSpy).toHaveBeenCalledTimes(1)
+      })
+
+      await vi.advanceTimersByTimeAsync(5000)
+
+      expect(getTearsheetSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('shows the empty state for a queued run instead of charts', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
       ...sampleTearsheet,

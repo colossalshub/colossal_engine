@@ -70,6 +70,14 @@ export function RunHistoryTable() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['runs'],
     queryFn: () => listRuns(),
+    refetchInterval: (query) => {
+      const data = query.state.data
+      if (!data) return false
+      const hasActive = data.items.some(
+        (r) => r.status === 'queued' || r.status === 'running',
+      )
+      return hasActive ? 2000 : false
+    },
   })
 
   const defaultColDef = useMemo<ColDef>(

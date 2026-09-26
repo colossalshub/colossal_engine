@@ -41,6 +41,13 @@ export default function TearSheet() {
     queryKey: ['tearsheet', runId],
     queryFn: () => getTearsheet(runId),
     enabled: runId.length > 0,
+    refetchInterval: (query) => {
+      const data = query.state.data
+      if (!data) return false
+      const s = data.run.status
+      if (s === 'queued' || s === 'running') return 2000
+      return false
+    },
   })
 
   if (!runId) {

@@ -89,6 +89,49 @@ describe('RunHistoryTable', () => {
     })
   })
 
+  it('polls when a queued run is present', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      const queuedRun: RunSummary = { ...sampleRun, status: 'queued' }
+      const list: RunList = { items: [queuedRun], total: 1, page: 1, page_size: 50 }
+      const listRunsSpy = vi.spyOn(runsApi, 'listRuns').mockResolvedValue(list)
+
+      renderWithProviders(<RunHistoryTable />)
+
+      await waitFor(() => {
+        expect(listRunsSpy).toHaveBeenCalledTimes(1)
+      })
+
+      await vi.advanceTimersByTimeAsync(2000)
+
+      await waitFor(() => {
+        expect(listRunsSpy.mock.calls.length).toBeGreaterThanOrEqual(2)
+      })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not poll when all runs are done', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    try {
+      const list: RunList = { items: [sampleRun], total: 1, page: 1, page_size: 50 }
+      const listRunsSpy = vi.spyOn(runsApi, 'listRuns').mockResolvedValue(list)
+
+      renderWithProviders(<RunHistoryTable />)
+
+      await waitFor(() => {
+        expect(listRunsSpy).toHaveBeenCalledTimes(1)
+      })
+
+      await vi.advanceTimersByTimeAsync(5000)
+
+      expect(listRunsSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('navigates to the tear sheet when a row is clicked', async () => {
     const user = userEvent.setup()
     vi.spyOn(runsApi, 'listRuns').mockResolvedValue({
