@@ -73,7 +73,7 @@ describe('TearSheet page', () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
     await waitFor(() => {
-      expect(screen.getByText('KPI Strip')).toBeInTheDocument()
+      expect(screen.getByText('KPIs')).toBeInTheDocument()
     })
     expect(screen.getByText('Price + Fills')).toBeInTheDocument()
     expect(screen.getByText('Equity')).toBeInTheDocument()

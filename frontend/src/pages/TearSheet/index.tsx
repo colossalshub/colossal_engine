@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
 import { Badge } from '../../components/ui/Badge'
+import { KpiCards } from './KpiCards'
 import { PriceChart } from './PriceChart'
 import './tearSheet.css'
 
@@ -78,8 +79,8 @@ export default function TearSheet() {
       </header>
 
       <section className="tear-sheet__section">
-        <h2 className="tear-sheet__section-heading">KPI Strip</h2>
-        <div className="tear-sheet__placeholder">Phase 5.4</div>
+        <h2 className="tear-sheet__section-heading">KPIs</h2>
+        <KpiCards kpis={data.kpis} />
       </section>
 
       <section className="tear-sheet__section">
