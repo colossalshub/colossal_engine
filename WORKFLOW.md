@@ -165,6 +165,10 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
   not just `main.tsx`. Vitest runs each test file in an isolated worker
   process; only `setupTests.ts` runs in every worker.
 
+- vitest.config.ts has retry: 2 to absorb AG Grid's jsdom layout
+  flakiness under parallel workers. Do not remove without verifying all
+  AG Grid tests pass 10 consecutive full-suite runs in parallel.
+
 ### Tear sheet for non-done runs
 
 - `GET /api/runs/{id}/tearsheet` must return a 200 empty shell for any
