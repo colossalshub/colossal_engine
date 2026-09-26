@@ -208,11 +208,10 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of Phase 5
+## 11. State at end of Phase 6
 
-- **Last committed phase:** Phase 5.6 (`ebde44d` — DrawdownChart)
-- **Next phase:** Phase 6.1 (price chart markers)
-- **Phases remaining:** 6.x, 7.x, 8.x, 9.x
-- **Test count:** 64 frontend, 257 backend
+- **Last committed phase:** Phase 6.5 (`f8d6c18` — EmptyState)
+- **Next phase:** Phase 7.1 (POST /api/runs router)
+- **Phases remaining:** 7.x, 8.x, 9.x
+- **Test count:** 105 frontend, 257 backend
 - **Real data on disk:** 2 runs, 5 parquets each, 31 BTC/USDT 1d bars
-- **Known data state:** all equity points have `benchmark: null` (extract_equity called without benchmark_bars); wiring a real benchmark is post-Phase-9
