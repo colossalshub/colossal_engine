@@ -38,6 +38,7 @@ export function StrategyForm() {
   const [symbolInput, setSymbolInput] = useState<string>('')
   const [startDate, setStartDate] = useState<string>('2024-01-01')
   const [endDate, setEndDate] = useState<string>(todayISO())
+  const [feePercent, setFeePercent] = useState<string>('0.1')
   const [name, setName] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -90,9 +91,19 @@ export function StrategyForm() {
       return
     }
 
+    const parsedFee = parseFloat(feePercent)
+    const feeDecimal = Number.isFinite(parsedFee)
+      ? (parsedFee / 100).toString()
+      : '0.001'
     const payload: RunCreate = {
       strategy,
-      params: { trade_size: '1', timeframe, venue: 'binance' },
+      params: {
+        trade_size: '1',
+        timeframe,
+        venue: 'binance',
+        maker_fee: feeDecimal,
+        taker_fee: feeDecimal,
+      },
       universe,
       start_ts,
       end_ts,
@@ -182,7 +193,7 @@ export function StrategyForm() {
         </div>
       </div>
 
-      <div className="strategy-form__row">
+      <div className="strategy-form__row strategy-form__row--3col">
         <label className="strategy-form__field">
           <span className="strategy-form__label">Start</span>
           <input
@@ -200,6 +211,18 @@ export function StrategyForm() {
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+          />
+        </label>
+
+        <label className="strategy-form__field">
+          <span className="strategy-form__label">Fee % (each side)</span>
+          <input
+            className="strategy-form__input"
+            type="number"
+            step="0.01"
+            min="0"
+            value={feePercent}
+            onChange={(e) => setFeePercent(e.target.value)}
           />
         </label>
       </div>

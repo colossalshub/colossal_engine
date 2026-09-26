@@ -99,6 +99,8 @@ def run_backtest(
     end_ts: int,
     starting_balance_usdt: float = 100_000.0,
     trade_size: str = "1",
+    maker_fee: str = "0.001",
+    taker_fee: str = "0.001",
 ) -> BacktestResult:
     canonical_timeframe = _canonical_from_bar_type(bar_type_str)
     rows = read_bars_json(
@@ -143,8 +145,8 @@ def run_backtest(
         size_increment=Quantity.from_str("0.000001"),
         ts_event=start_ts * 1_000_000,
         ts_init=start_ts * 1_000_000,
-        maker_fee=Decimal("0.001"),   # Binance retail 0.1% (Phase T.1)
-        taker_fee=Decimal("0.001"),
+        maker_fee=Decimal(maker_fee),
+        taker_fee=Decimal(taker_fee),
     )
     engine.add_instrument(instrument)
 

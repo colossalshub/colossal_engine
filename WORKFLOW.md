@@ -230,6 +230,9 @@ Things agents have actually tried, that need to be caught:
 - `scripts/cleanup.py` archives parquet artifacts older than 30 days
   (default). It flips `meta_runs.status` to 'archived' and nulls the
   `artifacts` JSON. Run `--dry-run` first to preview.
+- Fees: `params['maker_fee']` / `params['taker_fee']` are decimal
+  strings, default '0.001' (0.1%). Set per run via CLI flags
+  `--maker-fee` / `--taker-fee` or the StrategyForm's "Fee %" input.
 
 ---
 

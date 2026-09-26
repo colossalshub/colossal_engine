@@ -120,7 +120,42 @@ describe('StrategyForm', () => {
     await waitFor(() => {
       expect(createRunSpy).toHaveBeenCalledWith({
         strategy: 'buy_hold',
-        params: { trade_size: '1', timeframe: '1d', venue: 'binance' },
+        params: {
+          trade_size: '1',
+          timeframe: '1d',
+          venue: 'binance',
+          maker_fee: '0.001',
+          taker_fee: '0.001',
+        },
+        universe: ['BTC/USDT'],
+        start_ts: expect.any(Number),
+        end_ts: expect.any(Number),
+      })
+    })
+  })
+
+  it('changing the fee input updates the payload', async () => {
+    const user = userEvent.setup()
+    const createRunSpy = vi
+      .spyOn(runsApi, 'createRun')
+      .mockResolvedValue(sampleRun)
+    renderForm()
+
+    const feeInput = screen.getByLabelText('Fee % (each side)')
+    await user.clear(feeInput)
+    await user.type(feeInput, '0.05')
+    await user.click(screen.getByRole('button', { name: /Run/ }))
+
+    await waitFor(() => {
+      expect(createRunSpy).toHaveBeenCalledWith({
+        strategy: 'buy_hold',
+        params: {
+          trade_size: '1',
+          timeframe: '1d',
+          venue: 'binance',
+          maker_fee: '0.0005',
+          taker_fee: '0.0005',
+        },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),
@@ -141,7 +176,13 @@ describe('StrategyForm', () => {
     await waitFor(() => {
       expect(createRunSpy).toHaveBeenCalledWith({
         strategy: 'buy_hold',
-        params: { trade_size: '1', timeframe: '4h', venue: 'binance' },
+        params: {
+          trade_size: '1',
+          timeframe: '4h',
+          venue: 'binance',
+          maker_fee: '0.001',
+          taker_fee: '0.001',
+        },
         universe: ['BTC/USDT'],
         start_ts: expect.any(Number),
         end_ts: expect.any(Number),

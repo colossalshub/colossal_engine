@@ -61,6 +61,17 @@ describe('TearSheet page', () => {
     expect(screen.getByText('2024-01-01 → 2024-01-31')).toBeInTheDocument()
   })
 
+  it('displays fees when params contain maker_fee', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      params: { maker_fee: '0.001' },
+    })
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByText('fees 0.10%')).toBeInTheDocument()
+    })
+  })
+
   it('renders the short git sha', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })

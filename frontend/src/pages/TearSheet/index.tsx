@@ -97,6 +97,14 @@ export default function TearSheet() {
           <span>
             {formatDate(run.start_ts)} → {formatDate(run.end_ts)}
           </span>
+          {typeof data.params.maker_fee === 'string' ? (
+            <>
+              <span className="tear-sheet__meta-sep">·</span>
+              <span className="tear-sheet__meta-mono">
+                fees {((parseFloat(data.params.maker_fee) || 0) * 100).toFixed(2)}%
+              </span>
+            </>
+          ) : null}
           {run.git_sha ? (
             <>
               <span className="tear-sheet__meta-sep">·</span>

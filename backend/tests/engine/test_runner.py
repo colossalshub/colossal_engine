@@ -88,6 +88,35 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
     assert isinstance(result.fills_report, list)
 
 
+def test_run_backtest_custom_fees_change_pnl(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    low_fee = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        maker_fee="0.0001",
+        taker_fee="0.0001",
+    )
+    high_fee = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        maker_fee="0.01",
+        taker_fee="0.01",
+    )
+
+    assert high_fee.ending_balance < low_fee.ending_balance
+
+
 def test_run_backtest_raises_on_invalid_bar_type(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     start_ts = 1_735_689_600_000

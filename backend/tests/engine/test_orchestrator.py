@@ -154,6 +154,52 @@ def test_execute_run_venue_from_params(tmp_path: Path) -> None:
         execute_run(record, bars_db_path=db_path, artifacts_dir=artifacts_dir)
 
 
+def test_execute_run_params_fees_flow_through(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "maker_fee": "0.01",
+            "taker_fee": "0.01",
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    for key in ("sharpe", "cagr", "max_drawdown"):
+        assert key in updated.metrics
+
+
+def test_execute_run_non_string_maker_fee_raises(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "maker_fee": 0.001,
+        },
+    )
+
+    with pytest.raises(ValueError, match="maker_fee"):
+        execute_run(record, bars_db_path=db_path, artifacts_dir=artifacts_dir)
+
+
 def test_execute_run_missing_venue_defaults_to_binance(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)

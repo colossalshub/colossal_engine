@@ -104,6 +104,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Starting USDT balance (default: 100000)",
     )
     parser.add_argument(
+        "--maker-fee",
+        default="0.001",
+        help="Maker fee as decimal string (default: 0.001 = 0.1%%)",
+    )
+    parser.add_argument(
+        "--taker-fee",
+        default="0.001",
+        help="Taker fee as decimal string (default: 0.001 = 0.1%%)",
+    )
+    parser.add_argument(
         "--name",
         default=None,
         help="Run display name (auto if omitted)",
@@ -175,6 +185,8 @@ def main() -> None:
             "starting_balance": starting_balance,
             "timeframe": timeframe,
             "venue": args.venue,
+            "maker_fee": args.maker_fee,
+            "taker_fee": args.taker_fee,
         },
         universe=[symbol],
         start_ts=start_ms,

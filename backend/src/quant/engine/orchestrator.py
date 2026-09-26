@@ -115,10 +115,12 @@ def execute_run(
     the caller decides what to persist.
 
     Reads ``venue`` from ``params["venue"]``, defaulting to ``"binance"`` when
-    absent. Raises ValueError if ``params["venue"]`` is present but not a
-    string, if no bars are in range, or if the record's ``params`` lack a
-    valid timeframe and ``periods_per_year`` cannot be inferred. The caller is
-    responsible for updating status='failed' on exception.
+    absent. Reads ``maker_fee`` / ``taker_fee`` from ``params``, each defaulting
+    to ``"0.001"`` when absent. Raises ValueError if ``params["venue"]`` is
+    present but not a string, if fee params are present but not strings, if no
+    bars are in range, or if the record's ``params`` lack a valid timeframe and
+    ``periods_per_year`` cannot be inferred. The caller is responsible for
+    updating status='failed' on exception.
     """
     venue_value = record.params.get("venue")
     if venue_value is None:
@@ -152,6 +154,13 @@ def execute_run(
         else _TIMEFRAME_TO_PERIODS_PER_YEAR[timeframe]
     )
 
+    maker_fee_raw = record.params.get("maker_fee", "0.001")
+    taker_fee_raw = record.params.get("taker_fee", "0.001")
+    if not isinstance(maker_fee_raw, str):
+        raise ValueError("params['maker_fee'] must be a string")
+    if not isinstance(taker_fee_raw, str):
+        raise ValueError("params['taker_fee'] must be a string")
+
     result = run_backtest(
         venue=venue,
         symbol=symbol,
@@ -161,6 +170,8 @@ def execute_run(
         end_ts=record.end_ts,
         starting_balance_usdt=starting_balance,
         trade_size=trade_size,
+        maker_fee=maker_fee_raw,
+        taker_fee=taker_fee_raw,
     )
 
     extraction = extract_equity(result, first_bar_ts=record.start_ts)
