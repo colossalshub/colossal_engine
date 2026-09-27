@@ -58,6 +58,16 @@ def crossover_signals(
     return signals
 
 
+def net_position_as_float(value: object | None) -> float:
+    """Coerce portfolio net position to float (None, Quantity, Decimal, etc.)."""
+    if value is None:
+        return 0.0
+    as_double = getattr(value, "as_double", None)
+    if callable(as_double):
+        return float(as_double())
+    return float(value)  # type: ignore[arg-type]  # decimal.Decimal and numeric scalars
+
+
 class EmaCross(Strategy):  # type: ignore[misc]  # Strategy resolves to Any without stubs
     """Long-only EMA crossover: buy on bullish cross, sell to flat on bearish cross."""
 
@@ -111,13 +121,14 @@ class EmaCross(Strategy):  # type: ignore[misc]  # Strategy resolves to Any with
             self._is_long = True
         elif signal == "sell" and self._is_long:
             net_qty = self.portfolio.net_position(instrument_id)
-            if net_qty is None or net_qty.as_double() <= 0:
+            qty = net_position_as_float(net_qty)
+            if qty <= 0:
                 self._is_long = False
                 return
             order = self.order_factory.market(
                 instrument_id=instrument_id,
                 order_side=OrderSide.SELL,
-                quantity=net_qty,
+                quantity=Quantity.from_str(f"{qty:.6f}"),
             )
             self.submit_order(order)
             self._is_long = False

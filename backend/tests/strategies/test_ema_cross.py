@@ -1,9 +1,12 @@
+from decimal import Decimal
+
 from nautilus_trader.trading.strategy import Strategy
 
 from quant.strategies.ema_cross import (
     EmaCross,
     crossover_signals,
     ema_series,
+    net_position_as_float,
 )
 
 
@@ -48,6 +51,18 @@ def test_crossover_signals_hold_until_slow_ema_exists() -> None:
 
 def test_ema_cross_is_strategy_subclass() -> None:
     assert issubclass(EmaCross, Strategy)
+
+
+def test_net_position_as_float() -> None:
+    assert net_position_as_float(None) == 0.0
+    assert net_position_as_float(Decimal("1.5")) == 1.5
+    assert net_position_as_float(0) == 0.0
+
+    class _Qty:
+        def as_double(self) -> float:
+            return 2.25
+
+    assert net_position_as_float(_Qty()) == 2.25
 
 
 def test_ema_cross_constructor_defaults() -> None:
