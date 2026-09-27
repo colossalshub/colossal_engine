@@ -169,11 +169,33 @@ REVIEWER.md     Playbook for the reviewer role
 
 ## License
 
-Copyright (C) 2026 Michael Angelo Calupas Gamet
+Colossal Quant is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-This project is licensed under the **GNU General Public License v3.0**.
+Copyright © 2026 Michael Angelo Calupas Gamet.
 
 See [`LICENSE`](LICENSE) for the complete license terms.
+
+## Third-Party Software
+
+Colossal Quant uses open-source software from several projects. These dependencies remain subject to their respective licenses and copyright notices.
+
+| Dependency         | License           |
+| ------------------ | ----------------- |
+| NautilusTrader     | LGPL-3.0-or-later |
+| Lightweight Charts | Apache-2.0        |
+| PyArrow            | Apache-2.0        |
+| FastAPI            | MIT               |
+| Pydantic           | MIT               |
+| DuckDB             | MIT               |
+| React / React DOM  | MIT               |
+| React Router       | MIT               |
+| TanStack Query     | MIT               |
+| AG Grid Community  | MIT               |
+| Uvicorn            | BSD-3-Clause      |
+
+This project does not relicense these third-party dependencies. Their original license terms continue to apply.
+
+For complete license and attribution information, refer to the respective packages and their included license/notice files.
 
 ## Disclaimer
 
