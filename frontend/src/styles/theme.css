@@ -1,10 +1,10 @@
 :root {
   /* surfaces */
-  --bg:        #0e1117;
-  --panel:     #131722;
-  --panel-2:   #1a1f2e;
-  --border:    #1f2937;
-  --border-2:  #2a3441;
+  --bg:        #000000;
+  --panel:     #000000;
+  --panel-2:   #000000;
+  --border:    #262626;
+  --border-2:  #333333;
   /* text */
   --text:      #d1d5db;
   --text-dim:  #9ca3af;

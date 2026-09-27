@@ -44,18 +44,18 @@ const TOOLTIP_FALLBACK_WIDTH_PX = 120
 
 const CHART_OPTIONS: DeepPartial<ChartOptions> = {
   layout: {
-    background: { color: '#131722' },
+    background: { color: '#000000' },
     textColor: '#9ca3af',
     fontSize: 11,
     fontFamily: 'Inter, sans-serif',
   },
   grid: {
-    vertLines: { color: '#1f2937' },
-    horzLines: { color: '#1f2937' },
+    vertLines: { color: '#262626' },
+    horzLines: { color: '#262626' },
   },
-  rightPriceScale: { borderColor: '#1f2937' },
+  rightPriceScale: { borderColor: '#262626' },
   timeScale: {
-    borderColor: '#1f2937',
+    borderColor: '#262626',
     timeVisible: true,
     secondsVisible: false,
   },
