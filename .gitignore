@@ -14,3 +14,12 @@ Thumbs.db
 /data/
 node_modules/
 frontend/dist/
+.coverage
+htmlcov/
+coverage/
+build/
+dist/
+*.duckdb
+*.sqlite
+*.sqlite3
+*.db
