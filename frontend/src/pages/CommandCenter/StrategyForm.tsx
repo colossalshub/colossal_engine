@@ -8,7 +8,10 @@ import { createRun } from '../../api/runs'
 import type { RunCreate } from '../../api/types'
 import './strategyForm.css'
 
-const STRATEGIES = [{ value: 'buy_hold', label: 'Buy & Hold' }] as const
+const STRATEGIES = [
+  { value: 'buy_hold', label: 'Buy & Hold' },
+  { value: 'ema_cross', label: 'EMA 9/21' },
+] as const
 
 const TIMEFRAMES = [
   { value: '15m', label: '15m' },

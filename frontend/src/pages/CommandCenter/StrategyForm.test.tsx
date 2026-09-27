@@ -189,6 +189,25 @@ describe('StrategyForm', () => {
     })
   })
 
+  it('choosing "EMA 9/21" and submitting sends strategy "ema_cross"', async () => {
+    const user = userEvent.setup()
+    const createRunSpy = vi
+      .spyOn(runsApi, 'createRun')
+      .mockResolvedValue(sampleRun)
+    renderForm()
+
+    await user.selectOptions(screen.getByLabelText('Strategy'), 'ema_cross')
+    await user.click(screen.getByRole('button', { name: /Run/ }))
+
+    await waitFor(() => {
+      expect(createRunSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          strategy: 'ema_cross',
+        }),
+      )
+    })
+  })
+
   it('changing the timeframe dropdown sends the new value in params', async () => {
     const user = userEvent.setup()
     const createRunSpy = vi

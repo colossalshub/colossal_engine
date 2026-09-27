@@ -59,7 +59,7 @@ from quant.data.runs_store import (
     insert_run_with_connection,
 )
 
-_VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold"})
+_VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold", "ema_cross"})
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
 

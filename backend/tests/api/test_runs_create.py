@@ -107,6 +107,20 @@ def test_start_ts_equal_end_ts_422(client: TestClient) -> None:
     assert response.json()["detail"]["error"]["code"] == "VALIDATION"
 
 
+def test_ema_cross_strategy_stored_on_row(
+    client: TestClient, db_path: Path
+) -> None:
+    response = client.post("/api/runs", json=_valid_payload(strategy="ema_cross"))
+    assert response.status_code == 201
+    body = response.json()
+    assert body["strategy"] == "ema_cross"
+
+    run_id = body["run_id"]
+    row = _fetch_run(db_path, run_id)
+    assert row["strategy"] == "ema_cross"
+    assert row["name"] == "ema_cross BTC/USDT"
+
+
 def test_unknown_strategy_422(client: TestClient) -> None:
     response = client.post("/api/runs", json=_valid_payload(strategy="momentum"))
     assert response.status_code == 422

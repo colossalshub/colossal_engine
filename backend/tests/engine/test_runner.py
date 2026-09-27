@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from quant.data.store import ensure_canonical_bars, upsert_bars
+from quant.engine import runner as runner_module
 from quant.engine.runner import BacktestResult, run_backtest
 
 _BAR_TYPE = "BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL"
@@ -259,4 +260,93 @@ def test_run_backtest_raises_on_invalid_bar_type(tmp_path: Path) -> None:
             bars_db_path=db_path,
             start_ts=start_ts,
             end_ts=end_ts,
+        )
+
+
+class _CountingBuyHold(runner_module.BuyHold):  # type: ignore[misc]  # Strategy resolves to Any without stubs
+    call_count = 0
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        _CountingBuyHold.call_count += 1
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]  # forwarding untyped *args/**kwargs to Strategy subclass
+
+
+class _CountingEmaCross(runner_module.EmaCross):  # type: ignore[misc]  # Strategy resolves to Any without stubs
+    call_count = 0
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        _CountingEmaCross.call_count += 1
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]  # forwarding untyped *args/**kwargs to Strategy subclass
+
+
+def test_run_backtest_ema_cross_constructs_ema_cross_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    _CountingBuyHold.call_count = 0
+    _CountingEmaCross.call_count = 0
+    monkeypatch.setattr(runner_module, "BuyHold", _CountingBuyHold)
+    monkeypatch.setattr(runner_module, "EmaCross", _CountingEmaCross)
+
+    result = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        strategy="ema_cross",
+    )
+
+    assert _CountingEmaCross.call_count == 1
+    assert _CountingBuyHold.call_count == 0
+    assert isinstance(result, BacktestResult)
+    assert len(result.portfolio_returns) + 1 == 10
+
+
+def test_run_backtest_buy_hold_constructs_buy_hold_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    _CountingBuyHold.call_count = 0
+    _CountingEmaCross.call_count = 0
+    monkeypatch.setattr(runner_module, "BuyHold", _CountingBuyHold)
+    monkeypatch.setattr(runner_module, "EmaCross", _CountingEmaCross)
+
+    result = run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        strategy="buy_hold",
+    )
+
+    assert _CountingBuyHold.call_count == 1
+    assert _CountingEmaCross.call_count == 0
+    assert isinstance(result, BacktestResult)
+    assert len(result.portfolio_returns) + 1 == 10
+
+
+def test_run_backtest_unknown_strategy_raises_value_error(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+
+    with pytest.raises(ValueError, match="unknown strategy"):
+        run_backtest(
+            venue=_VENUE,
+            symbol=_SYMBOL,
+            bar_type_str=_BAR_TYPE,
+            bars_db_path=db_path,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            strategy="momentum",
         )

@@ -121,7 +121,9 @@ def execute_run(
     absent. Reads ``maker_fee`` / ``taker_fee`` from ``params``, each defaulting
     to ``"0.001"`` when absent. Reads ``deploy_pct`` from ``params``, defaulting
     to ``"1.0"`` (100% of equity) when absent; forwarded to ``run_backtest`` /
-    ``BuyHold`` for equity-based position sizing. Raises ValueError if
+    the selected strategy for equity-based position sizing. ``record.strategy``
+    (``"buy_hold"`` or ``"ema_cross"``) is forwarded to ``run_backtest`` to
+    select which Nautilus strategy actually runs. Raises ValueError if
     ``params["venue"]`` is present but not a string, if fee or ``deploy_pct``
     params are present but not strings, if no bars are in range, or if the
     record's ``params`` lack a valid timeframe and ``periods_per_year`` cannot
@@ -188,6 +190,7 @@ def execute_run(
         deploy_pct=deploy_pct_raw,
         maker_fee=maker_fee_raw,
         taker_fee=taker_fee_raw,
+        strategy=record.strategy,
     )
 
     benchmark_symbol_raw = record.params.get("benchmark_symbol", "")

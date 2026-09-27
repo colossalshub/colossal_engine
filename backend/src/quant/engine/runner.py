@@ -20,6 +20,7 @@ from nautilus_trader.model.objects import Money, Price, Quantity
 
 from quant.data.read import read_bars_json
 from quant.strategies.buy_hold import BuyHold
+from quant.strategies.ema_cross import EmaCross
 
 _NT_TIMEFRAME_TO_CANONICAL: dict[str, str] = {
     "MINUTE": "1m",  # only used when count == 1
@@ -103,14 +104,24 @@ def run_backtest(
     deploy_pct: str = "0",
     maker_fee: str = "0.001",
     taker_fee: str = "0.001",
+    strategy: str = "buy_hold",
 ) -> BacktestResult:
-    """Run a ``BuyHold`` backtest and return the raw result.
+    """Run a backtest with either ``BuyHold`` or ``EmaCross`` and return the raw result.
 
-    ``deploy_pct`` (string decimal, default ``"0"``) is forwarded to
-    ``BuyHold``: when positive, the entry is sized as a fraction of equity
-    (``deploy_pct * equity / bar.close``, buffered by 0.999 for fees);
+    ``strategy`` selects which Nautilus ``Strategy`` subclass is constructed:
+    ``"buy_hold"`` (default) constructs ``BuyHold`` only; ``"ema_cross"``
+    constructs ``EmaCross`` only, with ``fast=9`` and ``slow=21``. Any other
+    value raises ``ValueError`` before the ``BacktestEngine`` is created.
+
+    ``deploy_pct`` (string decimal, default ``"0"``) is forwarded to the
+    selected strategy: when positive, the entry is sized as a fraction of
+    equity (``deploy_pct * equity / bar.close``, buffered by 0.999 for fees);
     when ``"0"`` or empty, the fixed ``trade_size`` is used instead.
     """
+    if strategy not in ("buy_hold", "ema_cross"):
+        msg = f"unknown strategy: {strategy!r}"
+        raise ValueError(msg)
+
     canonical_timeframe = _canonical_from_bar_type(bar_type_str)
     rows = read_bars_json(
         db_path=bars_db_path,
@@ -176,14 +187,24 @@ def run_backtest(
     engine.add_data(bars)
 
     normalized_trade_size = f"{Decimal(trade_size):.6f}"
-    engine.add_strategy(
-        BuyHold(
+    strategy_instance: BuyHold | EmaCross
+    if strategy == "buy_hold":
+        strategy_instance = BuyHold(
             instrument_id=str(instrument_id),
             bar_type=bar_type_str,
             trade_size=normalized_trade_size,
             deploy_pct=deploy_pct,
         )
-    )
+    else:
+        strategy_instance = EmaCross(
+            instrument_id=str(instrument_id),
+            bar_type=bar_type_str,
+            trade_size=normalized_trade_size,
+            deploy_pct=deploy_pct,
+            fast=9,
+            slow=21,
+        )
+    engine.add_strategy(strategy_instance)
 
     portfolio_returns: list[tuple[int, float]] = []
     starting_balance = float(starting_balance_usdt)
@@ -199,12 +220,12 @@ def run_backtest(
         strategies = engine.trader.strategies()
         if not strategies:
             raise RuntimeError("no strategies registered after backtest run")
-        strategy_instance = strategies[0]
-        if not isinstance(strategy_instance, BuyHold):
-            msg = f"expected BuyHold strategy, got {type(strategy_instance)!r}"
+        ran_strategy = strategies[0]
+        if not isinstance(ran_strategy, BuyHold | EmaCross):
+            msg = f"expected BuyHold or EmaCross strategy, got {type(ran_strategy)!r}"
             raise RuntimeError(msg)
 
-        snapshots = strategy_instance.equity_snapshots
+        snapshots = ran_strategy.equity_snapshots
         if len(snapshots) >= 2:
             for i in range(1, len(snapshots)):
                 _prev_ts, prev_eq = snapshots[i - 1]
