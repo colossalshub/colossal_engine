@@ -1,4 +1,4 @@
-# Colossal Engine — Project Context
+# Colossal Quant — Project Context
 Source of truth for all AI sessions. Read before every response.
 Do not deviate from locked decisions without explicit approval.
 

@@ -1,8 +1,6 @@
-# Colossal Engine
+# Colossal Quant
 
-A local quant research workstation. Configure backtests, browse history,
-and inspect tear sheets — all running on [NautilusTrader](https://nautilustrader.io/)
-for the simulation engine.
+A personal portfolio and research project built to serve as a local quant research workstation. Configure backtests, browse history, and inspect tear sheets — all running on [NautilusTrader](https://nautilustrader.io/) for the simulation engine.
 
 ## What it does
 
@@ -30,8 +28,8 @@ Prerequisites: Python 3.12+, Node 20+, git.
 ### 1. Clone and install the backend
 
 ```powershell
-git clone https://github.com/colossalshub/colossal_engine
-cd colossal_engine
+git clone https://github.com/colossalshub/colossal_quant
+cd colossal_quant
 python -m venv .venv
 .venv\Scripts\Activate.ps1   # Windows
 # source .venv/bin/activate  # macOS / Linux
@@ -131,6 +129,7 @@ REVIEWER.md     Playbook for the reviewer role
 - Single-instrument per run. No cross-sectional strategies.
 - No walk-forward, no Monte Carlo, no parameter optimization.
 - Local-only. No auth, no multi-user, no cloud deployment.
+- Personal research project. Built for individual backtesting and portfolio demonstration rather than multi-tenant production use.
 
 ## Scripts
 

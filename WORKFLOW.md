@@ -221,7 +221,7 @@ Things agents have actually tried, that need to be caught:
 - **Python:** 3.14 in the venv (spec says 3.12+; if a package misbehaves, drop to 3.12 in a fresh venv)
 - **OS:** Windows (PowerShell 5.x — `&&` is not supported, use `;`)
 - **Path issue:** `pip`/`pytest`/`ruff`/`mypy` are not on PATH — use `python -m pip`, `python -m pytest`, etc.
-- **Repo root:** `E:\Documents\Projects\colossal_engine`
+- **Repo root:** `E:\Documents\Projects\colossal_quant`
 - All env vars are documented in `.env.example`. Read env vars via
   `quant.config`, not `os.environ`, in new code. The config module loads
   `.env` at import; real env vars always take precedence.

@@ -24,7 +24,7 @@ from quant.logging_setup import configure_logging
 
 configure_logging()
 
-app = FastAPI(title="Colossal Engine", version="0.1.0")
+app = FastAPI(title="Colossal Quant", version="0.1.0")
 
 # --- CORS --------------------------------------------------------------
 
