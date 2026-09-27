@@ -30,7 +30,7 @@ Prerequisites: Python 3.12+, Node 20+, git.
 ### 1. Clone and install the backend
 
 ```powershell
-git clone CLONE_URL_PENDING
+git clone https://github.com/colossalshub/colossal_engine
 cd colossal_engine
 python -m venv .venv
 .venv\Scripts\Activate.ps1   # Windows
