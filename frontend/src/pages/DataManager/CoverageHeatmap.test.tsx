@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { CoverageResponse } from '../../api/types'
@@ -104,6 +104,22 @@ describe('CoverageHeatmap', () => {
     await waitFor(() => {
       expect(screen.getByText(/BTC\/USDT\s+1d/)).toBeInTheDocument()
     })
+  })
+
+  it('opens the hover tooltip below the cell', async () => {
+    vi.spyOn(dataApi, 'getCoverage').mockResolvedValue(fullYear2024(31, 31))
+
+    renderWithProviders(<CoverageHeatmap />)
+
+    const cell = await screen.findByTestId('cell-0-2024')
+    fireEvent.mouseEnter(cell)
+
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip).toHaveTextContent('BTC/USDT · 1d · 2024')
+    expect(tooltip).toHaveTextContent('Bars: 372 / 372')
+    const top = Number.parseFloat(tooltip.style.top)
+    const cellTop = Number.parseFloat(cell.getAttribute('y') ?? '0')
+    expect(top).toBeGreaterThan(cellTop)
   })
 
   it('colors cells by aggregated year coverage', async () => {

@@ -33,7 +33,7 @@
 
 .coverage-heatmap__tooltip {
   position: absolute;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, 0);
   background: var(--panel-2);
   border: 1px solid var(--border-2);
   border-radius: var(--radius);

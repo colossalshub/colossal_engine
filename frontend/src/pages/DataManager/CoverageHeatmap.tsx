@@ -217,7 +217,7 @@ export function CoverageHeatmap() {
         {hover ? (
           <div
             className="coverage-heatmap__tooltip"
-            style={{ left: hover.x, top: hover.y - 8 }}
+            style={{ left: hover.x, top: hover.y + CELL + 8 }}
             role="tooltip"
           >
             <span className="coverage-heatmap__tooltip-label">
