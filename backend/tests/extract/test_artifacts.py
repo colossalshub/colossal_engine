@@ -98,6 +98,24 @@ def _position_row() -> dict[str, object]:
     }
 
 
+def _closed_flat_position_row() -> dict[str, object]:
+    return {
+        "position_id": "BTCUSDT.BINANCE-EmaCross-000",
+        "instrument_id": "BTCUSDT.BINANCE",
+        "side": "FLAT",
+        "entry": "BUY",
+        "ts_opened": Timestamp("2024-01-01 00:00:00+0000", tz="UTC"),
+        "ts_closed": Timestamp("2024-06-01 00:00:00+0000", tz="UTC"),
+        "avg_px_open": 44179.55,
+        "avg_px_close": 50000.0,
+        "quantity": "1.000000",
+        "realized_pnl": "100.0 USDT",
+        "realized_return": 0.1,
+        "commissions": ["4.41795500 USDT"],
+        "duration_ns": 1_000_000_000,
+    }
+
+
 def _fill_row() -> dict[str, object]:
     return {
         "ts_event": Timestamp("2024-01-01 00:00:00+0000", tz="UTC"),
@@ -193,6 +211,24 @@ def test_price_bar_order_preserved(tmp_path: Path) -> None:
     )
     price = pq.read_table(tmp_path / "order" / "price.parquet")
     assert price.column("ts").to_pylist() == [3000, 1000, 2000]
+
+
+def test_flat_closed_position_maps_trade_side(tmp_path: Path) -> None:
+    write_artifacts(
+        "flat-closed",
+        base_dir=tmp_path,
+        extraction=_extraction(),
+        price_bars=[_price_bar(1000)],
+        position_report=[_closed_flat_position_row(), _position_row()],
+        fills_report=[],
+    )
+    trades = pq.read_table(tmp_path / "flat-closed" / "trades.parquet")
+    assert trades.num_rows == 2
+    flat_row = trades.slice(0, 1)
+    assert flat_row.column("side")[0].as_py() == "long"
+    assert flat_row.column("exit_ts")[0].as_py() is not None
+    long_row = trades.slice(1, 1)
+    assert long_row.column("side")[0].as_py() == "long"
 
 
 def test_fresh_directory_creation(tmp_path: Path) -> None:

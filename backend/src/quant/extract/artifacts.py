@@ -102,6 +102,15 @@ def _map_position_row(row: dict[str, object]) -> dict[str, object]:
         side = "long"
     elif side_raw == "SHORT":
         side = "short"
+    elif side_raw == "FLAT":
+        entry_raw = row["entry"]
+        if entry_raw == "BUY":
+            side = "long"
+        elif entry_raw == "SELL":
+            side = "short"
+        else:
+            msg = f"unexpected position side: {side_raw!r}"
+            raise ValueError(msg)
     else:
         msg = f"unexpected position side: {side_raw!r}"
         raise ValueError(msg)
