@@ -4,8 +4,6 @@ A local quant research workstation. Configure backtests, browse history,
 and inspect tear sheets — all running on [NautilusTrader](https://nautilustrader.io/)
 for the simulation engine.
 
-<!-- Add screenshot: docs/screenshot-tearsheet.png -->
-
 ## What it does
 
 - Configure and fire backtests from a web UI
@@ -22,7 +20,7 @@ for the simulation engine.
 | Backend | FastAPI + Pydantic v2 |
 | Store | DuckDB (bars) + SQLite (runs) |
 | Artifacts | Parquet on local disk |
-| Frontend | React 18 + Vite + TypeScript |
+| Frontend | React 19 + Vite + TypeScript |
 | Charts / tables | lightweight-charts, AG Grid |
 
 ## Quickstart
@@ -32,7 +30,7 @@ Prerequisites: Python 3.12+, Node 20+, git.
 ### 1. Clone and install the backend
 
 ```powershell
-git clone <repo>
+git clone CLONE_URL_PENDING
 cd colossal_engine
 python -m venv .venv
 .venv\Scripts\Activate.ps1   # Windows
@@ -71,6 +69,8 @@ python scripts/ingest_bars.py --venue binance --symbol BTC/USDT --timeframe 1d -
 python -m uvicorn quant.api.main:app --port 8000 --reload
 ```
 
+In each new terminal, activate the virtual environment again (`.venv\Scripts\Activate.ps1` on Windows).
+
 ### 6. Start the frontend (terminal 2)
 
 ```powershell
@@ -78,11 +78,15 @@ cd frontend
 npm run dev
 ```
 
+In each new terminal, activate the virtual environment again (`.venv\Scripts\Activate.ps1` on Windows).
+
 ### 7. Start the worker (terminal 3)
 
 ```powershell
 python scripts/run_worker.py
 ```
+
+In each new terminal, activate the virtual environment again (`.venv\Scripts\Activate.ps1` on Windows).
 
 ### 8. Open the app
 
@@ -92,7 +96,12 @@ http://localhost:5173
 
 - API health: `curl http://127.0.0.1:8000/health` → `{"status":"ok"}`
 - Backend tests: `python -m pytest backend/tests -q` → all pass
-- Frontend tests: `cd frontend && npx vitest run` → all pass
+- Frontend tests:
+
+```powershell
+cd frontend
+npx vitest run
+```
 
 ## Layout
 
@@ -109,10 +118,10 @@ REVIEWER.md     Playbook for the reviewer role
 
 ## Known limitations
 
-- Fees default to 0.1% (maker/taker), matching Binance retail. Adjust
-  `maker_fee`/`taker_fee` in `backend/src/quant/engine/runner.py` for
-  higher or lower fee tiers.
-- Benchmark is `null` on every run — no reference index is wired yet.
+- Fees default to 0.001 (0.1%) for `maker_fee` and `taker_fee`, set per run
+  from the form or the CLI flags `--maker-fee` and `--taker-fee`.
+- Benchmark is optional. Set `benchmark_symbol` on the run. An empty value,
+  or no bars for that symbol, leaves the overlay off and the run still succeeds.
 - Fill model uses Nautilus's default (fills at bar price, zero slippage).
   Realistic for daily bars; optimistic for intraday.
 - `BuyHold` deploys 100% of equity by default. Change "% Deployed" in
