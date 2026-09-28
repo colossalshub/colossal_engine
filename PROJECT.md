@@ -12,7 +12,7 @@ We do not build an engine. We build three screens around Nautilus:
 - **Data Manager** (`/data`)       — coverage heatmap, ingestion
 
 **Do not build:** backtest engine, fill model, fee model, portfolio simulator,
-metrics from raw PnL, charting library, grid library.
+metrics from raw PnL, charting library.
 **Do build:** extraction (Nautilus → parquet), read API, React screens.
 
 ---
@@ -29,6 +29,7 @@ metrics from raw PnL, charting library, grid library.
 | Server state | TanStack Query |
 | Charts | lightweight-charts |
 | Tables | AG Grid (community) |
+| Widget layout | react-grid-layout |
 | Lint py | ruff + mypy strict |
 | Lint ts | eslint + tsc strict |
 | Tests py | pytest |
@@ -580,32 +581,50 @@ Form: 2-column grid inside card. Inputs 32px tall. RUN button: `--accent` bg, 40
 
 ### 9.5 Tear Sheet (`/runs/:id`)
 
-Single column, full width, vertical scroll. Sections stacked.
+Modular **widget workspace** on a responsive grid (`react-grid-layout`). The run header is fixed above the grid; everything below is a set of independent widgets the user can show, hide, drag, and resize.
+
+**Widgets (each is its own component in a `--panel` card):**
+
+| Widget ID | Component | Default visible |
+| --- | --- | --- |
+| `kpis` | `KpiCards` (11 KPI strip) | yes |
+| `price` | `PriceChart` (candles + markers) | yes |
+| `equity` | `EquityCurve` | yes |
+| `drawdown` | `DrawdownChart` | yes |
+| `monthly` | `MonthlyHeatmap` | yes |
+| `ledger` | `TradeLedger` (server-paginated AG Grid) | yes |
+
+**Layout behavior:**
+
+* Grid fills the content area below the header; vertical scroll when the grid exceeds the viewport.
+* Drag handle on each widget header; resize from corners. Snap to a 12-column grid, row height 40px (widget min heights respect chart defaults in §9.7).
+* **Widget picker** in the topbar (or header actions): checkboxes to toggle visibility. Hidden widgets are removed from the grid but remain available to re-add.
+* **Persistence:** per browser, key `colossal_quant.tearsheet.layout.v1` in `localStorage`. Store JSON: `{ widgets: { [id]: { visible, x, y, w, h } } }`. Load on mount; debounced save (≈300ms) on drag/resize/toggle. Missing or invalid JSON → ship the default layout below. No server round-trip.
+
+**Default layout** (first visit or reset):
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  ← Back   mom-12-1 v4              ● done    [Re-run]       │
+│  ← Back   mom-12-1 v4    ● done   [Widgets ▾]  [Re-run]   │
 │  BTC/USDT · ETH/USDT · 2020-01-01 → 2026-01-01 · git 7a3f9c1│
 ├─────────────────────────────────────────────────────────────┤
-│  KPI STRIP — 11 cards, wrap, 4 per row                      │
-│  ┌──────┐┌──────┐┌──────┐┌──────┐                           │
-│  │SHARPE││ CAGR ││MAX DD││ VOL  │  ← value 24px mono        │
-│  │ 1.42 ││21.4% ││-18.3%││15.1% │  ← label 11px uppercase   │
-│  └──────┘└──────┘└──────┘└──────┘    dim, letter-spacing 1px│
-├─────────────────────────────────────────────────────────────┤
-│  PRICE + FILLS           [chart, 420px, candles + markers]  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─── EQUITY (line, 280px) ───┐┌── UNDERWATER (area, 280px)┐│
-│  └────────────────────────────┘└───────────────────────────┘│
-├─────────────────────────────────────────────────────────────┤
-│  MONTHLY RETURNS         [custom SVG heatmap, 240px]        │
-├─────────────────────────────────────────────────────────────┤
-│  TRADE LEDGER            [AG Grid, paginated, 500px]        │
-│  Showing 1–50 of 142                     [1 2 3 …] next →   │
+│  ┌─ kpis (full width) ────────────────────────────────────┐ │
+│  │ SHARPE │ CAGR │ MAX DD │ VOL │ … (11 cards, wrap)      │ │
+│  └────────────────────────────────────────────────────────┘ │
+│  ┌─ price (12 cols × ~11 rows) ───────────────────────────┐ │
+│  │ candles + fill markers                                  │ │
+│  └────────────────────────────────────────────────────────┘ │
+│  ┌─ equity (6) ──────────────┐ ┌─ drawdown (6) ────────────┐ │
+│  └───────────────────────────┘ └───────────────────────────┘ │
+│  ┌─ monthly (full width) ─────────────────────────────────┐ │
+│  └────────────────────────────────────────────────────────┘ │
+│  ┌─ ledger (full width, tall) ────────────────────────────┐ │
+│  │ paginated trades                                        │ │
+│  └────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Back button target: `/` (Command Center). Section headers: `--fs-lg`, 16px top pad, 1px bottom border. Every chart wrapped in a `--panel` card with 1px border.
+Back button target: `/` (Command Center). Widget titles: `--fs-lg`, 16px top pad inside the card, 1px bottom border on the header row. Charts still use §9.7 defaults; ledger still uses §9.8.
 
 ### 9.6 Data Manager (`/data`)
 

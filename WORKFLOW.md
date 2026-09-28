@@ -16,7 +16,7 @@ The right model depends on the task, not the phase. Use this table.
 | Single-file logic with clear spec | Composer 2.5 | Low | Most Phase 1–2 tasks |
 | Contract files (schemas, types) | Claude Sonnet 5 | Medium | `schemas.py`, `types.ts` |
 | Multi-file routers, DB wiring | Claude Sonnet 5 | Medium | `get_tearsheet`, pagination |
-| Complex UI (LWC crosshair, SVG) | Claude Sonnet 5 or Opus | High | `BaseChart.tsx`, `MonthlyHeatmap.tsx` |
+| Complex UI (LWC crosshair, SVG, grid widgets) | Claude Sonnet 5, Opus, or Grok 4.7 | Medium–High | `BaseChart.tsx`, `MonthlyHeatmap.tsx`, Tear Sheet layout |
 | Hard debugging (2 failures) | Claude Opus | High | Escalate only after Sonnet fails |
 | API probing (Stage 1) | Composer or Codex CLI | Low | Read-only, no judgment needed |
 
