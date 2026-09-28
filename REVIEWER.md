@@ -136,7 +136,7 @@ Goal: <1–3 sentences. What ships. What files. What "done" means.>
 <Numbered list. Exact commands. Expected output.>
 
 ## Commit
-<Exact git add + commit message.>
+<Exact git add + Conventional Commit message with Phase tag.>
 
 ## Report back
 <Numbered list of what to paste back. Verbatim outputs, not summaries.>

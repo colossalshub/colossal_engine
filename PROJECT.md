@@ -452,6 +452,9 @@ Goal: Fresh clone → working app.
 * **9.4** — `README.md` with setup steps
 * **9.5** — `.gitignore` audit: verify every path created since Phase 0 is either tracked or ignored. Add anything new (e.g. `backend/dist/`, `.coverage`, `.env.local`). If a cache or artifact has slipped into git history, run `git rm -r --cached <path>` and commit the removal. Do not create `.gitignore` — it exists from Phase 0.1.
 * **9.6** — `scripts/cleanup.py`: purge parquet artifacts older than 30 days. For affected runs, set `status='archived'` and null out the corresponding entries in `artifacts` so the UI renders an "artifacts expired" state instead of a broken link.
+* **9.7** — `WORKFLOW.md` update to enforce Conventional Commits + Phase tags.
+* **9.8** — automated `git rebase` script to rewrite recent history to Conventional Commits.
+* **9.9** — automated `git rebase --root` to rewrite the entire legacy commit history.
 
 **Done:** `git clone && follow README` → running app without disk bloating.
 
