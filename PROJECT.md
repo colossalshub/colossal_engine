@@ -459,6 +459,12 @@ Goal: Fresh clone → working app.
 
 **Done:** `git clone && follow README` → running app without disk bloating.
 
+### Phase 10 — Dynamic Workspace
+Goal: Refactor Tear Sheet into a customizable, drag-and-drop widget grid.
+
+* **10.1** — amend spec for dynamic dashboard and Grok 4.7
+* **10.2** — refactor Tear Sheet to use `react-grid-layout` and implement `localStorage` layout persistence
+
 ## 7. AI rules
 
 * Read this file before every response.
