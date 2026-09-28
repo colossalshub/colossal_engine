@@ -48,7 +48,7 @@ This pattern saved Phase 2.2 (Nautilus engine construction), Phase 2.2.2 (`portf
 - If a task needs schema creation + orchestration, split into `.1` / `.2a` / `.2b`.
 - If a task needs a bug fix in a prior phase's file to proceed, split into the fix phase + the original phase.
 - Documentation and small fixes get suffixes: `Phase 3.1.1`, `Phase 2.2.3`, `Phase 2.1.2`.
-- **Commit message format:** `Phase X.Y: description` — no trailing period, no prefixes, no emoji.
+- **Commit message format:** Conventional Commits with the phase in parentheses at the end. Example: `feat(scope): description (Phase X.Y)` — no trailing period, no emoji.
 
 ---
 
