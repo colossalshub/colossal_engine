@@ -147,7 +147,7 @@ def post_ingest(payload: IngestRequest) -> IngestResponse:
         )
 
     argv = [
-        sys.executable,
+        _ingest_python(),
         str(config.repo_root() / "scripts" / "ingest_bars.py"),
         "--venue",
         payload.venue,
@@ -161,12 +161,15 @@ def post_ingest(payload: IngestRequest) -> IngestResponse:
         payload.end,
     ]
 
+    log_dir = config.repo_root() / "data"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = (log_dir / "ingest.log").open("ab")
     try:
         subprocess.Popen(  # noqa: S603 — inputs are validated above
             argv,
             cwd=str(config.repo_root()),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=log_file,
+            stderr=log_file,
         )
     except OSError as exc:
         raise HTTPException(
@@ -179,5 +182,19 @@ def post_ingest(payload: IngestRequest) -> IngestResponse:
                 }
             },
         ) from exc
+    finally:
+        log_file.close()
 
     return IngestResponse(status="started", command=" ".join(argv))
+
+
+def _ingest_python() -> str:
+    """Project venv interpreter, else the interpreter serving this process."""
+    root = config.repo_root()
+    if sys.platform == "win32":
+        candidate = root / ".venv" / "Scripts" / "python.exe"
+    else:
+        candidate = root / ".venv" / "bin" / "python"
+    if candidate.is_file():
+        return str(candidate)
+    return sys.executable
