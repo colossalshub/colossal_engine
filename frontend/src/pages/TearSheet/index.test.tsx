@@ -1,10 +1,20 @@
 import { screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as runsApi from '../../api/runs'
 import type { TearSheet } from '../../api/types'
 import { renderWithProviders } from '../../test-utils'
 import TearSheetPage from './index'
+import { LAYOUT_STORAGE_KEY, defaultLayout } from './tearsheetLayout'
+
+class ResizeObserverStub implements ResizeObserver {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+
+globalThis.ResizeObserver = ResizeObserverStub
 
 const sampleTearsheet: TearSheet = {
   run: {
@@ -38,8 +48,13 @@ const sampleTearsheet: TearSheet = {
   artifacts: {},
 }
 
+beforeEach(() => {
+  localStorage.clear()
+})
+
 afterEach(() => {
   vi.restoreAllMocks()
+  localStorage.clear()
 })
 
 describe('TearSheet page', () => {
@@ -176,5 +191,71 @@ describe('TearSheet page', () => {
     })
     expect(screen.queryByText('KPIs')).not.toBeInTheDocument()
     expect(screen.queryByText('Price + Fills')).not.toBeInTheDocument()
+  })
+
+  it('renders a drag handle on each visible widget', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
+    })
+    expect(document.querySelectorAll('.drag-handle')).toHaveLength(6)
+  })
+
+  it('hides a widget from the picker and keeps it available to restore', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    const user = userEvent.setup()
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Price + Fills' })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /widgets/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Price + Fills' }))
+
+    expect(screen.queryByRole('heading', { name: 'Price + Fills' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Price + Fills' })).not.toBeChecked()
+    expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
+  })
+
+  it('debounces layout toggles into localStorage', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    const user = userEvent.setup()
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /widgets/i })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /widgets/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'KPIs' }))
+
+    await waitFor(() => {
+      const raw = localStorage.getItem(LAYOUT_STORAGE_KEY)
+      expect(raw).toBeTruthy()
+      const parsed = JSON.parse(raw ?? '') as {
+        widgets: { kpis: { visible: boolean } }
+      }
+      expect(parsed.widgets.kpis.visible).toBe(false)
+    })
+  })
+
+  it('restores a saved layout and ignores invalid JSON', async () => {
+    const stored = defaultLayout()
+    stored.widgets.ledger.visible = false
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(stored))
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    const { unmount } = renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Trade Ledger' })).not.toBeInTheDocument()
+    unmount()
+
+    localStorage.setItem(LAYOUT_STORAGE_KEY, '{not-json')
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Trade Ledger' })).toBeInTheDocument()
+    })
+    expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
   })
 })

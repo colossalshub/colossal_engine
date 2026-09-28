@@ -4,9 +4,23 @@
   gap: var(--s-3);
 }
 
+.trade-ledger--fill {
+  min-height: 0;
+}
+
 .trade-ledger__grid {
   height: 500px;
   width: 100%;
+}
+
+.trade-ledger--fill .trade-ledger__grid {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.trade-ledger--fill .trade-ledger__footer {
+  flex: 0 0 auto;
 }
 
 .trade-ledger__footer {

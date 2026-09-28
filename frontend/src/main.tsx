@@ -6,6 +6,8 @@ import { BrowserRouter } from 'react-router-dom'
 
 import App from './App'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import 'react-grid-layout/css/styles.css'
+import 'react-resizable/css/styles.css'
 import './styles/theme.css'
 import './index.css'
 

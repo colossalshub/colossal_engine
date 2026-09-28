@@ -38,6 +38,56 @@
   flex: 1;
 }
 
+.tear-sheet__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.tear-sheet__picker {
+  position: relative;
+}
+
+.tear-sheet__picker-button {
+  height: 32px;
+  padding: 0 var(--s-3);
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+}
+
+.tear-sheet__picker-button:hover {
+  background: var(--panel-2);
+  transition: background 120ms ease;
+}
+
+.tear-sheet__picker-menu {
+  position: absolute;
+  top: calc(100% + var(--s-1));
+  right: 0;
+  z-index: 20;
+  min-width: 180px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--s-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.tear-sheet__picker-option {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  padding: var(--s-1) var(--s-2);
+  cursor: pointer;
+}
+
 .tear-sheet__meta {
   display: flex;
   align-items: center;
@@ -80,6 +130,73 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-4);
+}
+
+.tear-sheet__grid.react-grid-layout,
+.tear-sheet__grid .react-grid-item {
+  transition: none;
+}
+
+.tear-sheet__grid .react-grid-item.react-grid-placeholder {
+  background: var(--accent);
+  opacity: 0.15;
+  border-radius: var(--radius);
+}
+
+.tear-sheet__grid .react-grid-item > .react-resizable-handle::after {
+  border-right-color: var(--text-dim);
+  border-bottom-color: var(--text-dim);
+}
+
+.tear-sheet__widget {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tear-sheet__widget-header {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--text);
+  padding: var(--s-4) var(--s-3) var(--s-2);
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+  user-select: none;
+}
+
+.tear-sheet__widget-header:active {
+  cursor: grabbing;
+}
+
+.tear-sheet__widget-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+}
+
+.tear-sheet__widget-slot {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tear-sheet__widget-slot .price-chart__empty,
+.tear-sheet__widget-slot .equity-curve__empty,
+.tear-sheet__widget-slot .drawdown-chart__empty,
+.tear-sheet__widget-body .monthly-heatmap__empty,
+.tear-sheet__widget-slot .trade-ledger__state {
+  height: 100%;
+  min-height: 0;
 }
 
 .tear-sheet__placeholder {

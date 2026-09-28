@@ -12,6 +12,8 @@ import './tradeLedger.css'
 interface TradeLedgerProps {
   runId: string
   pageSize?: number
+  /** Pixel height of the ledger block, from the widget resize slot. */
+  height?: number
 }
 
 function fmtTs(tsMs: number | null): string {
@@ -125,7 +127,7 @@ const colDefs: ColDef<Trade>[] = [
   },
 ]
 
-export function TradeLedger({ runId, pageSize = 50 }: TradeLedgerProps) {
+export function TradeLedger({ runId, pageSize = 50, height }: TradeLedgerProps) {
   const [page, setPage] = useState(1)
 
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -143,16 +145,24 @@ export function TradeLedger({ runId, pageSize = 50 }: TradeLedgerProps) {
     [],
   )
 
+  const fillStyle = height !== undefined ? { height } : undefined
+
   if (isLoading) {
-    return <div className="trade-ledger__state">Loading trades…</div>
+    return (
+      <div className="trade-ledger__state" style={fillStyle}>
+        Loading trades…
+      </div>
+    )
   }
 
   if (isError) {
     return (
-      <ErrorDisplay
-        message={`Failed to load trades: ${String(error)}`}
-        onRetry={() => refetch()}
-      />
+      <div style={fillStyle}>
+        <ErrorDisplay
+          message={`Failed to load trades: ${String(error)}`}
+          onRetry={() => refetch()}
+        />
+      </div>
     )
   }
 
@@ -160,7 +170,11 @@ export function TradeLedger({ runId, pageSize = 50 }: TradeLedgerProps) {
   const total = data?.total ?? 0
 
   if (total === 0) {
-    return <div className="trade-ledger__state">No trades generated for this period.</div>
+    return (
+      <div className="trade-ledger__state" style={fillStyle}>
+        No trades generated for this period.
+      </div>
+    )
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -168,7 +182,10 @@ export function TradeLedger({ runId, pageSize = 50 }: TradeLedgerProps) {
   const rangeEnd = Math.min(page * pageSize, total)
 
   return (
-    <div className="trade-ledger">
+    <div
+      className={height !== undefined ? 'trade-ledger trade-ledger--fill' : 'trade-ledger'}
+      style={fillStyle}
+    >
       <div className="ag-theme-quartz-dark trade-ledger__grid">
         <AgGridReact<Trade>
           rowData={trades}
