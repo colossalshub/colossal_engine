@@ -1,6 +1,7 @@
 from nautilus_trader.model.currencies import USDT
 from nautilus_trader.model.data import Bar, BarType
 from nautilus_trader.model.enums import OrderSide
+from nautilus_trader.model.events import OrderDenied, OrderFilled, OrderRejected
 from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
@@ -17,6 +18,10 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
     entry is sized as ``deploy_pct * equity / bar.close`` (with a 0.999
     buffer for fees). When ``deploy_pct`` is ``"0"`` or empty, the fixed
     ``trade_size`` is used instead.
+
+    ``_entered`` becomes true only in ``on_order_filled``. A venue
+    rejection or a risk-engine denial logs a warning and clears the flag
+    so a later bar can submit again.
     """
 
     def __init__(
@@ -50,7 +55,6 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
         if deploy > 0:
             if bar.close <= 0:
                 self.log.warning(f"bar.close={bar.close}, skipping entry")
-                self._entered = True
                 return
             venue_equity_money = self.portfolio.equity(venue_obj)[USDT]
             venue_equity = float(venue_equity_money.as_double())
@@ -60,7 +64,6 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
                 self.log.warning(
                     f"computed qty={qty_str} rounds to 0, skipping entry",
                 )
-                self._entered = True
                 return
         else:
             qty_str = self._trade_size
@@ -71,4 +74,14 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
             quantity=Quantity.from_str(qty_str),
         )
         self.submit_order(order)
+
+    def on_order_filled(self, event: OrderFilled) -> None:
         self._entered = True
+
+    def on_order_rejected(self, event: OrderRejected) -> None:
+        self.log.warning(f"order rejected: {event.reason}")
+        self._entered = False
+
+    def on_order_denied(self, event: OrderDenied) -> None:
+        self.log.warning(f"order denied: {event.reason}")
+        self._entered = False
