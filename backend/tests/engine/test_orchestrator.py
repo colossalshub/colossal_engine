@@ -293,6 +293,37 @@ def test_execute_run_benchmark_bars_flow_through(tmp_path: Path) -> None:
     assert nulls == 0
 
 
+def test_execute_run_benchmark_short_of_close_is_skipped(tmp_path: Path) -> None:
+    """A benchmark that ends more than one bar before the equity close is dropped."""
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    _store_daily_bars_for_symbol(
+        db_path, _BENCH_SYMBOL, start_ts=_START_TS, count=8
+    )
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "benchmark_symbol": _BENCH_SYMBOL,
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics
+    rows, nulls = _equity_benchmark_null_count(artifacts_dir, updated.run_id)
+    assert rows > 0
+    assert nulls == rows
+
+
 def test_execute_run_missing_benchmark_bars_graceful(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)

@@ -171,19 +171,28 @@ def run_backtest(
     engine.add_instrument(instrument)
 
     bar_type = BarType.from_str(bar_type_str)
-    bars = [
-        Bar(
-            bar_type=bar_type,
-            open=Price.from_str(f"{row['open']:.2f}"),
-            high=Price.from_str(f"{row['high']:.2f}"),
-            low=Price.from_str(f"{row['low']:.2f}"),
-            close=Price.from_str(f"{row['close']:.2f}"),
-            volume=Quantity.from_str(f"{row['volume']:.6f}"),
-            ts_event=_as_int(row["ts"]) * 1_000_000,
-            ts_init=_as_int(row["ts"]) * 1_000_000,
+    interval_ns = _as_int(bar_type.spec.get_interval_ns())
+    bars: list[Bar] = []
+    for i, row in enumerate(rows):
+        open_ns = _as_int(row["ts"]) * 1_000_000
+        if i + 1 < len(rows):
+            close_ns = _as_int(rows[i + 1]["ts"]) * 1_000_000
+        elif canonical_timeframe == "1mo":
+            close_ns = open_ns + (30 * 86_400 * 1_000_000_000)
+        else:
+            close_ns = open_ns + interval_ns
+        bars.append(
+            Bar(
+                bar_type=bar_type,
+                open=Price.from_str(f"{row['open']:.2f}"),
+                high=Price.from_str(f"{row['high']:.2f}"),
+                low=Price.from_str(f"{row['low']:.2f}"),
+                close=Price.from_str(f"{row['close']:.2f}"),
+                volume=Quantity.from_str(f"{row['volume']:.6f}"),
+                ts_event=close_ns,
+                ts_init=close_ns,
+            )
         )
-        for row in rows
-    ]
     engine.add_data(bars)
 
     normalized_trade_size = f"{Decimal(trade_size):.6f}"

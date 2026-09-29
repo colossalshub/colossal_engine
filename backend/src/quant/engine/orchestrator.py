@@ -60,6 +60,29 @@ _TIMEFRAME_TO_PERIODS_PER_YEAR: dict[str, int] = {
     "1mo": 12,
 }
 
+# Epoch-ms length of one bar. ``1mo`` is not listed: its close is open + 30 days (§4.6).
+_TIMEFRAME_TO_INTERVAL_MS: dict[str, int] = {
+    "1m": 60_000,
+    "5m": 5 * 60_000,
+    "15m": 15 * 60_000,
+    "30m": 30 * 60_000,
+    "1h": 60 * 60_000,
+    "4h": 4 * 60 * 60_000,
+    "1d": 86_400_000,
+    "1w": 7 * 86_400_000,
+}
+
+
+def _final_bar_close_ms(open_ms: int, timeframe: str) -> int:
+    """Close time (epoch ms) of a final bar whose stored ``ts`` is the open.
+
+    Equity timestamps are bar closes. ``curated_bars.ts`` stays the open, so the
+    last stored benchmark timestamp is one interval before the last equity point.
+    """
+    if timeframe == "1mo":
+        return open_ms + (30 * 86_400 * 1_000)
+    return open_ms + _TIMEFRAME_TO_INTERVAL_MS[timeframe]
+
 
 def _parse_money_string(value: object) -> float:
     """Parse "-4.41795500 USDT" or 4.417955 or None → float."""
@@ -221,11 +244,16 @@ def execute_run(
             ]
             first_ts = record.start_ts
             portfolio_returns = result.portfolio_returns
-            last_ts = (
-                portfolio_returns[-1][0] if portfolio_returns else first_ts
-            )
-            if candidate[0][0] <= first_ts and candidate[-1][0] >= last_ts:
-                benchmark_bars = candidate
+            last_ts = portfolio_returns[-1][0] if portfolio_returns else first_ts
+            last_open_ms, last_close_px = candidate[-1]
+            last_close_ms = _final_bar_close_ms(last_open_ms, timeframe)
+            covers_start = candidate[0][0] <= first_ts
+            covers_end = last_open_ms >= last_ts or last_close_ms >= last_ts
+            if covers_start and covers_end:
+                if last_open_ms >= last_ts:
+                    benchmark_bars = candidate
+                else:
+                    benchmark_bars = [*candidate, (last_close_ms, last_close_px)]
             else:
                 logger.warning(
                     "benchmark %s does not cover the equity window, skipping",

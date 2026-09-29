@@ -74,8 +74,9 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
 
     assert isinstance(result, BacktestResult)
     assert len(result.portfolio_returns) >= 9
-    second_bar_ts = start_ts + _DAY_MS
-    assert result.portfolio_returns[0][0] == second_bar_ts
+    # Returns start at the second snapshot; that bar's ts_event is its close.
+    second_bar_close_ts = start_ts + 2 * _DAY_MS
+    assert result.portfolio_returns[0][0] == second_bar_close_ts
     ts_values = [pair[0] for pair in result.portfolio_returns]
     assert ts_values == sorted(ts_values)
     assert result.starting_balance == 100_000.0
@@ -87,6 +88,119 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
     assert result.account_report
     assert isinstance(result.position_report, list)
     assert isinstance(result.fills_report, list)
+
+
+def _capture_bar_timestamps(
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[int, int]]:
+    captured: list[tuple[int, int]] = []
+    real_bar = runner_module.Bar
+
+    def _capturing_bar(**kwargs: object) -> object:
+        ts_event = kwargs["ts_event"]
+        ts_init = kwargs["ts_init"]
+        assert isinstance(ts_event, int)
+        assert isinstance(ts_init, int)
+        captured.append((ts_event, ts_init))
+        return real_bar(**kwargs)
+
+    monkeypatch.setattr(runner_module, "Bar", _capturing_bar)
+    return captured
+
+
+def test_run_backtest_bar_timestamps_are_close_times(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    count = 10
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=count)
+    captured = _capture_bar_timestamps(monkeypatch)
+
+    run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
+
+    assert len(captured) == count
+    day_ns = _DAY_MS * 1_000_000
+    for i, (ts_event, ts_init) in enumerate(captured):
+        open_ns = (start_ts + i * _DAY_MS) * 1_000_000
+        if i + 1 < count:
+            expected = (start_ts + (i + 1) * _DAY_MS) * 1_000_000
+        else:
+            expected = open_ns + day_ns
+        assert ts_event == expected
+        assert ts_init == ts_event
+
+
+_MONTH_BAR_TYPE = "BTCUSDT.BINANCE-1-MONTH-LAST-EXTERNAL"
+_THIRTY_DAYS_NS = 30 * 86_400 * 1_000_000_000
+
+
+def _store_monthly_bars(
+    db_path: Path,
+    *,
+    start_ts: int,
+    offsets_ms: list[int],
+) -> tuple[int, int]:
+    ensure_canonical_bars(db_path)
+    rows: list[dict[str, object]] = []
+    for offset in offsets_ms:
+        ts = start_ts + offset
+        rows.append(
+            {
+                "venue": _VENUE,
+                "symbol": _SYMBOL,
+                "asset_class": "crypto",
+                "timeframe": "1mo",
+                "ts": ts,
+                "open": 100.0,
+                "high": 110.0,
+                "low": 90.0,
+                "close": 100.0,
+                "volume": 1.0,
+            }
+        )
+    upsert_bars(db_path, rows)
+    end_ts = start_ts + offsets_ms[-1]
+    return start_ts, end_ts
+
+
+def test_final_monthly_bar_closes_thirty_days_after_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    offsets_ms = [0, 28 * _DAY_MS, 60 * _DAY_MS]
+    start_ts, end_ts = _store_monthly_bars(
+        db_path, start_ts=start_ts, offsets_ms=offsets_ms
+    )
+    captured = _capture_bar_timestamps(monkeypatch)
+
+    run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_MONTH_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
+
+    assert len(captured) == len(offsets_ms)
+    for i, offset in enumerate(offsets_ms):
+        open_ns = (start_ts + offset) * 1_000_000
+        if i + 1 < len(offsets_ms):
+            expected = (start_ts + offsets_ms[i + 1]) * 1_000_000
+        else:
+            expected = open_ns + _THIRTY_DAYS_NS
+        ts_event, ts_init = captured[i]
+        assert ts_event == expected
+        assert ts_init == ts_event
 
 
 def test_run_backtest_custom_fees_change_pnl(tmp_path: Path) -> None:
