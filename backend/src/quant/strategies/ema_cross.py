@@ -69,7 +69,13 @@ def net_position_as_float(value: object | None) -> float:
 
 
 class EmaCross(Strategy):  # type: ignore[misc]  # Strategy resolves to Any without stubs
-    """Long-only EMA crossover: buy on bullish cross, sell to flat on bearish cross."""
+    """Long-only EMA crossover using post-only limit orders.
+
+    Position comes from the portfolio, which the engine updates on order and
+    position events. A new order is sent only when the book has no open or
+    in-flight order for the instrument. Buys are priced one tick below the
+    bar close; sells are priced one tick above it.
+    """
 
     def __init__(
         self,
@@ -88,14 +94,14 @@ class EmaCross(Strategy):  # type: ignore[misc]  # Strategy resolves to Any with
         self._fast_len = fast
         self._slow_len = slow
         self._closes: list[float] = []
-        self._is_long = False
         self.equity_snapshots: list[tuple[int, float]] = []
 
     def on_start(self) -> None:
         self.subscribe_bars(BarType.from_str(self._bar_type_str))
 
     def on_bar(self, bar: Bar) -> None:
-        venue_obj = InstrumentId.from_str(self._instrument_id_str).venue
+        instrument_id = InstrumentId.from_str(self._instrument_id_str)
+        venue_obj = instrument_id.venue
         money = self.portfolio.equity(venue_obj)[USDT]
         equity = float(money.as_double())
         self.equity_snapshots.append((bar.ts_event // 1_000_000, equity))
@@ -106,32 +112,55 @@ class EmaCross(Strategy):  # type: ignore[misc]  # Strategy resolves to Any with
         slow_ema = ema_series(self._closes, self._slow_len)
         signal = crossover_signals(fast_ema, slow_ema)[-1]
 
-        instrument_id = InstrumentId.from_str(self._instrument_id_str)
+        if self.cache.orders_open(
+            instrument_id=instrument_id,
+        ) or self.cache.orders_inflight(instrument_id=instrument_id):
+            return
 
-        if signal == "buy" and not self._is_long:
+        if signal == "buy" and self.portfolio.is_flat(instrument_id):
+            self._submit_limit(instrument_id, venue_obj, bar, OrderSide.BUY)
+        elif signal == "sell" and self.portfolio.is_net_long(instrument_id):
+            self._submit_limit(instrument_id, venue_obj, bar, OrderSide.SELL)
+
+    def _submit_limit(
+        self,
+        instrument_id: InstrumentId,
+        venue_obj: Venue,
+        bar: Bar,
+        side: OrderSide,
+    ) -> None:
+        if side == OrderSide.BUY:
             qty_str = self._entry_qty_str(bar, venue_obj)
             if not qty_str:
                 return
-            order = self.order_factory.market(
-                instrument_id=instrument_id,
-                order_side=OrderSide.BUY,
-                quantity=Quantity.from_str(qty_str),
-            )
-            self.submit_order(order)
-            self._is_long = True
-        elif signal == "sell" and self._is_long:
+        else:
             net_qty = self.portfolio.net_position(instrument_id)
             qty = net_position_as_float(net_qty)
             if qty <= 0:
-                self._is_long = False
                 return
-            order = self.order_factory.market(
-                instrument_id=instrument_id,
-                order_side=OrderSide.SELL,
-                quantity=Quantity.from_str(f"{qty:.6f}"),
-            )
-            self.submit_order(order)
-            self._is_long = False
+            qty_str = f"{qty:.6f}"
+
+        instrument = self.cache.instrument(instrument_id)
+        if instrument is None:
+            msg = f"instrument not in cache: {instrument_id}"
+            self.log.error(msg)
+            raise RuntimeError(msg)
+
+        tick = instrument.price_increment
+        close_px = bar.close
+        if side == OrderSide.BUY:
+            limit_px = close_px - tick
+        else:
+            limit_px = close_px + tick
+
+        order = self.order_factory.limit(
+            instrument_id=instrument_id,
+            order_side=side,
+            quantity=Quantity.from_str(qty_str),
+            price=limit_px,
+            post_only=True,
+        )
+        self.submit_order(order)
 
     def _entry_qty_str(self, bar: Bar, venue_obj: Venue) -> str:
         deploy = float(self._deploy_pct) if self._deploy_pct else 0.0
