@@ -307,6 +307,16 @@ Runs are executed by a **separate worker process**, never inline in the API requ
 
 Only one worker runs at a time. Parallelism is out of scope until §2 is amended.
 
+### 4.6 Engine bar close timestamps
+
+When feeding bars into Nautilus, `Bar.ts_event` and `Bar.ts_init` use the **bar close** time in nanoseconds (`close_ns`), not the open time stored in DuckDB.
+
+* `close_ns` for bar `i` is `rows[i + 1]["ts"] * 1_000_000` (next bar's open, epoch ms → ns).
+* **Final bar** in a sequence (no `i + 1`):
+  * If the canonical timeframe is `1mo`, add 30 days: `30 * 86_400_000 * 1_000_000` ns to the open timestamp (converted to ns: `rows[i]["ts"] * 1_000_000 +` that delta).
+  * Otherwise, derive the interval from the `BarType` spec and add that duration to the open timestamp in ns.
+* **`curated_bars.ts`** in DuckDB remains the bar **open** timestamp (epoch ms). Do not change the schema or ingestion semantics.
+
 ## 5. Conventions
 
 **Python** — 3.12+, ruff, mypy strict, pydantic v2. Type hints on every function. `logging`, never `print()`. Import from `quant.*`, not relative.
@@ -464,6 +474,13 @@ Goal: Refactor Tear Sheet into a customizable, drag-and-drop widget grid.
 
 * **10.1** — amend spec for dynamic dashboard and Grok 4.7
 * **10.2** — refactor Tear Sheet to use `react-grid-layout` and implement `localStorage` layout persistence
+
+### Phase 11 — Event Loop & Execution Integrity
+Goal: Eliminate look-ahead bias and order state drift.
+
+* **11.1** — runner.py: update Bar constructor ts_event/ts_init to bar close timestamp
+* **11.2** — ema_cross.py: remove phantom state and transition to post-only limit orders
+* **11.3** — buy_hold.py: remove phantom _entered state and defer to event callbacks
 
 ## 7. AI rules
 
