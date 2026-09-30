@@ -53,11 +53,13 @@ from quant.api.schemas import (
     TradePage,
     Verification,
 )
+from quant.config import repo_root
 from quant.data.runs_store import (
     RunRecord,
     fail_stale_running,
     insert_run_with_connection,
 )
+from quant.git_state import capture_git_state
 
 _VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold", "ema_cross"})
 
@@ -647,6 +649,8 @@ def create_run(
 
     name = payload.name or f"{payload.strategy} {','.join(payload.universe)}"
 
+    git_sha, git_dirty = capture_git_state(repo_root())
+
     record = RunRecord(
         run_id=run_id,
         name=name,
@@ -660,8 +664,8 @@ def create_run(
         heartbeat_ts=now_ms,
         status="queued",
         error=None,
-        git_sha=None,
-        git_dirty=False,
+        git_sha=git_sha,
+        git_dirty=git_dirty,
         data_snapshot=None,
         seed=0,
         metrics={},
@@ -678,8 +682,8 @@ def create_run(
         start_ts=payload.start_ts,
         end_ts=payload.end_ts,
         created_at=now_ms,
-        git_sha=None,
-        git_dirty=False,
+        git_sha=git_sha,
+        git_dirty=git_dirty,
         status="queued",
         sharpe=None,
         cagr=None,

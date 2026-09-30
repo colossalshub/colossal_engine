@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import subprocess
 import sys
 import uuid
 from datetime import UTC, datetime
@@ -19,6 +18,7 @@ from quant import config
 from quant.data.normalize import to_epoch_ms
 from quant.data.runs_store import RunRecord, init_runs_schema, insert_run
 from quant.engine.orchestrator import _CANONICAL_TIMEFRAMES, execute_run
+from quant.git_state import capture_git_state
 from quant.logging_setup import configure_logging
 
 _DATE_ONLY_LEN = 10
@@ -32,33 +32,6 @@ def parse_cli_timestamp(raw: str) -> int:
     if len(text) == _DATE_ONLY_LEN and text[4] == "-" and text[7] == "-":
         return to_epoch_ms(f"{text}T00:00:00+00:00")
     return to_epoch_ms(text)
-
-
-def _git_state(repo_root: Path) -> tuple[str | None, bool]:
-    try:
-        sha = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=repo_root,
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=5,
-        ).stdout.strip()
-        porcelain = subprocess.run(
-            ["git", "status", "--porcelain"],
-            cwd=repo_root,
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=5,
-        ).stdout
-        return sha or None, bool(porcelain.strip())
-    except (
-        FileNotFoundError,
-        subprocess.CalledProcessError,
-        subprocess.TimeoutExpired,
-    ):
-        return None, False
 
 
 def _metric_token(value: object) -> str:
@@ -184,7 +157,7 @@ def main() -> None:
     )
 
     run_id = str(uuid.uuid4())
-    git_sha, git_dirty = _git_state(repo_root)
+    git_sha, git_dirty = capture_git_state(repo_root)
 
     runs_db = Path(runs_db_path)
     init_runs_schema(runs_db)

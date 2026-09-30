@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
@@ -70,8 +71,9 @@ def test_happy_path_returns_201_and_queued_summary(
     assert body["universe"] == ["BTC/USDT"]
     assert body["start_ts"] == 1_704_067_200_000
     assert body["end_ts"] == 1_706_659_200_000
-    assert body["git_sha"] is None
-    assert body["git_dirty"] is False
+    assert body["git_sha"] is not None
+    assert re.fullmatch(r"[0-9a-f]{40}", body["git_sha"])
+    assert isinstance(body["git_dirty"], bool)
     assert body["sharpe"] is None
     assert body["cagr"] is None
     assert body["max_drawdown"] is None
@@ -223,3 +225,16 @@ def test_single_symbol_universe_accepted(
     )
     assert response.status_code == 201
     assert _count_runs(db_path) == before + 1
+
+
+def test_create_run_captures_git_sha(client: TestClient, db_path: Path) -> None:
+    response = client.post("/api/runs", json=_valid_payload())
+    assert response.status_code == 201
+    body = response.json()
+    assert isinstance(body["git_dirty"], bool)
+    run_id = body["run_id"]
+    row = _fetch_run(db_path, run_id)
+    git_sha = row["git_sha"]
+    assert isinstance(git_sha, str)
+    assert re.fullmatch(r"[0-9a-f]{40}", git_sha)
+    assert bool(row["git_dirty"]) == body["git_dirty"]
