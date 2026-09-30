@@ -1,8 +1,33 @@
 # WORKFLOW.md
 
-Companion to `PROJECT.md`. Not a spec — a playbook for how to run the
-phases. A fresh AI session should read `PROJECT.md` first, then this file,
-then `.cursor/rules/*.mdc`.
+Companion to `PROJECT.md`. This is the **execution playbook**, not the permanent project specification.
+
+## 0. Agent Startup Protocol — READ FIRST
+
+Before planning, editing, coding, testing, or committing anything:
+
+1. Read `STATE.md`.
+2. Read the relevant sections of `PROJECT.md`.
+3. Read this file.
+4. Read `REVIEWER.md` when preparing acceptance evidence or a completion report.
+5. Read applicable `.cursor/rules/*.mdc` files.
+6. Determine `current_phase`, `current_task`, and status from `STATE.md`.
+7. Verify the repository is consistent with that state before changing anything.
+
+**Never infer current phase from memory, chat history, README text, commit messages, old audit reports, or filenames.**
+
+If documentation and repository evidence disagree, STOP and use the conflict protocol in `STATE.md`.
+
+### Authority hierarchy
+
+1. Explicit human decision in the current task
+2. `STATE.md` for current execution state
+3. `PROJECT.md` for permanent specification and phase requirements
+4. `WORKFLOW.md` for execution procedure
+5. `REVIEWER.md` for acceptance/review procedure
+6. `.cursor/rules/*.mdc` for local code-style rules
+7. README/old reports for descriptive context only
+8. Agent memory/inference — **never authoritative**
 
 ---
 
@@ -16,7 +41,7 @@ The right model depends on the task, not the phase. Use this table.
 | Single-file logic with clear spec | Composer 2.5 | Low | Most Phase 1–2 tasks |
 | Contract files (schemas, types) | Claude Sonnet 5 | Medium | `schemas.py`, `types.ts` |
 | Multi-file routers, DB wiring | Claude Sonnet 5 | Medium | `get_tearsheet`, pagination |
-| Complex UI (LWC crosshair, SVG, grid widgets) | Claude Sonnet 5, Opus, or Grok 4.7 | Medium–High | `BaseChart.tsx`, `MonthlyHeatmap.tsx`, Tear Sheet layout |
+| Complex UI (LWC crosshair, SVG) | Claude Sonnet 5 or Opus | High | `BaseChart.tsx`, `MonthlyHeatmap.tsx` |
 | Hard debugging (2 failures) | Claude Opus | High | Escalate only after Sonnet fails |
 | API probing (Stage 1) | Composer or Codex CLI | Low | Read-only, no judgment needed |
 
@@ -48,7 +73,7 @@ This pattern saved Phase 2.2 (Nautilus engine construction), Phase 2.2.2 (`portf
 - If a task needs schema creation + orchestration, split into `.1` / `.2a` / `.2b`.
 - If a task needs a bug fix in a prior phase's file to proceed, split into the fix phase + the original phase.
 - Documentation and small fixes get suffixes: `Phase 3.1.1`, `Phase 2.2.3`, `Phase 2.1.2`.
-- **Commit message format:** Conventional Commits with the phase in parentheses at the end. Example: `feat(scope): description (Phase X.Y)` — no trailing period, no emoji.
+- **Commit message format:** `Phase X.Y: description` — no trailing period, no prefixes, no emoji.
 
 ---
 
@@ -187,11 +212,116 @@ Known §4.4 typo fixed in Phase 3.1.1: `KpiBlock` fields are all `number | null`
 
 ## 8. Debugging escalation
 
-1. Composer with the full failing output pasted (not summarized).
-2. If Composer fails twice, switch to Sonnet Medium.
-3. If Sonnet fails twice, Sonnet High effort.
-4. If Sonnet still fails, STOP and think — the problem is likely the approach, not the model.
-5. Consider Codex CLI as a second opinion if ChatGPT Plus is available.
+Use the following escalation path when a task fails:
+
+1. **Composer**
+
+   * Provide the full failing output.
+   * Do not summarize or omit relevant errors.
+   * Allow up to **2 debugging attempts**.
+
+2. **Grok Medium**
+
+   * If Composer fails twice, switch to Grok Medium.
+   * Provide the full current failure state and relevant changes.
+   * Allow up to **2 debugging attempts**.
+
+3. **Grok High effort**
+
+   * If Grok Medium fails twice, escalate to Grok High effort.
+   * Re-evaluate the implementation approach rather than blindly repeating the same fix.
+
+4. **STOP and reassess**
+
+   * If Grok High effort still fails, stop implementation.
+   * Do not keep cycling models indefinitely.
+   * Determine whether the problem is caused by:
+
+     * an incorrect implementation approach;
+     * an incorrect assumption;
+     * an architectural conflict;
+     * an incomplete or contradictory specification;
+     * a dependency/tooling issue;
+     * a repository-state issue; or
+     * a genuine unresolved defect.
+
+5. **Optional second opinion**
+
+   * Codex CLI may be used as an independent second opinion if available.
+   * The second opinion must review the actual failure and repository state rather than simply attempting another blind fix.
+   * A second opinion does not reset the task's failure count.
+
+### Hard execution limit
+
+A task may consume at most **5 implementation/debugging loops** before requiring human intervention.
+
+The intended escalation is therefore:
+
+```text
+Composer attempt 1
+        ↓
+Composer attempt 2
+        ↓
+Grok Medium attempt 1
+        ↓
+Grok Medium attempt 2
+        ↓
+Grok High effort attempt 1
+        ↓
+STOP / reassess
+```
+
+The sixth attempt must not begin automatically.
+
+If the task remains unresolved after the allowed attempts:
+
+* do not modify additional implementation code;
+* do not advance to the next task;
+* do not mark the task complete;
+* preserve the complete failure evidence;
+* mark the task `BLOCKED`, unless the issue is an actual specification/state contradiction;
+* require human review before continuing.
+
+A debugging loop means one meaningful cycle of:
+
+```text
+diagnose → hypothesize → modify → test → evaluate
+```
+
+Multiple failing tests produced by the same diagnostic cycle count as one loop, not one loop per individual test failure.
+
+### Human intervention report
+
+When the limit is reached, produce:
+
+```text
+BLOCKED
+
+Phase:
+Task:
+
+Attempts:
+1. Composer:
+2. Composer:
+3. Grok Medium:
+4. Grok Medium:
+5. Grok High:
+
+Failure:
+Tests/commands:
+Files modified:
+Approaches attempted:
+Evidence gathered:
+
+Likely cause:
+Unresolved issue:
+
+Human decision/action required:
+```
+
+If the issue is a contradiction between authoritative project information and repository evidence, use the existing `STATE CONFLICT` format instead.
+
+**Never continue debugging solely to avoid reporting a failure.**
 
 ---
 
@@ -221,11 +351,11 @@ Things agents have actually tried, that need to be caught:
 - **Python:** 3.14 in the venv (spec says 3.12+; if a package misbehaves, drop to 3.12 in a fresh venv)
 - **OS:** Windows (PowerShell 5.x — `&&` is not supported, use `;`)
 - **Path issue:** `pip`/`pytest`/`ruff`/`mypy` are not on PATH — use `python -m pip`, `python -m pytest`, etc.
-- **Repo root:** `E:\Documents\Projects\colossal_quant`
+- **Repo root:** `E:\Documents\Projects\colossal_engine`
 - All env vars are documented in `.env.example`. Read env vars via
   `quant.config`, not `os.environ`, in new code. The config module loads
   `.env` at import; real env vars always take precedence.
-- **`git status --short` shows `M .cursor/rules/project.mdc`** whenever rules are edited — commit as a mini-phase (`docs: add rule N (Phase X.Y.1)`).
+- **`git status --short` shows `M .cursor/rules/project.mdc`** whenever rules are edited — commit as a mini-phase (`Phase X.Y.1: add rule N`).
 - Start the API with `--reload` during development: `python -m uvicorn quant.api.main:app --port 8000 --reload`
 - `scripts/cleanup.py` archives parquet artifacts older than 30 days
   (default). It flips `meta_runs.status` to 'archived' and nulls the
@@ -240,19 +370,6 @@ Things agents have actually tried, that need to be caught:
 
 ---
 
-## 11. State at end of trust pass
+## 11. State and phase transitions
 
-- **Roadmap complete.** Phases 0–9 + T.1 + T.1.1 + T.2 + T.3 + T.4 + T.4.1 shipped.
-- **Test count:** 340 backend, 153 frontend
-- **Verified platform:**
-  - Fees: configurable per run, default 0.1% (Binance retail)
-  - Sizing: `deploy_pct` param, default 100% of equity
-  - Benchmark: optional `benchmark_symbol` param
-  - Verification: reconciled against Nautilus account report (`source="account_report"`)
-- **Trust pass verified against real data:**
-  - 2020-2024 BTC/USDT buy-hold, 100% deployed → 67% CAGR, -77% max DD
-  - Verification discrepancy: 5.56e-13 (float rounding)
-- **Known limitations (documented in README):**
-  - Fill model uses Nautilus default (fills at bar price, matches against bar volume)
-  - Single-instrument per run (BTC/USDT pair hardcoded in `CurrencyPair`)
-  - No walk-forward, Monte Carlo, or parameter optimization
+`STATE.md` is the only authoritative source for the current phase/task. Update it only after acceptance and reviewer approval. Conflicts require STOP and explicit resolution.

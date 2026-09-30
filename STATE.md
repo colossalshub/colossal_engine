@@ -1,0 +1,245 @@
+# STATE.md — Colossal Quant Current Execution State
+
+> **Authoritative live state.** This file answers WHERE the project is. It does not redefine the project specification.
+>
+> Agents MUST read this file before planning or implementing work.
+> Do not infer current state from memory, chat history, commit messages, README text, or old audit reports.
+
+---
+
+## 1. Current State
+
+```yaml
+current_phase: 12
+current_phase_status: READY
+current_task: 12.1
+next_task: 12.2
+last_completed_phase: 11
+execution_mode: ONE_TASK_AT_A_TIME
+human_transition_required: true
+```
+
+### Phase status
+
+- Phase 0 — COMPLETE
+- Phase 1 — COMPLETE
+- Phase 2 — COMPLETE
+- Phase 3 — COMPLETE
+- Phase 4 — COMPLETE
+- Phase 5 — COMPLETE
+- Phase 6 — COMPLETE
+- Phase 7 — COMPLETE
+- Phase 8 — COMPLETE
+- Phase 9 — COMPLETE
+- Phase 10 — COMPLETE
+- Phase 11 — COMPLETE
+- **Phase 12 — READY / IN PROGRESS only after the first task begins**
+- Phase 13+ — NOT STARTED
+
+> Phase 0–11 status above is the recorded project state from the latest research-integrity audit context. If repository evidence contradicts this state, STOP and report the conflict rather than silently changing this file.
+
+---
+
+## 2. Current Objective
+
+### Phase 12 — Fail Closed
+
+**Goal:** Prevent apparently valid research from being produced when the data, instrument identity, ingestion completeness, or declared universe is invalid for the current execution architecture.
+
+### Tasks
+
+- [ ] **12.1 — Instrument Identity**
+- [ ] **12.2 — OHLCV Integrity**
+- [ ] **12.3 — Ingestion Completeness**
+- [ ] **12.4 — Single-Symbol Universe Enforcement**
+
+### Current task
+
+**12.1 — Instrument Identity**
+
+The implementation must verify the symbol → instrument → base/quote currency mapping and fail closed for unsupported instruments. The current execution path supports one BTC/USDT spot instrument unless the specification is explicitly amended.
+
+### Phase 12 non-goals
+
+Do NOT implement:
+
+- multi-asset execution;
+- perpetual/futures mechanics;
+- funding/liquidation;
+- a custom matching engine;
+- a custom portfolio/accounting engine;
+- an optimizer;
+- walk-forward validation;
+- Monte Carlo validation;
+- statistical-model expansion.
+
+---
+
+## 3. Known Research-Integrity Findings
+
+From the latest Quant Research Integrity Audit:
+
+### P0 / critical
+
+- Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path.
+- OHLCV data is not sufficiently validated.
+- Ingestion can reach its page cap and still report success.
+- Trade KPIs can treat an open position as a losing trade/fee result.
+
+### P1 / high
+
+- Dataset identity is not a fingerprint of the exact ordered bars used.
+- UI/worker execution does not reliably capture git SHA.
+- Current execution assumptions include same-bar close behavior and zero slippage/default Nautilus fill behavior but are not sufficiently surfaced.
+- The API/UI can accept a multi-symbol universe while the execution path trades only the first symbol.
+
+### Important limitations
+
+- A green test suite does not prove absence of future-bar influence.
+- A self-consistent equity reconstruction is not an independent external account verification.
+- Bar-close timestamps do not by themselves eliminate same-bar execution bias.
+- Statistical metrics are not evidence of strategy validity until the research-design controls are implemented.
+
+---
+
+## 4. Last Audit Record
+
+```yaml
+type: Quant Research Integrity Audit
+status: COMPLETE — AUDIT ONLY
+commit: 5fffa3cbd618ca05e65620f2b26ddae260f122be
+branch: main
+date: 2026-09-30
+scope: Phases 0–11
+```
+
+The audit recorded:
+
+- backend acceptance: 361 passed;
+- ruff: clean;
+- mypy: clean;
+- frontend acceptance: 165 passed;
+- TypeScript: clean.
+
+These are historical acceptance results and must not be reused as current results after code changes. Run the required acceptance commands for the current task.
+
+---
+
+## 5. Permanent Architecture Boundary
+
+### Colossal Quant owns
+
+- data ingestion and validation;
+- dataset selection and identity;
+- experiment/run metadata;
+- strategy configuration;
+- research workflow;
+- validation/statistical reporting;
+- visualization;
+- artifact extraction and integrity checks;
+- research provenance.
+
+### NautilusTrader owns
+
+- event-driven simulation;
+- order lifecycle;
+- matching/fills;
+- commissions/fees as configured through Nautilus;
+- portfolio/account mechanics;
+- execution semantics delegated to Nautilus.
+
+**Do not build a second implementation of a Nautilus responsibility.**
+
+---
+
+## 6. State-Transition Rules
+
+A task may transition only through:
+
+```text
+NOT_STARTED
+    ↓
+READY
+    ↓
+IN_PROGRESS
+    ↓
+ACCEPTANCE_PENDING
+    ↓
+COMPLETE
+```
+
+Failure returns the task to `IN_PROGRESS` or `BLOCKED`.
+
+A phase cannot become `COMPLETE` until:
+
+1. every task is complete;
+2. required tests exist and test the specified behavior;
+3. whole-tree acceptance passes;
+4. no unapproved scope changes remain;
+5. required probe/approval rules were followed;
+6. the reviewer accepts the work;
+7. this file is updated with evidence.
+
+No agent may skip a state transition merely because the change appears small.
+
+---
+
+## 7. Required Evidence Per Completed Task
+
+Record:
+
+- task ID;
+- files changed;
+- tests added/changed;
+- exact acceptance commands;
+- exact relevant output;
+- git commit SHA;
+- deviations from specification;
+- reviewer decision;
+- next task.
+
+Do not record “done” as the only evidence.
+
+---
+
+## 8. Conflict Protocol
+
+If any of the following disagree:
+
+- `STATE.md`;
+- `PROJECT.md`;
+- `WORKFLOW.md`;
+- `REVIEWER.md`;
+- repository code;
+- tests;
+- git history;
+- a third-party API probe;
+
+STOP.
+
+Report:
+
+```text
+STATE CONFLICT
+
+Source:
+Claim:
+Repository/API evidence:
+Current recorded state:
+Potential impact:
+Required decision:
+```
+
+Do not silently choose which source is “probably right.”
+
+---
+
+## 9. Update Rule
+
+`STATE.md` is intentionally short and mutable.
+
+It must be updated whenever a task or phase changes state.
+
+Do not copy the complete roadmap into this file. The permanent roadmap belongs in `PROJECT.md`.
+
+Do not put implementation details here unless they are necessary to describe current state or a blocker.

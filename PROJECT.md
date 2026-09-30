@@ -12,7 +12,7 @@ We do not build an engine. We build three screens around Nautilus:
 - **Data Manager** (`/data`)       — coverage heatmap, ingestion
 
 **Do not build:** backtest engine, fill model, fee model, portfolio simulator,
-metrics from raw PnL, charting library.
+metrics from raw PnL, charting library, grid library.
 **Do build:** extraction (Nautilus → parquet), read API, React screens.
 
 ---
@@ -29,7 +29,6 @@ metrics from raw PnL, charting library.
 | Server state | TanStack Query |
 | Charts | lightweight-charts |
 | Tables | AG Grid (community) |
-| Widget layout | react-grid-layout |
 | Lint py | ruff + mypy strict |
 | Lint ts | eslint + tsc strict |
 | Tests py | pytest |
@@ -134,7 +133,7 @@ CREATE TABLE meta_runs (
 
 **Field semantics**
 
-* `data_snapshot` — fingerprint of the exact bar set used. Computed as `sha256("\n".join(f"{venue}|{symbol}|{tf}|{max_ts}" for each universe entry))`. Enables cache-busting and reproducibility audits.
+* `data_snapshot` — fingerprint of the exact ordered bar rows used by the run. The historical max-timestamp formula is deprecated and MUST NOT be used as a reproducibility identity. Phase 14 defines the exact ordered-row fingerprint contract.
 * `seed` — RNG seed injected into the strategy. Strategies that don't consume randomness ignore it.
 * `git_sha` / `git_dirty` — captured at run creation time from the repo root. `NULL` / `0` when git is unavailable.
 * `artifacts` — keys are logical names (`equity`, `drawdown`, `price`, `trades`, `fills`); values are **relative paths** under `data/runs/{run_id}/`. The API is responsible for turning these into URLs if/when needed.
@@ -307,16 +306,6 @@ Runs are executed by a **separate worker process**, never inline in the API requ
 
 Only one worker runs at a time. Parallelism is out of scope until §2 is amended.
 
-### 4.6 Engine bar close timestamps
-
-When feeding bars into Nautilus, `Bar.ts_event` and `Bar.ts_init` use the **bar close** time in nanoseconds (`close_ns`), not the open time stored in DuckDB.
-
-* `close_ns` for bar `i` is `rows[i + 1]["ts"] * 1_000_000` (next bar's open, epoch ms → ns).
-* **Final bar** in a sequence (no `i + 1`):
-  * If the canonical timeframe is `1mo`, add 30 days: `30 * 86_400_000 * 1_000_000` ns to the open timestamp (converted to ns: `rows[i]["ts"] * 1_000_000 +` that delta).
-  * Otherwise, derive the interval from the `BarType` spec and add that duration to the open timestamp in ns.
-* **`curated_bars.ts`** in DuckDB remains the bar **open** timestamp (epoch ms). Do not change the schema or ingestion semantics.
-
 ## 5. Conventions
 
 **Python** — 3.12+, ruff, mypy strict, pydantic v2. Type hints on every function. `logging`, never `print()`. Import from `quant.*`, not relative.
@@ -341,170 +330,472 @@ When feeding bars into Nautilus, `Bar.ts_event` and `Bar.ts_init` use the **bar 
 * Frontend API client uses **relative** `/api/*` paths. The Vite dev proxy (Phase 0.3) forwards them to the backend. Never hardcode `http://localhost:8000` in frontend code.
 * No premature abstraction — wait for the 2nd use case.
 
-## 6. Roadmap
+## 6. Roadmap — authoritative phase definitions
 
-Each task = one Cursor session = one file + one test.
-Do not scaffold ahead. Do not touch other files.
+This section defines **WHAT** the project must become. `STATE.md` defines **WHERE the project currently is**. `WORKFLOW.md` defines **HOW an agent executes work**. `REVIEWER.md` defines **HOW completed work is accepted**.
+
+### 6.0 Authority and anti-hallucination rules
+
+1. Do not infer the current phase from conversation history, commit messages, README text, old audit reports, or agent memory.
+2. Read `STATE.md` before planning or implementing any task.
+3. `PROJECT.md` is the permanent specification. `STATE.md` is the mutable execution state.
+4. If these files conflict with repository evidence, **STOP** and report the conflict. Do not silently reconcile it.
+5. A task is not complete because code exists, tests were added, or an agent says it is complete. Acceptance evidence is required.
+6. Do not implement future-phase functionality merely because it would be useful or because a dependency is nearby.
+7. Do not duplicate NautilusTrader's event loop, matching, portfolio accounting, commissions, or other responsibilities assigned to Nautilus.
+8. Every phase has an explicit goal, non-goals, tasks, acceptance requirements, and completion evidence.
+9. Historical notes must be labeled historical. They never override `STATE.md`.
+10. When a phase is completed, update `STATE.md` with the evidence before advancing.
 
 ### Phase 0 — Bootstrap
 
-Goal: Both servers run locally. Nothing else.
+**Goal:** Both servers run locally. Nothing else.
 
-* **0.1** — `pyproject.toml` with core deps from §2.1 (`fastapi, uvicorn, duckdb, pyarrow, pydantic, nautilus_trader`) and `[project.optional-dependencies]` blocks `ingestion = [ccxt, yfinance]` and `broker = [ibkr]`. Also create the empty package skeleton `backend/src/quant/__init__.py` so setuptools can resolve `packages.find` under `backend/src`. Also create `.gitignore` at the repo root covering: Python caches (`__pycache__/`, `*.py[cod]`, `*.egg-info/`, `.venv/`, `venv/`), tool caches (`.mypy_cache/`, `.pytest_cache/`, `.ruff_cache/`), OS files (`.DS_Store`, `Thumbs.db`), environment files (`.env`, `.env.local`, `.env.*.local`; `.env.example` is *not* ignored — it is committed as the template), and future-phase paths (`data/`, `node_modules/`, `frontend/dist/`). → `pip install -e ".[dev]"` succeeds in the repo, and no cache folders appear in `git status`.
-* **0.2** — `backend/src/quant/api/main.py` (`GET /health` → `{"status":"ok"}`) → `curl :8000/health`
-* **0.3** — `frontend/` via `npm create vite@latest` (React + TS). Install: `react-router-dom`, `@tanstack/react-query`, `lightweight-charts`, `ag-grid-react`, `ag-grid-community`. Configure `vite.config.ts` to proxy `/api` requests to `http://127.0.0.1:8000` to avoid CORS issues locally. **Note:** the `/api` proxy is wired here, but end-to-end verification of `/api/*` routes only succeeds after Phase 3.6 mounts the routers under `/api`. Do NOT add a `/api/health` alias or proxy rewrite — the 404 on `/api/health` until Phase 3.6 is expected. → `npm run dev` opens `:5173`
-* **0.4** — `frontend/src/App.tsx` renders "hello" → browser shows "hello"
-* **Note (oxlint)** — `create-vite@9` ships `.oxlintrc.json` and an `oxlint` npm script. Keep them. They are not wired into CI and do not conflict with eslint (Phase 4+). Do not remove without re-evaluating §2.
+**Tasks:** 0.1 backend/package/gitignore; 0.2 `/health`; 0.3 Vite/React shell and `/api` proxy; 0.4 hello page.
 
-**Done:** both servers run, commit pushed.
+**Acceptance:** backend installs and health endpoint works; frontend starts; repository ignores required generated files; no future-phase scaffolding.
 
-### Phase 1 — Data layer
+### Phase 1 — Data Layer
 
-Goal: Real bars in DuckDB, canonical timeframes.
+**Goal:** Real bars in DuckDB using canonical timeframes.
 
-* **1.1** — `data/normalize.py` (`normalize_timeframe`, `to_epoch_ms`) → `pytest tests/data/test_normalize.py`
-* **1.2** — `data/store.py` (`init_schema`, `ensure_canonical_bars`, `upsert_bars`) → `pytest tests/data/test_store.py`
-* **1.3** — `scripts/ingest_bars.py` (CLI: venue, symbol, tf, range) → ingest BTC/USDT 1d from ccxt
-* **1.4** — `data/read.py` (`read_bars_json`) → `pytest tests/data/test_read.py`
+**Tasks:** 1.1 normalization; 1.2 DuckDB schema/upsert; 1.3 ingestion CLI; 1.4 read layer.
 
-**Done:** `SELECT ts, close FROM curated_bars LIMIT 5` returns real numbers (ts is already epoch ms). Ingest 1M from ccxt → stored as `1mo`.
+**Acceptance:** canonical timeframe mapping works, invalid tokens fail loudly, bars are stored/read with UTC epoch-ms timestamps.
 
-### Phase 2 — Nautilus extraction
+### Phase 2 — Nautilus Extraction
 
-Goal: One backtest, one artifact set, one `meta_runs` row.
+**Goal:** One backtest produces one coherent artifact set and one run record.
 
-* **2.1** — `strategies/buy_hold.py` (nautilus Strategy subclass) → import succeeds
-* **2.2** — `engine/runner.py` (run backtest, get stats) → `pytest tests/engine/test_runner.py`
-* **2.3** — `extract/equity.py` (reconstruct + verify) → `pytest tests/extract/test_equity.py`
-* **2.4** — `extract/artifacts.py` (write 5 parquets) → `pytest tests/extract/test_artifacts.py`
-* **2.5** — `scripts/run_backtest.py` (run + extract + insert `meta_runs`) → 1 row with metrics
+**Tasks:** 2.1 BuyHold strategy; 2.2 Nautilus runner; 2.3 equity reconstruction; 2.4 parquet artifacts; 2.5 synchronous backtest CLI.
 
-**Done:** `pd.read_parquet('equity.parquet')` returns continuous curve. `meta_runs` has non-null `metrics`.
+**Acceptance:** Nautilus owns simulation; artifacts are written; account/equity reconciliation is tested; run metadata is recorded.
 
 ### Phase 3 — Read API
 
-Goal: Three endpoints return §4.4 shapes.
+**Goal:** API endpoints return the frozen §4.4 shapes.
 
-* **3.1** — `api/schemas.py` (all Pydantic models + `ApiError`) → `pytest tests/api/test_schemas.py`
-* **3.2** — `api/deps.py` (DB dependencies: SQLite per-request connection, scoped DuckDB connection) → import succeeds
-* **3.3** — `api/routers/runs.py::list_runs` → `curl :8000/api/runs` returns paginated list
-* **3.4** — same file, `get_tearsheet` → curl returns full `TearSheet` (MUST `ORDER BY ts ASC`)
-* **3.5** — same file, `get_trades` → curl returns paginated `TradePage`
-* **3.6** — `api/main.py` wires router + CORS from `QUANT_CORS_ORIGINS`
+**Tasks:** 3.1 Pydantic schemas; 3.2 DB dependencies; 3.3 run listing; 3.4 tear sheet; 3.5 trades; 3.6 router/CORS wiring.
 
-**Done:** every `ts` field is `int` in curl output. All three match §4.4.
+**Acceptance:** all timestamps are epoch ms, all series are ordered, pagination follows §4.4, and field names are not changed for convenience.
 
-### Phase 4 — Frontend shell + run history
+### Phase 4 — Frontend Shell + Run History
 
-Goal: Navigate, see runs, click one.
+**Goal:** Navigate between routes and inspect existing runs.
 
-* **4.1** — `api/types.ts` (mirror §4.4) → `tsc -b` passes
-* **4.2** — `api/client.ts` + `api/runs.ts` (fetch wrappers) → mock call returns data
-* **4.3** — `App.tsx` (React Router, 3 routes) → clicking links changes URL
-* **4.4** — `components/layout/Shell.tsx` (sidebar + outlet) → renders on all routes
-* **4.5** — `pages/CommandCenter/RunHistoryTable.tsx` (AG Grid) → shows real runs
-* **4.6** — `pages/CommandCenter/index.tsx` (query + table) → click row navigates to `/runs/:id`
+**Tasks:** API types/client; routing; shell; run table; Command Center integration.
 
-**Done:** click a row → URL changes → page changes.
+**Acceptance:** a real run can be listed and opened without invented data.
 
-### Phase 5 — Tear Sheet skeleton
+### Phase 5 — Tear Sheet Skeleton
 
-Goal: Six charts render with real data.
+**Goal:** Render the core tear sheet using real artifacts/API data.
 
-* **5.1** — `pages/TearSheet/index.tsx` (fetch + layout)
-* **5.2** — `components/charts/BaseChart.tsx` (LWC wrapper, include HTML floating tooltip mapped to crosshair) → renders empty chart
-* **5.3** — `pages/TearSheet/PriceChart.tsx` (candles) → no blank canvas
-* **5.4** — `pages/TearSheet/KpiCards.tsx` → 11 KPIs from response
-* **5.5** — `pages/TearSheet/EquityCurve.tsx` (line) → curve visible
-* **5.6** — `pages/TearSheet/DrawdownChart.tsx` (area) → underwater visible
+**Tasks:** fetch/layout, charts, equity, drawdown, price, markers, KPI/ledger surfaces as specified by the existing UI contract.
 
-**Done:** charts render with epoch-ms data. No 0-OHLC. No blank canvas.
+**Acceptance:** all displayed values originate from API/artifacts; null and empty states are handled.
 
-### Phase 6 — Tear Sheet polish
+### Phase 6 — Tear Sheet Polish
 
-Goal: Complete tear sheet.
+**Goal:** Improve visual clarity without changing research semantics.
 
-* **6.1** — price chart: fill markers from `TearSheet.markers` array
-* **6.2** — `MonthlyHeatmap.tsx` (SVG, custom) → one row per year, 12 months wide
-* **6.3** — `TradeLedger.tsx` (AG Grid, server-paginated)
-* **6.4** — `VerificationBadge.tsx` reads `verification` block
-* **6.5** — `EmptyState.tsx` for `status=queued|running`
+**Tasks:** crosshair/tooltip behavior, chart synchronization, responsive layout, visual states, formatting.
 
-**Done:** six charts + ledger + badge render.
+**Acceptance:** UI changes do not alter backend calculations or artifact contents.
 
-### Phase 7 — Command Center polish
+### Phase 7 — Command Center Polish
 
-Goal: Fire new runs from UI.
+**Goal:** Make run configuration/history usable without expanding research scope.
 
-- **7.1** — `POST /api/runs` router (inserts `meta_runs` row with `status='queued'`, returns `RunSummary`; does not touch `heartbeat_ts`)
-- **7.2** — `StrategyForm.tsx` (strategy + params + universe + date range; submits to 7.1; invalidates runs query on success)
-- **7.3** — worker polling + status polling. Frontend polls every 2s for queued/running runs, stops when done. Watchdog per §4.5 fails runs with stale heartbeat.
-- **7.4** — Compare view (select 2 or more, side-by-side)
+**Tasks:** StrategyForm, filters, validation, loading/error states, history interactions.
 
-**Done:** submit form → status flips `queued→done` → redirect to tear sheet.
+**Acceptance:** submitted parameters exactly match the API contract and invalid requests fail clearly.
 
 ### Phase 8 — Data Manager
 
-Goal: Coverage visibility, ingestion controls.
+**Goal:** Inspect coverage and perform controlled ingestion.
 
-* **8.1** — `GET /api/data/coverage` (symbol × month completeness)
-* **8.2** — `CoverageHeatmap.tsx` (SVG grid)
-* **8.3** — `POST /api/data/ingest` (trigger re-ingest)
+**Tasks:** coverage heatmap, ingestion controls, status/error reporting.
 
-**Done:** gaps show red, complete shows green. Trigger works.
+**Acceptance:** ingestion is explicit, canonicalized, and never silently substitutes data.
 
-### Phase 9 — Operational polish
+### Phase 9 — Operational Polish
 
-Goal: Fresh clone → working app.
+**Goal:** Make the local research workstation robust.
 
-* **9.1** — structured logging on backend
-* **9.2** — Error boundaries + friendly errors on frontend
-* **9.3** — `.env` config, no hardcoded paths (includes `QUANT_CORS_ORIGINS`). Also commit `.env.example` with placeholder values for every env var the app reads. README (Phase 9.4) documents `cp .env.example .env`.
-* **9.4** — `README.md` with setup steps
-* **9.5** — `.gitignore` audit: verify every path created since Phase 0 is either tracked or ignored. Add anything new (e.g. `backend/dist/`, `.coverage`, `.env.local`). If a cache or artifact has slipped into git history, run `git rm -r --cached <path>` and commit the removal. Do not create `.gitignore` — it exists from Phase 0.1.
-* **9.6** — `scripts/cleanup.py`: purge parquet artifacts older than 30 days. For affected runs, set `status='archived'` and null out the corresponding entries in `artifacts` so the UI renders an "artifacts expired" state instead of a broken link.
-* **9.7** — `WORKFLOW.md` update to enforce Conventional Commits + Phase tags.
-* **9.8** — automated `git rebase` script to rewrite recent history to Conventional Commits.
-* **9.9** — automated `git rebase --root` to rewrite the entire legacy commit history.
+**Tasks:** worker/watchdog behavior, cleanup/archive, operational errors, final UI states, artifact serving.
 
-**Done:** `git clone && follow README` → running app without disk bloating.
+**Acceptance:** queued/running/done/failed/archived lifecycle is deterministic and failures are visible.
 
-### Phase 10 — Dynamic Workspace
-Goal: Refactor Tear Sheet into a customizable, drag-and-drop widget grid.
+### Phase 10 — Research Execution Integrity
 
-* **10.1** — amend spec for dynamic dashboard and Grok 4.7
-* **10.2** — refactor Tear Sheet to use `react-grid-layout` and implement `localStorage` layout persistence
+**Goal:** Establish correct event-driven execution semantics around orders, fills, timestamps, fees, equity, and artifacts.
 
-### Phase 11 — Event Loop & Execution Integrity
-Goal: Eliminate look-ahead bias and order state drift.
+**Scope:** Nautilus remains the simulation authority. Colossal Quant verifies and extracts behavior; it does not implement a second engine.
 
-* **11.1** — runner.py: update Bar constructor ts_event/ts_init to bar close timestamp
-* **11.2** — ema_cross.py: remove phantom state and transition to post-only limit orders
-* **11.3** — buy_hold.py: remove phantom _entered state and defer to event callbacks
+**Acceptance:** event ordering, fill-driven strategy state, fee effects, artifact extraction, and account/equity reconciliation are covered by tests/probes appropriate to the actual Nautilus API.
+
+### Phase 11 — Bar-Clock and Phantom-State Integrity
+
+**Goal:** Remove the known phantom order/state problems and establish an explicit bar-close clock contract.
+
+**Important limitation:** Phase 11 does **not** by itself prove elimination of look-ahead bias. Same-bar close execution remains an execution assumption until Phase 15 and causal invariance requires dedicated tests.
+
+**Acceptance:** signal timestamps, order state, fill-driven state transitions, and artifact timestamps are internally coherent; future-bar mutation testing is still required before claiming causal integrity.
+
+### Phase 12 — Fail Closed
+
+**Status target:** P0 research-integrity foundation.
+
+**Goal:** A run cannot quietly produce apparently valid research from invalid data, wrong instrument accounting, truncated ingestion, or a universe the current engine does not actually trade.
+
+**Non-goals:** multi-asset execution, perpetual futures, custom matching, custom portfolio accounting, optimizer, walk-forward, or statistical-model expansion.
+
+#### 12.1 — Instrument Identity
+
+- Verify symbol → instrument → base/quote currency mapping.
+- Current supported execution path is one BTC/USDT spot instrument unless the specification is explicitly amended.
+- Reject non-supported instruments before backtest execution.
+- Do not build a second accounting engine to compensate for an incorrect Nautilus configuration.
+
+**Acceptance:** BTC/USDT works; ETH/USDT and non-USDT quote examples fail closed; no non-BTC run can settle as BTC.
+
+#### 12.2 — OHLCV Integrity
+
+Validate at ingestion/read boundaries as appropriate:
+
+- timestamps are present and finite;
+- timestamps are strictly ordered after canonicalization;
+- no duplicate primary-key timestamps;
+- prices are finite and positive where the instrument contract requires it;
+- `high >= max(open, close, low)`;
+- `low <= min(open, close, high)`;
+- volume is finite and non-negative when supplied;
+- no silent dropping, filling, or repair of invalid records.
+
+**Acceptance:** malformed synthetic bars fail with explicit errors; valid bars continue to load unchanged.
+
+#### 12.3 — Ingestion Completeness
+
+- Detect provider/page caps.
+- If the requested range may remain incomplete at the ingestion cap, return a non-zero failure or explicit incomplete status.
+- Never report a truncated dataset as complete.
+- Preserve the requested start/end range in the result.
+
+**Acceptance:** a deliberately capped ingestion cannot produce a successful complete dataset claim.
+
+#### 12.4 — Universe Contract
+
+- Current execution is single-instrument.
+- Reject `len(universe) != 1` until Phase 23 explicitly changes the architecture.
+- Tear sheet metadata must not claim symbols were traded when only the first symbol was executed.
+
+**Phase 12 completion:** all four tasks implemented, tested, whole-tree acceptance green, and `STATE.md` updated with evidence.
+
+### Phase 13 — Closed-Trade Statistics
+
+**Goal:** Trade-level KPIs represent closed trades only.
+
+- Exclude positions without `ts_closed` from win rate, profit factor, and duration calculations.
+- Keep unrealized/open-position value in equity/account results.
+- Test a BuyHold run that remains open at the end.
+
+**Acceptance:** open-position fees cannot become a synthetic losing trade; closed-trade metrics reconcile with the actual closed position set.
+
+### Phase 14 — Run Identity and Reproducibility
+
+**Goal:** A run records enough identity to determine exactly what code and bars produced it.
+
+- Capture git SHA through UI/worker execution paths.
+- Replace the weak max-timestamp dataset identity with a fingerprint of the exact ordered bar rows consumed by the run.
+- Record venue, symbol, timeframe, range, strategy, parameters, and experiment identity.
+- Make seed semantics honest: a stored seed is only meaningful when randomness can affect execution.
+- Add reproducibility tests.
+
+**Acceptance:** changing a historical bar changes the dataset fingerprint; changing only max timestamp is not sufficient; repeated deterministic runs can be compared by identity and artifacts.
+
+### Phase 15 — Execution Assumptions
+
+**Goal:** Make execution assumptions explicit before claiming realistic execution.
+
+Record at minimum:
+
+- bar timestamp convention;
+- signal-to-order timing;
+- current same-bar close execution behavior;
+- fee model/rates and fee currency;
+- current zero-slippage/default FillModel behavior;
+- absence/presence of latency, spread, queue, and partial-fill assumptions.
+
+**Rule:** Do not implement a custom matcher. If configurable Nautilus execution behavior is required, probe the actual Nautilus API first and delegate execution to Nautilus.
+
+**Acceptance:** tear sheet/run metadata exposes the assumptions; tests pin the current behavior; future-bar mutation does not alter earlier completed artifacts.
+
+### Phase 16 — Clock and Artifact Alignment
+
+**Goal:** Every research artifact uses an explicit and coherent timestamp contract.
+
+Align and test:
+
+- candle open time;
+- candle close time;
+- signal time;
+- order time;
+- fill time;
+- equity point time;
+- trade marker time;
+- benchmark time.
+
+No chart should imply that a fill occurred before the information that caused the order existed.
+
+**Acceptance:** synthetic clock tests prove the intended mapping; benchmark series are aligned to the same research clock; artifact timestamps are documented.
+
+### Phase 17 — Research Experiment Foundation
+
+**Goal:** Separate research experiments from ordinary run history.
+
+Add explicit metadata for:
+
+- experiment/research group;
+- hypothesis identifier;
+- strategy/version identity;
+- parameter set;
+- in-sample range;
+- validation range when applicable;
+- out-of-sample range when applicable;
+- trial index/count when multiple alternatives are tested;
+- dataset/code identity.
+
+**Non-goal:** Do not add a parameter optimizer yet.
+
+**Acceptance:** a researcher can distinguish exploratory trials from a designated holdout/OOS run without relying on filenames or memory.
+
+### Phase 18 — OOS and Walk-Forward Validation
+
+**Goal:** Provide explicit temporal validation that prevents the same data interval from being used ambiguously for selection and final evaluation.
+
+- Define IS/validation/OOS semantics.
+- Add embargo/gap rules where required by the strategy/data frequency.
+- Add walk-forward windows only after the specification is explicit.
+- Preserve every window's identity and results.
+
+**Acceptance:** OOS data cannot silently enter parameter selection; window boundaries are testable and reproducible.
+
+### Phase 19 — Multiple Testing and Overfitting Controls
+
+**Goal:** Record and expose the research-selection process rather than treating one winning backtest as independent evidence.
+
+- Track trial groups and candidate counts.
+- Record selection criteria.
+- Separate exploration from final evaluation.
+- Preserve rejected/alternative trials when the experiment requires them.
+
+**Non-goal:** Do not add a decorative “anti-overfitting” checkbox without an underlying research design.
+
+### Phase 20 — Statistical Validation
+
+**Goal:** Make statistical metrics mathematically explicit and appropriately caveated.
+
+- Verify return frequency and annualization assumptions.
+- Verify Sharpe/Sortino definitions and risk-free-rate treatment.
+- Report sample size and observation window.
+- Add confidence/uncertainty methods where specified.
+- Account for serial dependence/autocorrelation where appropriate.
+- Avoid presenting annualized metrics from tiny samples as evidence of robustness.
+
+**Acceptance:** formulas and units are documented and independently testable.
+
+### Phase 21 — Regime and Robustness Testing
+
+**Goal:** Determine whether research conclusions persist under materially different conditions.
+
+Test, where applicable:
+
+- market regimes;
+- costs/fees;
+- execution delay;
+- spread/slippage assumptions through Nautilus configuration;
+- parameter neighborhoods;
+- missing-data/gap conditions;
+- different but defensible time windows.
+
+Results must preserve the assumptions under which each result was produced.
+
+### Phase 22 — Strategy Research Engine
+
+**Goal:** Move from hardcoded demonstration strategies toward reusable research components.
+
+- Parameterized strategies with explicit schemas.
+- Reusable indicators/features.
+- Causal signal generation.
+- Explicit risk/position-sizing configuration.
+- Strategy version identity.
+
+**Rule:** Do not add feature engineering that cannot be traced to information available at the decision timestamp.
+
+### Phase 23 — Portfolio and Multi-Asset Research
+
+**Goal:** Extend from the current one-instrument contract to real multi-instrument research without faking a loop around a single-symbol engine.
+
+- Define instrument/account model.
+- Define cross-asset event ordering.
+- Define portfolio exposure and capital allocation.
+- Delegate matching/account mechanics to Nautilus.
+- Extend artifacts and API schemas to represent actual traded instruments.
+
+**Acceptance:** multiple instruments are actually instantiated and traded by the simulation, not merely displayed in metadata.
+
+### Phase 24 — Crypto Derivatives Mechanics
+
+**Goal:** Support perpetual/futures research only after the contract mechanics are specified.
+
+Define and test, as applicable:
+
+- contract size;
+- quote/base settlement;
+- leverage/margin;
+- funding-rate timing and payment;
+- liquidation rules;
+- mark/index/last-price roles;
+- exchange-specific fee semantics.
+
+**Rule:** No perpetual funding/liquidation implementation based on assumptions. Probe the relevant Nautilus APIs and specify the mechanics first.
+
+### Phase 25 — Benchmark and Baseline Framework
+
+**Goal:** Benchmarks become reproducible research baselines with the same timestamp and dataset identity discipline as strategies.
+
+- Define benchmark universe and sizing.
+- Align benchmark timestamps to the run clock.
+- Preserve benchmark data identity.
+- Distinguish benchmark return from strategy equity.
+- Test matched buy-and-hold calculations independently.
+
+### Phase 26 — Research Artifact and Reporting System
+
+**Goal:** Every material research conclusion can be traced to code, data, parameters, assumptions, and outputs.
+
+Each report/run should be able to identify:
+
+- code version;
+- dataset fingerprint;
+- strategy/version;
+- parameters;
+- experiment/trial group;
+- IS/validation/OOS ranges;
+- execution assumptions;
+- metrics;
+- artifacts;
+- acceptance/audit status.
+
+### Phase 27 — Backtest/Live Parity
+
+**Goal:** Define shared strategy semantics between research simulation and paper/live execution without duplicating execution engines.
+
+- Shared strategy inputs and decision semantics.
+- Explicit market-data normalization.
+- Explicit clock and order-state contracts.
+- Nautilus/broker adapter boundaries.
+- Differences between historical and live execution documented rather than hidden.
+
+### Phase 28 — Paper/Live Research Loop
+
+**Goal:** Move validated research into paper/live observation while preserving the same provenance and audit trail.
+
+- Paper execution before live deployment where required.
+- Record live/paper assumptions.
+- Compare expected vs observed execution.
+- Preserve model/data/code identity.
+- Define rollback/disable conditions.
+
+### Phase 29 — Continuous Quant Research Loop
+
+**Goal:** Turn the platform into a repeatable research process rather than a backtest generator.
+
+```text
+DATA ACQUISITION
+      ↓
+DATA VALIDATION
+      ↓
+DATA FINGERPRINT
+      ↓
+HYPOTHESIS
+      ↓
+STRATEGY SPECIFICATION
+      ↓
+IN-SAMPLE RESEARCH
+      ↓
+VALIDATION
+      ↓
+OUT-OF-SAMPLE TEST
+      ↓
+ROBUSTNESS / REGIME / COST TESTS
+      ↓
+RESEARCH REVIEW
+      ↓
+RETAIN / REJECT / REVISE
+      ↓
+PAPER / LIVE OBSERVATION
+      ↓
+NEW HYPOTHESIS
+```
+
+Every loop iteration must preserve provenance and must not convert exploratory performance into an unqualified claim of predictive validity.
+
+### Phase completion protocol
+
+A phase may move from `READY`/`IN_PROGRESS` to `COMPLETE` only when:
+
+1. All tasks are implemented or explicitly marked not applicable by approved specification change.
+2. Required tests exist and test the actual behavior.
+3. Whole-tree acceptance commands pass.
+4. No undeclared scope changes remain.
+5. Any third-party API use was probed according to `WORKFLOW.md`.
+6. The agent reports exact changed files and exact acceptance output.
+7. `REVIEWER.md` accepts the work.
+8. `STATE.md` is updated with the completion evidence.
+9. A human-approved transition moves execution to the next phase.
+
+### Continuous audit gates
+
+Mandatory fresh audit gates occur after:
+
+- Phase 11
+- Phase 16
+- Phase 20
+- Phase 24
+- Phase 27
+- Phase 29
+
+A fresh adversarial research-integrity audit may also be requested at any time. An audit is read-only unless explicitly authorized otherwise.
 
 ## 7. AI rules
 
-* Read this file before every response.
-* One module per session. If a task is too big, split it — but only after updating this file.
-* Do not scaffold ahead. Only build the current task.
-* Do not refactor adjacent code "while we're here."
-* Do not add libraries outside §2 without asking.
-* If a request conflicts with §2 or §4, STOP and flag it.
-* Every deliverable includes its test. No test → not done.
-* If the spec is ambiguous, ask. Do not guess.
-* Prefer boring over clever. No premature abstraction.
-* Surface errors, don't swallow them. Log + raise.
-* Any change to §4.1, §4.3, or §4.4 requires a migration script and a project-version bump.
-* `.gitignore` must exist and cover all tool-generated artifacts before the first commit. Never commit `.mypy_cache/`, `.pytest_cache/`, `.ruff_cache/`, `__pycache__/`, `node_modules/`, or `data/`.
+1. Read `STATE.md`, `PROJECT.md`, `WORKFLOW.md`, and `REVIEWER.md` before implementation.
+2. Never infer the current phase from memory.
+3. Never silently resolve contradictions between documentation and code.
+4. Stop when a specification is ambiguous or technically disproven.
+5. Use the smallest change that satisfies the current task.
+6. Do not scaffold future phases.
+7. Do not add dependencies without explicit approval.
+8. Do not duplicate Nautilus responsibilities.
+9. Do not silently change API field names, units, timestamp semantics, or null behavior.
+10. Do not claim a research-integrity property merely because a nearby implementation detail exists.
+11. Research validity and software correctness are separate acceptance dimensions.
+12. Never mark a task complete without evidence.
 
 ## 8. Definition of done (per task)
 
-* [ ] File exists at the specified path
-* [ ] Contains exactly what the task describes
-* [ ] Has at least one test
-* [ ] Test passes locally
-* [ ] No TODOs left from this task
-* [ ] No other files touched
+- [ ] Correct phase/task from `STATE.md`
+- [ ] Goal and acceptance criteria from `PROJECT.md`
+- [ ] Only declared files changed
+- [ ] Required tests added/updated
+- [ ] Whole-tree acceptance passed where required
+- [ ] No unapproved dependency/spec changes
+- [ ] Deviations explicitly reported
+- [ ] Exact acceptance output recorded
+- [ ] Reviewer accepted
+- [ ] `STATE.md` updated before advancing
 
 ## 9. UI Design
 
@@ -604,50 +895,32 @@ Form: 2-column grid inside card. Inputs 32px tall. RUN button: `--accent` bg, 40
 
 ### 9.5 Tear Sheet (`/runs/:id`)
 
-Modular **widget workspace** on a responsive grid (`react-grid-layout`). The run header is fixed above the grid; everything below is a set of independent widgets the user can show, hide, drag, and resize.
-
-**Widgets (each is its own component in a `--panel` card):**
-
-| Widget ID | Component | Default visible |
-| --- | --- | --- |
-| `kpis` | `KpiCards` (11 KPI strip) | yes |
-| `price` | `PriceChart` (candles + markers) | yes |
-| `equity` | `EquityCurve` | yes |
-| `drawdown` | `DrawdownChart` | yes |
-| `monthly` | `MonthlyHeatmap` | yes |
-| `ledger` | `TradeLedger` (server-paginated AG Grid) | yes |
-
-**Layout behavior:**
-
-* Grid fills the content area below the header; vertical scroll when the grid exceeds the viewport.
-* Drag handle on each widget header; resize from corners. Snap to a 12-column grid, row height 40px (widget min heights respect chart defaults in §9.7).
-* **Widget picker** in the topbar (or header actions): checkboxes to toggle visibility. Hidden widgets are removed from the grid but remain available to re-add.
-* **Persistence:** per browser, key `colossal_quant.tearsheet.layout.v1` in `localStorage`. Store JSON: `{ widgets: { [id]: { visible, x, y, w, h } } }`. Load on mount; debounced save (≈300ms) on drag/resize/toggle. Missing or invalid JSON → ship the default layout below. No server round-trip.
-
-**Default layout** (first visit or reset):
+Single column, full width, vertical scroll. Sections stacked.
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  ← Back   mom-12-1 v4    ● done   [Widgets ▾]  [Re-run]   │
+│  ← Back   mom-12-1 v4              ● done    [Re-run]       │
 │  BTC/USDT · ETH/USDT · 2020-01-01 → 2026-01-01 · git 7a3f9c1│
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─ kpis (full width) ────────────────────────────────────┐ │
-│  │ SHARPE │ CAGR │ MAX DD │ VOL │ … (11 cards, wrap)      │ │
-│  └────────────────────────────────────────────────────────┘ │
-│  ┌─ price (12 cols × ~11 rows) ───────────────────────────┐ │
-│  │ candles + fill markers                                  │ │
-│  └────────────────────────────────────────────────────────┘ │
-│  ┌─ equity (6) ──────────────┐ ┌─ drawdown (6) ────────────┐ │
-│  └───────────────────────────┘ └───────────────────────────┘ │
-│  ┌─ monthly (full width) ─────────────────────────────────┐ │
-│  └────────────────────────────────────────────────────────┘ │
-│  ┌─ ledger (full width, tall) ────────────────────────────┐ │
-│  │ paginated trades                                        │ │
-│  └────────────────────────────────────────────────────────┘ │
+│  KPI STRIP — 11 cards, wrap, 4 per row                      │
+│  ┌──────┐┌──────┐┌──────┐┌──────┐                           │
+│  │SHARPE││ CAGR ││MAX DD││ VOL  │  ← value 24px mono        │
+│  │ 1.42 ││21.4% ││-18.3%││15.1% │  ← label 11px uppercase   │
+│  └──────┘└──────┘└──────┘└──────┘    dim, letter-spacing 1px│
+├─────────────────────────────────────────────────────────────┤
+│  PRICE + FILLS           [chart, 420px, candles + markers]  │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─── EQUITY (line, 280px) ───┐┌── UNDERWATER (area, 280px)┐│
+│  └────────────────────────────┘└───────────────────────────┘│
+├─────────────────────────────────────────────────────────────┤
+│  MONTHLY RETURNS         [custom SVG heatmap, 240px]        │
+├─────────────────────────────────────────────────────────────┤
+│  TRADE LEDGER            [AG Grid, paginated, 500px]        │
+│  Showing 1–50 of 142                     [1 2 3 …] next →   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Back button target: `/` (Command Center). Widget titles: `--fs-lg`, 16px top pad inside the card, 1px bottom border on the header row. Charts still use §9.7 defaults; ledger still uses §9.8.
+Back button target: `/` (Command Center). Section headers: `--fs-lg`, 16px top pad, 1px bottom border. Every chart wrapped in a `--panel` card with 1px border.
 
 ### 9.6 Data Manager (`/data`)
 

@@ -1,6 +1,6 @@
 # REVIEWER.md
 
-You are the reviewer. The user runs Cursor agents (Composer, Sonnet, Opus)
+You are the reviewer. `STATE.md` is the authoritative live state. `PROJECT.md` is the authoritative permanent specification. The user runs Cursor agents (Composer, Sonnet, Opus)
 that execute one task at a time. You do not execute. Your job is to:
 
 1. Read the agent's report
@@ -136,7 +136,7 @@ Goal: <1–3 sentences. What ships. What files. What "done" means.>
 <Numbered list. Exact commands. Expected output.>
 
 ## Commit
-<Exact git add + Conventional Commit message with Phase tag.>
+<Exact git add + commit message.>
 
 ## Report back
 <Numbered list of what to paste back. Verbatim outputs, not summaries.>
@@ -218,23 +218,22 @@ When the user asks "which model for this task":
 
 ---
 
-## 7. The state you must hold
+## 7. The state you must verify
 
-This is what makes the reviewer valuable — you remember:
+Before every acceptance decision:
 
-- **Which Nautilus gotchas we've hit** (see `WORKFLOW.md` §6). Do not re-probe them.
-- **The API contracts** (§4.4). Do not accept field name changes.
-- **The phase structure.** Phase 3.6 comes before Phase 4.1. Do not let an
-  agent jump ahead.
-- **The real-data state.** 2 runs on disk, 31 bars in DuckDB. Verify counts.
-- **The env quirks.** Windows, PowerShell 5.x, no `pip` on PATH.
-- **The commit history.** `git log --oneline -10` is your ground truth.
+1. Read `STATE.md`.
+2. Identify the current phase and task.
+3. Compare the task against the corresponding section of `PROJECT.md`.
+4. Check the actual repository state.
+5. Check the agent's reported commit and changed files.
+6. Confirm no future-phase work slipped into the change.
 
-Before every response, restate in one line: "Current phase, next task,
-known constraints." If you can't, re-read `PROJECT.md` §6 and
-`WORKFLOW.md` §11.
+The reviewer must never reconstruct current state from memory or from old reports.
 
----
+If `STATE.md` and repository evidence disagree, do not guess. Use the conflict format from `STATE.md` and halt progression until resolved.
+
+Historical test counts, historical commit SHAs, and historical trust-pass claims are evidence about the past only. They are not current acceptance results.
 
 ## 8. When to break the workflow
 
@@ -300,17 +299,23 @@ momentum."
 
 ## 11. How to open a fresh session
 
-When the user opens a new chat with you (the reviewer):
+When the user opens a new reviewer session:
 
-> Read `PROJECT.md`, `WORKFLOW.md`, and `REVIEWER.md`.
-> Current state: <paste `git log --oneline -5` and test count>.
-> Send me the next phase prompt following the patterns in REVIEWER.md §3.
+> Read `STATE.md`, `PROJECT.md`, `WORKFLOW.md`, and `REVIEWER.md`. Verify the current phase/task against the repository. Do not infer state from memory.
 
 Then:
-1. Read all three files
-2. Restate the state in one line
-3. Check `WORKFLOW.md` §11 is current (if not, ask the user to update)
-4. Send the next phase prompt
 
-Do not ask clarifying questions. Do not summarize the files back. Just
-confirm state and proceed.
+1. Read `STATE.md`.
+2. Read the relevant `PROJECT.md` phase.
+3. Read `WORKFLOW.md` for execution/acceptance procedure.
+4. Inspect the repository evidence relevant to the current task.
+5. Restate the state in one line:
+
+```text
+Current phase: X — Current task: X.Y — Status: <status> — Next task: X.Z — Blocking constraints: <brief>
+```
+
+6. If state and repository agree, prepare the next task prompt following §3.
+7. If state and repository disagree, STOP and report the conflict.
+
+Do not ask the user to paste historical test counts when the repository and state file can be inspected. Do not use `WORKFLOW.md` historical notes as a source of current state.
