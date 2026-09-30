@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 16.1
+current_task: 16.2
 current_task_status: READY
-next_task: 16.2
-last_completed_task: 15.4
+next_task: 16.3
+last_completed_task: 16.1
 last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -40,7 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.1 is the current task** (research-integrity foundation; commit to
+- **Phase 16 — IN_PROGRESS; 16.2 is the current task** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -70,8 +70,8 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 
 ### Tasks
 
-- [ ] **16.1 — Pin the current equity clock** — READY
-- [ ] **16.2 — Benchmark timestamps cover the equity clock** — NOT STARTED
+- [x] **16.1 — Pin the current equity clock** — COMPLETE
+- [ ] **16.2 — Benchmark timestamps cover the equity clock** — READY
 - [ ] **16.3 — Marker time is not earlier than the fill** — NOT STARTED
 - [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
 
@@ -79,9 +79,9 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 
 ### Current task
 
-**16.1 — Pin the current equity clock** — READY
+**16.2 — Benchmark timestamps cover the equity clock** — READY
 
-One test runs the five-bar BuyHold path and records the current mapping. The fill timestamp is the first bar's close. The first equity point is the first bar's open. The next equity point is two days after that open. Do not change extraction, the runner, or matching.
+One test runs `execute_run` with a benchmark whose stored timestamps are candle opens. The last equity point is the last bar's close, one day after the last stored open, and its benchmark is the normalized last close. Do not change the orchestrator or extraction. If the test fails, stop and report.
 
 ### 12.1 completion evidence
 
@@ -515,6 +515,34 @@ notes: |
   100.00 and 0.75 at 100.01. The first prompt's len == 1 assertion was
   wrong; the test pins those two rows. No production code changed.
   The I-005 denied-order test did not fail on this run.
+```
+
+### 16.1 completion evidence
+
+```yaml
+task_id: 16.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/tests/engine/test_clock.py
+tests_added:
+  - backend/tests/engine/test_clock.py::test_buy_hold_fill_lands_between_the_first_two_equity_points
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "426 passed, 75 warnings in 70.34s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: ac2fe880edfdb2221a53e34166845ff9586d9f97
+next_task: 16.2
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, and mypy. Both fills convert
+  to 1735776000000. Equity starts at 1735689600000. The next equity
+  point is 1735862400000, equal to portfolio_returns[0][0]. The fill
+  timestamp is not an equity point. No production code changed.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
