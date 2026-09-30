@@ -73,7 +73,7 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
   handleScale: {
     mouseWheel: false,
     pinch: true,
-    axisPressedMouseMove: false,
+    axisPressedMouseMove: true,
     axisDoubleClickReset: true,
   },
 }
