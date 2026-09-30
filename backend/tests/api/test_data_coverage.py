@@ -14,6 +14,14 @@ from fastapi.testclient import TestClient
 from quant.api.routers.data import router as data_router
 from quant.data.store import init_schema, upsert_bars
 
+_SYNTHETIC_OHLC: dict[str, float] = {
+    "open": 100.0,
+    "high": 101.0,
+    "low": 99.0,
+    "close": 100.0,
+    "volume": 1.0,
+}
+
 
 def _ms(year: int, month: int, day: int) -> int:
     return int(datetime(year, month, day, tzinfo=UTC).timestamp() * 1000)
@@ -38,6 +46,7 @@ def _insert_daily_bars(
                 "asset_class": "crypto",
                 "timeframe": timeframe,
                 "ts": ts,
+                **_SYNTHETIC_OHLC,
             }
         )
     upsert_bars(db_path, rows)
@@ -166,6 +175,7 @@ def test_multiple_timeframes_two_rows(coverage_client: tuple[TestClient, Path]) 
                 "asset_class": "crypto",
                 "timeframe": "1h",
                 "ts": _ms(2024, 1, 1),
+                **_SYNTHETIC_OHLC,
             }
         ],
     )
@@ -189,6 +199,7 @@ def test_coverage_capped_at_one(coverage_client: tuple[TestClient, Path]) -> Non
                 "asset_class": "crypto",
                 "timeframe": "1d",
                 "ts": ts,
+                **_SYNTHETIC_OHLC,
             }
         )
     upsert_bars(db_path, rows)
@@ -255,6 +266,7 @@ def test_expected_math_leap_and_hourly(
                 "asset_class": "crypto",
                 "timeframe": "1h",
                 "ts": _ms(2024, 1, 1),
+                **_SYNTHETIC_OHLC,
             }
         ],
     )

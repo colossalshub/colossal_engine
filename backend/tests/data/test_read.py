@@ -94,9 +94,36 @@ def test_basic_read_three_bars(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     init_schema(db_path)
     rows = [
-        _minimal_row(ts=1000, close=10.0, source="ccxt", ingested_at=9000),
-        _minimal_row(ts=2000, close=20.0, source="ccxt", ingested_at=9001),
-        _minimal_row(ts=3000, close=30.0, source="ccxt", ingested_at=9002),
+        _minimal_row(
+            ts=1000,
+            open=100.0,
+            high=110.0,
+            low=10.0,
+            close=10.0,
+            volume=1.0,
+            source="ccxt",
+            ingested_at=9000,
+        ),
+        _minimal_row(
+            ts=2000,
+            open=100.0,
+            high=110.0,
+            low=20.0,
+            close=20.0,
+            volume=1.0,
+            source="ccxt",
+            ingested_at=9001,
+        ),
+        _minimal_row(
+            ts=3000,
+            open=100.0,
+            high=110.0,
+            low=30.0,
+            close=30.0,
+            volume=1.0,
+            source="ccxt",
+            ingested_at=9002,
+        ),
     ]
     upsert_bars(db_path, rows)
     out = _read(db_path)
@@ -148,9 +175,30 @@ def test_read_returns_ascending_ts_when_inserted_descending(tmp_path: Path) -> N
     upsert_bars(
         db_path,
         [
-            _minimal_row(ts=3000, close=3.0),
-            _minimal_row(ts=1000, close=1.0),
-            _minimal_row(ts=2000, close=2.0),
+            _minimal_row(
+                ts=3000,
+                open=100.0,
+                high=110.0,
+                low=3.0,
+                close=3.0,
+                volume=1.0,
+            ),
+            _minimal_row(
+                ts=1000,
+                open=100.0,
+                high=110.0,
+                low=1.0,
+                close=1.0,
+                volume=1.0,
+            ),
+            _minimal_row(
+                ts=2000,
+                open=100.0,
+                high=110.0,
+                low=2.0,
+                close=2.0,
+                volume=1.0,
+            ),
         ],
     )
     out = _read(db_path)
