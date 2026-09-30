@@ -14,6 +14,10 @@ factor.
 
 Any metric that cannot be computed is returned as ``None`` — never ``NaN`` or
 ``inf``.
+
+Closed-trade metrics (``win_rate``, ``profit_factor``, ``avg_duration_days``)
+use only positions with ``closed=True``. When no positions closed, those three
+return ``None``. ``total_trades`` counts all positions (open and closed).
 """
 
 from __future__ import annotations
@@ -31,6 +35,7 @@ class TradeSummary:
     duration_s: float
     entry_px: float
     qty: float
+    closed: bool
 
 
 def _returns_only(portfolio_returns: list[tuple[int, float]]) -> list[float]:
@@ -125,17 +130,19 @@ def _calmar(cagr: float | None, max_drawdown: float | None) -> float | None:
 
 
 def _win_rate(trades: list[TradeSummary]) -> float | None:
-    if not trades:
+    closed = [t for t in trades if t.closed]
+    if not closed:
         return None
-    wins = sum(1 for t in trades if t.pnl > 0)
-    return wins / len(trades)
+    wins = sum(1 for t in closed if t.pnl > 0)
+    return wins / len(closed)
 
 
 def _profit_factor(trades: list[TradeSummary]) -> float | None:
-    if not trades:
+    closed = [t for t in trades if t.closed]
+    if not closed:
         return None
-    gross_profit = sum(t.pnl for t in trades if t.pnl > 0)
-    gross_loss = sum(-t.pnl for t in trades if t.pnl < 0)
+    gross_profit = sum(t.pnl for t in closed if t.pnl > 0)
+    gross_loss = sum(-t.pnl for t in closed if t.pnl < 0)
     if gross_loss == 0:
         return None
     return gross_profit / gross_loss
@@ -167,9 +174,10 @@ def _turnover(
 
 
 def _avg_duration_days(trades: list[TradeSummary]) -> float | None:
-    if not trades:
+    closed = [t for t in trades if t.closed]
+    if not closed:
         return None
-    avg_s = sum(t.duration_s for t in trades) / len(trades)
+    avg_s = sum(t.duration_s for t in closed) / len(closed)
     return avg_s / 86400.0
 
 

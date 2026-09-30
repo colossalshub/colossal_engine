@@ -144,7 +144,8 @@ def test_calmar_cagr_none() -> None:
 )
 def test_win_rate(pnls: list[float], expected: float | None) -> None:
     trades = [
-        TradeSummary(pnl=p, duration_s=0.0, entry_px=1.0, qty=1.0) for p in pnls
+        TradeSummary(pnl=p, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True)
+        for p in pnls
     ]
     m = _call([(0, 0.0)], trades)
     if expected is None:
@@ -164,7 +165,8 @@ def test_win_rate(pnls: list[float], expected: float | None) -> None:
 )
 def test_profit_factor(pnls: list[float], expected: float | None) -> None:
     trades = [
-        TradeSummary(pnl=p, duration_s=0.0, entry_px=1.0, qty=1.0) for p in pnls
+        TradeSummary(pnl=p, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True)
+        for p in pnls
     ]
     m = _call([(0, 0.0)], trades)
     if expected is None:
@@ -174,7 +176,9 @@ def test_profit_factor(pnls: list[float], expected: float | None) -> None:
 
 
 def test_turnover_one_trade() -> None:
-    trades = [TradeSummary(pnl=0.0, duration_s=0.0, entry_px=100.0, qty=10.0)]
+    trades = [
+        TradeSummary(pnl=0.0, duration_s=0.0, entry_px=100.0, qty=10.0, closed=True)
+    ]
     m = _call([(1000, 0.0)], trades, starting_balance=1000.0)
     assert m["turnover"] == pytest.approx(1.0)
 
@@ -186,8 +190,8 @@ def test_turnover_empty_trades() -> None:
 
 def test_avg_duration_days() -> None:
     trades = [
-        TradeSummary(pnl=0.0, duration_s=86400.0, entry_px=1.0, qty=1.0),
-        TradeSummary(pnl=0.0, duration_s=172800.0, entry_px=1.0, qty=1.0),
+        TradeSummary(pnl=0.0, duration_s=86400.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=0.0, duration_s=172800.0, entry_px=1.0, qty=1.0, closed=True),
     ]
     m = _call([(0, 0.0)], trades)
     assert m["avg_duration_days"] == pytest.approx(1.5)
@@ -200,18 +204,65 @@ def test_avg_duration_empty() -> None:
 
 def test_total_trades_reflects_len() -> None:
     trades = [
-        TradeSummary(pnl=1.0, duration_s=0.0, entry_px=1.0, qty=1.0),
-        TradeSummary(pnl=-1.0, duration_s=0.0, entry_px=1.0, qty=1.0),
+        TradeSummary(pnl=1.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=-1.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True),
     ]
     m = _call([], trades)
+    assert m["total_trades"] == 2.0
+
+
+def test_closed_trade_metrics_all_closed_all_wins() -> None:
+    trades = [
+        TradeSummary(pnl=10.0, duration_s=3600.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=20.0, duration_s=7200.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=5.0, duration_s=1800.0, entry_px=1.0, qty=1.0, closed=True),
+    ]
+    m = _call([(0, 0.0)], trades)
+    assert m["win_rate"] == 1.0
+    assert m["profit_factor"] is None
+    assert m["total_trades"] == 3.0
+
+
+def test_closed_trade_metrics_all_closed_mixed() -> None:
+    trades = [
+        TradeSummary(pnl=10.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=20.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=-15.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=True),
+    ]
+    m = _call([(0, 0.0)], trades)
+    assert m["win_rate"] == pytest.approx(2 / 3)
+    assert m["profit_factor"] == pytest.approx(30.0 / 15.0)
+
+
+def test_closed_trade_metrics_all_open() -> None:
+    trades = [
+        TradeSummary(pnl=-1.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=False),
+        TradeSummary(pnl=-2.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=False),
+    ]
+    m = _call([(0, 0.0)], trades)
+    assert m["win_rate"] is None
+    assert m["profit_factor"] is None
+    assert m["avg_duration_days"] is None
+    assert m["total_trades"] == 2.0
+
+
+def test_closed_trade_metrics_mixed_one_closed_one_open() -> None:
+    # Closed position with non-winning realized PnL; open position excluded from KPIs.
+    trades = [
+        TradeSummary(pnl=0.0, duration_s=100.0, entry_px=1.0, qty=1.0, closed=True),
+        TradeSummary(pnl=-5.0, duration_s=0.0, entry_px=1.0, qty=1.0, closed=False),
+    ]
+    m = _call([(0, 0.0)], trades)
+    assert m["win_rate"] == 0.0
+    assert m["profit_factor"] is None
     assert m["total_trades"] == 2.0
 
 
 def test_json_safe() -> None:
     portfolio_returns = _daily_returns([0.01, -0.005, 0.02])
     trades = [
-        TradeSummary(pnl=100.0, duration_s=3600.0, entry_px=50.0, qty=2.0),
-        TradeSummary(pnl=-30.0, duration_s=7200.0, entry_px=50.0, qty=1.0),
+        TradeSummary(pnl=100.0, duration_s=3600.0, entry_px=50.0, qty=2.0, closed=True),
+        TradeSummary(pnl=-30.0, duration_s=7200.0, entry_px=50.0, qty=1.0, closed=True),
     ]
     payload = extract_metrics(
         portfolio_returns,

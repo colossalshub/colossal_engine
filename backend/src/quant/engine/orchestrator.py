@@ -19,6 +19,8 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+import pandas as pd  # type: ignore[import-untyped]  # stubs not in dev deps; pandas via nautilus_trader
+
 from quant.data.read import read_bars_json
 from quant.engine.runner import run_backtest
 from quant.extract.artifacts import write_artifacts
@@ -119,6 +121,7 @@ def _trade_summaries(position_report: list[dict[str, object]]) -> list[TradeSumm
                 duration_s=duration_s,
                 entry_px=_as_float(avg_px_open),
                 qty=_as_float(row["quantity"]),
+                closed=bool(pd.notna(row.get("ts_closed"))),
             )
         )
     return trades

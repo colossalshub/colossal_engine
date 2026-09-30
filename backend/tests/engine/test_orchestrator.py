@@ -351,6 +351,37 @@ def test_execute_run_missing_benchmark_bars_graceful(tmp_path: Path) -> None:
     assert nulls == rows
 
 
+def test_execute_run_buyhold_open_position_closed_trade_metrics_none(
+    tmp_path: Path,
+) -> None:
+    """BuyHold with full deploy leaves one open position; closed-trade KPIs are null."""
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+
+    record = _make_record(
+        start_ts=_START_TS,
+        end_ts=end_ts,
+        params={
+            "timeframe": "1d",
+            "trade_size": "1",
+            "deploy_pct": "1.0",
+        },
+    )
+
+    updated = execute_run(
+        record,
+        bars_db_path=db_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    assert updated.metrics is not None
+    assert updated.metrics["win_rate"] is None
+    assert updated.metrics["profit_factor"] is None
+    assert updated.metrics["avg_duration_days"] is None
+    assert updated.metrics["total_trades"] == 1.0
+
+
 def test_execute_run_params_deploy_pct_flows_through(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
