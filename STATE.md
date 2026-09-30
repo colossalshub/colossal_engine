@@ -11,9 +11,11 @@
 
 ```yaml
 current_phase: 12
-current_phase_status: READY
-current_task: 12.1
-next_task: 12.2
+current_phase_status: IN_PROGRESS
+current_task: 12.2
+current_task_status: READY
+next_task: 12.3
+last_completed_task: 12.1
 last_completed_phase: 11
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -33,8 +35,11 @@ human_transition_required: true
 - Phase 9 — COMPLETE
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
-- **Phase 12 — READY / IN PROGRESS only after the first task begins**
-- Phase 13+ — NOT STARTED
+- **Phase 12 — IN PROGRESS; 12.1 COMPLETE; 12.2 READY**
+- Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
+  this before Phase 17+)
+- Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
+  explicitly committed or deferred after Phase 16)
 
 > Phase 0–11 status above is the recorded project state from the latest research-integrity audit context. If repository evidence contradicts this state, STOP and report the conflict rather than silently changing this file.
 
@@ -48,16 +53,47 @@ human_transition_required: true
 
 ### Tasks
 
-- [ ] **12.1 — Instrument Identity**
-- [ ] **12.2 — OHLCV Integrity**
+- [x] **12.1 — Instrument Identity** — COMPLETE
+- [ ] **12.2 — OHLCV Integrity** — READY
 - [ ] **12.3 — Ingestion Completeness**
 - [ ] **12.4 — Single-Symbol Universe Enforcement**
 
 ### Current task
 
-**12.1 — Instrument Identity**
+**12.2 — OHLCV Integrity** — READY
 
-The implementation must verify the symbol → instrument → base/quote currency mapping and fail closed for unsupported instruments. The current execution path supports one BTC/USDT spot instrument unless the specification is explicitly amended.
+Validate OHLCV at the ingestion and read boundaries. Malformed bars must fail with an explicit error. Valid bars must load unchanged. Do not start this task until a human begins it.
+
+### 12.1 completion evidence
+
+```yaml
+task_id: 12.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-09-30
+files_changed:
+  - backend/src/quant/engine/runner.py
+  - backend/tests/engine/test_runner.py
+tests_added:
+  - backend/tests/engine/test_runner.py::test_unsupported_instrument_fails_before_engine
+  - backend/tests/engine/test_runner.py::test_btc_usdt_instrument_maps_btc_base_and_usdt_quote
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+tree_state: uncommitted_12.1_diff  # acceptance was run on the working tree before the commit landed
+acceptance_output:
+  pytest: "365 passed, 52 warnings in 28.82s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 26 source files"
+git_commit_sha: ccadbfc
+next_task: 12.2
+```
+
+Phase 12.1 is committed as `ccadbfc`. The commit message follows the
+Conventional Commits format defined in `WORKFLOW.md` §3.
+
+Deviations accepted with the task: a non-BTC symbol can still be queued by the API. `run_backtest` rejects it before `BacktestEngine` is constructed. The worker records `failed` and does not write a successful run, artifacts, or verification. Universe length remains 12.4.
 
 ### Phase 12 non-goals
 
@@ -81,7 +117,7 @@ From the latest Quant Research Integrity Audit:
 
 ### P0 / critical
 
-- Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path.
+- Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path. Addressed by task 12.1; the audit text is unchanged.
 - OHLCV data is not sufficiently validated.
 - Ingestion can reach its page cap and still report success.
 - Trade KPIs can treat an open position as a losing trade/fee result.
