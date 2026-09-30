@@ -64,6 +64,18 @@ const CHART_OPTIONS: DeepPartial<ChartOptions> = {
     vertLine: { color: '#6b7280', style: LineStyle.LargeDashed },
     horzLine: { color: '#6b7280', style: LineStyle.LargeDashed },
   },
+  handleScroll: {
+    mouseWheel: false,
+    pressedMouseMove: true,
+    horzTouchDrag: false,
+    vertTouchDrag: false,
+  },
+  handleScale: {
+    mouseWheel: false,
+    pinch: true,
+    axisPressedMouseMove: false,
+    axisDoubleClickReset: true,
+  },
 }
 
 /**
