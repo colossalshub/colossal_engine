@@ -238,3 +238,48 @@ def test_create_run_captures_git_sha(client: TestClient, db_path: Path) -> None:
     assert isinstance(git_sha, str)
     assert re.fullmatch(r"[0-9a-f]{40}", git_sha)
     assert bool(row["git_dirty"]) == body["git_dirty"]
+
+
+def test_create_run_with_experiment_id_persists(
+    client: TestClient, db_path: Path
+) -> None:
+    response = client.post(
+        "/api/runs", json=_valid_payload(experiment_id="exp-001")
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["experiment_id"] == "exp-001"
+    assert _fetch_run(db_path, body["run_id"])["experiment_id"] == "exp-001"
+
+
+def test_create_run_without_experiment_id_is_null(
+    client: TestClient, db_path: Path
+) -> None:
+    response = client.post("/api/runs", json=_valid_payload())
+    assert response.status_code == 201
+    body = response.json()
+    assert body["experiment_id"] is None
+    assert _fetch_run(db_path, body["run_id"])["experiment_id"] is None
+
+
+def test_list_runs_includes_experiment_id(client: TestClient) -> None:
+    client.post("/api/runs", json=_valid_payload(experiment_id="exp-001"))
+    client.post("/api/runs", json=_valid_payload())
+
+    response = client.get("/api/runs")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) == 2
+    assert all("experiment_id" in item for item in items)
+    assert {item["experiment_id"] for item in items} == {"exp-001", None}
+
+
+def test_create_run_deterministic_strategy_seed_is_null(
+    client: TestClient, db_path: Path
+) -> None:
+    response = client.post(
+        "/api/runs", json=_valid_payload(params={"trade_size": "1", "seed": 42})
+    )
+    assert response.status_code == 201
+    row = _fetch_run(db_path, response.json()["run_id"])
+    assert row["seed"] is None

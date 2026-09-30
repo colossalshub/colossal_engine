@@ -79,6 +79,7 @@ class RunSummary(BaseModel):
     sharpe: float | None
     cagr: float | None
     max_drawdown: float | None
+    experiment_id: str | None
 
 
 class RunList(BaseModel):
@@ -103,6 +104,7 @@ class RunCreate(BaseModel):
     universe: list[str]
     start_ts: int
     end_ts: int
+    experiment_id: str | None = None
 
 
 class KpiBlock(BaseModel):

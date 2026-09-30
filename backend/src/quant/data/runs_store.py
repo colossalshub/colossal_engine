@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS meta_runs (
     git_dirty     INTEGER DEFAULT 0,
     data_snapshot TEXT,
     seed          INTEGER DEFAULT 0,
+    experiment_id TEXT,                   -- optional run grouping; NULL if standalone
     metrics       TEXT DEFAULT '{}',
     artifacts     TEXT DEFAULT '{}'
 )
@@ -50,9 +51,10 @@ INSERT INTO meta_runs (
     git_dirty,
     data_snapshot,
     seed,
+    experiment_id,
     metrics,
     artifacts
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 
@@ -73,9 +75,10 @@ class RunRecord:
     git_sha: str | None = None
     git_dirty: bool = False
     data_snapshot: str | None = None
-    seed: int = 0
+    seed: int | None = 0
     metrics: dict[str, Any] = field(default_factory=dict)
     artifacts: dict[str, str] = field(default_factory=dict)
+    experiment_id: str | None = None
 
 
 def _now_ms() -> int:
@@ -90,6 +93,9 @@ def init_runs_schema(db_path: Path) -> None:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA busy_timeout=5000")
         conn.execute(_CREATE_META_RUNS_SQL)
+        cols = {row[1] for row in conn.execute("PRAGMA table_info('meta_runs')")}
+        if "experiment_id" not in cols:
+            conn.execute("ALTER TABLE meta_runs ADD COLUMN experiment_id TEXT")
         conn.commit()
     finally:
         conn.close()
@@ -119,6 +125,7 @@ def insert_run(db_path: Path, record: RunRecord) -> None:
                 1 if record.git_dirty else 0,
                 record.data_snapshot,
                 record.seed,
+                record.experiment_id,
                 json.dumps(record.metrics, separators=(",", ":")),
                 json.dumps(record.artifacts, separators=(",", ":")),
             ),
@@ -154,6 +161,7 @@ def insert_run_with_connection(conn: sqlite3.Connection, record: RunRecord) -> N
             1 if record.git_dirty else 0,
             record.data_snapshot,
             record.seed,
+            record.experiment_id,
             json.dumps(record.metrics, separators=(",", ":")),
             json.dumps(record.artifacts, separators=(",", ":")),
         ),

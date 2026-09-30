@@ -9,6 +9,8 @@ Wires:
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -20,11 +22,20 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from quant import config
 from quant.api.routers.data import router as data_router
 from quant.api.routers.runs import router as runs_router
+from quant.config import runs_db_path
+from quant.data.runs_store import init_runs_schema
 from quant.logging_setup import configure_logging
 
 configure_logging()
 
-app = FastAPI(title="Colossal Quant", version="0.1.0")
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    init_runs_schema(runs_db_path())
+    yield
+
+
+app = FastAPI(title="Colossal Quant", version="0.1.0", lifespan=_lifespan)
 
 # --- CORS --------------------------------------------------------------
 

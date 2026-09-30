@@ -50,6 +50,7 @@ META_RUNS_COLUMNS: frozenset[str] = frozenset(
         "git_dirty",
         "data_snapshot",
         "seed",
+        "experiment_id",
         "metrics",
         "artifacts",
     }
@@ -526,3 +527,99 @@ def test_fail_stale_running_multiple_rows(tmp_path: Path) -> None:
     assert _fetch_run(db_path, "run-stale-a")["status"] == "failed"
     assert _fetch_run(db_path, "run-stale-b")["status"] == "failed"
     assert _fetch_run(db_path, "run-stale-c")["status"] == "running"
+
+
+def test_init_runs_schema_fresh_db_has_experiment_id(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+
+    assert "experiment_id" in _column_names(db_path)
+
+
+def test_init_runs_schema_twice_is_idempotent(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    init_runs_schema(db_path)
+
+    assert "experiment_id" in _column_names(db_path)
+
+
+def test_insert_run_experiment_id_none_stores_null(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    insert_run(db_path, _record(run_id="exp-none"))
+
+    assert _fetch_run(db_path, "exp-none")["experiment_id"] is None
+
+
+def test_insert_run_experiment_id_round_trips(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    insert_run(db_path, _record(run_id="exp-set", experiment_id="exp-001"))
+
+    assert _fetch_run(db_path, "exp-set")["experiment_id"] == "exp-001"
+
+
+def test_insert_run_with_connection_experiment_id_round_trips(
+    tmp_path: Path,
+) -> None:
+    db_path = _init(tmp_path)
+    conn = sqlite3.connect(db_path)
+    try:
+        insert_run_with_connection(
+            conn, _record(run_id="exp-conn", experiment_id="exp-002")
+        )
+    finally:
+        conn.close()
+
+    assert _fetch_run(db_path, "exp-conn")["experiment_id"] == "exp-002"
+
+
+def test_insert_run_seed_none_stores_null(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    insert_run(db_path, _record(run_id="seed-none", seed=None))
+
+    assert _fetch_run(db_path, "seed-none")["seed"] is None
+
+
+def test_init_runs_schema_adds_experiment_id_to_legacy_db(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy.sqlite"
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE meta_runs (
+                run_id        TEXT PRIMARY KEY,
+                name          TEXT NOT NULL,
+                strategy      TEXT NOT NULL,
+                params        TEXT NOT NULL DEFAULT '{}',
+                universe      TEXT NOT NULL DEFAULT '[]',
+                start_ts      INTEGER NOT NULL,
+                end_ts        INTEGER NOT NULL,
+                created_at    INTEGER NOT NULL,
+                finished_at   INTEGER,
+                heartbeat_ts  INTEGER,
+                status        TEXT NOT NULL DEFAULT 'queued',
+                error         TEXT,
+                git_sha       TEXT,
+                git_dirty     INTEGER DEFAULT 0,
+                data_snapshot TEXT,
+                seed          INTEGER DEFAULT 0,
+                metrics       TEXT DEFAULT '{}',
+                artifacts     TEXT DEFAULT '{}'
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO meta_runs (run_id, name, strategy, start_ts, end_ts, "
+            "created_at) VALUES ('old', 'old', 'buy_hold', 1, 2, 3)"
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    assert "experiment_id" not in _column_names(db_path)
+
+    init_runs_schema(db_path)
+
+    assert "experiment_id" in _column_names(db_path)
+    legacy_row = _fetch_run(db_path, "old")
+    assert legacy_row["experiment_id"] is None
+    assert legacy_row["seed"] == 0
+    insert_run(db_path, _record(run_id="new", experiment_id="exp-003"))
+    assert _fetch_run(db_path, "new")["experiment_id"] == "exp-003"

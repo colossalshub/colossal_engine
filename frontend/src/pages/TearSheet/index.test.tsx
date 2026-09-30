@@ -25,6 +25,7 @@ const sampleTearsheet: TearSheet = {
     created_at: 1704067200000,
     git_sha: 'abcdef1234567890',
     git_dirty: false,
+    experiment_id: null,
     status: 'done',
     sharpe: 1.23,
     cagr: 0.15,

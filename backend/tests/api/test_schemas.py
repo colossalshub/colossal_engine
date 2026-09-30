@@ -44,6 +44,7 @@ def _run_summary_dict() -> dict[str, Any]:
         "sharpe": 1.42,
         "cagr": 0.214,
         "max_drawdown": -0.183,
+        "experiment_id": None,
     }
 
 

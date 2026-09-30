@@ -60,6 +60,7 @@ from quant.data.runs_store import (
     insert_run_with_connection,
 )
 from quant.git_state import capture_git_state
+from quant.strategies.registry import is_deterministic
 
 _VALID_STRATEGIES: frozenset[str] = frozenset({"buy_hold", "ema_cross"})
 
@@ -139,6 +140,7 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
         sharpe=sharpe,
         cagr=cagr,
         max_drawdown=max_drawdown,
+        experiment_id=row["experiment_id"],
     )
 
 
@@ -181,7 +183,7 @@ def list_runs(
         rows = db.execute(
             f"""
             SELECT run_id, name, strategy, universe, start_ts, end_ts, created_at,
-                   git_sha, git_dirty, status, metrics
+                   git_sha, git_dirty, status, metrics, experiment_id
             FROM meta_runs{where_sql}
             ORDER BY created_at DESC, run_id ASC
             LIMIT ? OFFSET ?
@@ -400,7 +402,8 @@ def get_tearsheet(
     row = db.execute(
         """
         SELECT run_id, name, strategy, universe, start_ts, end_ts, created_at,
-               git_sha, git_dirty, status, params, metrics, artifacts
+               git_sha, git_dirty, status, params, metrics, artifacts,
+               experiment_id
         FROM meta_runs
         WHERE run_id = ?
         """,
@@ -651,6 +654,13 @@ def create_run(
 
     git_sha, git_dirty = capture_git_state(repo_root())
 
+    seed: int | None
+    if is_deterministic(payload.strategy):
+        seed = None
+    else:
+        seed_raw = payload.params.get("seed", 0)
+        seed = int(seed_raw) if isinstance(seed_raw, int | str) else 0
+
     record = RunRecord(
         run_id=run_id,
         name=name,
@@ -667,9 +677,10 @@ def create_run(
         git_sha=git_sha,
         git_dirty=git_dirty,
         data_snapshot=None,
-        seed=0,
+        seed=seed,
         metrics={},
         artifacts={},
+        experiment_id=payload.experiment_id,
     )
 
     insert_run_with_connection(db, record)
@@ -688,4 +699,5 @@ def create_run(
         sharpe=None,
         cagr=None,
         max_drawdown=None,
+        experiment_id=payload.experiment_id,
     )

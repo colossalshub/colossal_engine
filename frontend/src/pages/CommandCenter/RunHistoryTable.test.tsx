@@ -20,6 +20,7 @@ const sampleRun: RunSummary = {
   created_at: 1704067200000,
   git_sha: 'abc',
   git_dirty: false,
+  experiment_id: null,
   status: 'done',
   sharpe: 1.23,
   cagr: 0.15,

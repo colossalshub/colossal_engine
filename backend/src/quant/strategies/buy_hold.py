@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from nautilus_trader.model.currencies import USDT
 from nautilus_trader.model.data import Bar, BarType
 from nautilus_trader.model.enums import OrderSide
@@ -23,6 +25,8 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
     rejection or a risk-engine denial logs a warning and clears the flag
     so a later bar can submit again.
     """
+
+    deterministic: ClassVar[bool] = True
 
     def __init__(
         self,

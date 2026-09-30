@@ -27,6 +27,7 @@ from quant.engine.runner import run_backtest
 from quant.extract.artifacts import write_artifacts
 from quant.extract.equity import extract_equity
 from quant.extract.metrics import TradeSummary, extract_metrics
+from quant.strategies.registry import is_deterministic
 
 if TYPE_CHECKING:
     from quant.data.runs_store import RunRecord
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _DEFAULT_VENUE = "binance"
-
 _CANONICAL_TIMEFRAMES = frozenset(
     {"1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1mo"},
 )
@@ -305,9 +305,17 @@ def execute_run(
         fills_report=result.fills_report,
     )
 
+    seed: int | None
+    if is_deterministic(record.strategy):
+        seed = None
+    else:
+        seed_raw = record.params.get("seed", 0)
+        seed = int(seed_raw) if isinstance(seed_raw, int | str) else 0
+
     return dataclasses.replace(
         record,
         metrics=metrics,
         artifacts=artifacts,
         data_snapshot=snapshot,
+        seed=seed,
     )

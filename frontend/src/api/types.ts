@@ -31,6 +31,7 @@ export interface RunSummary {
   created_at: number;
   git_sha: string | null;
   git_dirty: boolean;
+  experiment_id: string | null;
   status: RunStatus;
   sharpe: number | null;
   cagr: number | null;
