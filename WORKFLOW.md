@@ -209,6 +209,18 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
   non-done status (queued, running, failed, archived). Never read parquet
   files for a non-done run — they may not exist.
 
+### Nautilus logging does not go through Python logging
+
+- `self.log.warning(...)` inside a Nautilus strategy emits to stdout via
+  the Rust bridge, NOT through Python's `logging` module.
+- `caplog` captures zero records from Nautilus log calls.
+- `capsys` misses them synchronously too — they may only appear during
+  pytest teardown.
+- To assert on Nautilus log output, use `capfd` with a bounded poll
+  (see `backend/tests/strategies/test_buy_hold.py` for the pattern), or
+  monkeypatch `strategy.log` with a spy and assert on the spy.
+- Discovered during Phase 12.3.1.
+
 ---
 
 ## 7. API JSON contract (from `PROJECT.md` §4.4)
