@@ -10,7 +10,6 @@ import { BrowserRouter } from 'react-router-dom'
 
 import App from './App'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
-import 'react-resizable/css/styles.css'
 import './styles/theme.css'
 import './index.css'
 

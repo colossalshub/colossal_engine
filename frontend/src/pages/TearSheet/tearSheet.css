@@ -132,17 +132,6 @@
   gap: var(--s-4);
 }
 
-.tear-sheet__grid .react-grid-item.react-grid-placeholder {
-  background: var(--accent);
-  opacity: 0.15;
-  border-radius: var(--radius);
-}
-
-.tear-sheet__grid .react-grid-item > .react-resizable-handle::after {
-  border-right-color: var(--text-dim);
-  border-bottom-color: var(--text-dim);
-}
-
 .tear-sheet__widget {
   display: flex;
   flex-direction: column;
