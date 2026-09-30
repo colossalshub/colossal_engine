@@ -10,13 +10,13 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 12
-current_phase_status: IN_PROGRESS
-current_task: 12.4
+current_phase: 13
+current_phase_status: READY
+current_task: 13.1
 current_task_status: READY
-next_task: null
-last_completed_task: 12.3
-last_completed_phase: 11
+next_task: 13.2
+last_completed_task: 12.4
+last_completed_phase: 12
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
 ```
@@ -35,7 +35,8 @@ human_transition_required: true
 - Phase 9 — COMPLETE
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
-- **Phase 12 — IN PROGRESS; 12.1–12.3 COMPLETE; 12.4 READY**
+- **Phase 12 — COMPLETE (all 4 tasks)**
+- **Phase 13 — READY; 13.1 is the first task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -56,16 +57,19 @@ human_transition_required: true
 - [x] **12.1 — Instrument Identity** — COMPLETE
 - [x] **12.2 — OHLCV Integrity** — COMPLETE
 - [x] **12.3 — Ingestion Completeness** — COMPLETE
-- [ ] **12.4 — Universe Contract** — READY
+- [x] **12.4 — Universe Contract** — COMPLETE
 
 ### Current task
 
-**12.4 — Universe Contract** — READY
+**Phase 13 — Closed-Trade Statistics** — READY
 
-Current execution is single-instrument. Reject `len(universe) != 1`
-until Phase 23 explicitly changes the architecture. Tear sheet metadata
-must not claim symbols were traded when only the first symbol was
-executed. Do not start this task until a human begins it.
+Trade-level KPIs must represent closed trades only. Exclude positions
+without `ts_closed` from win rate, profit factor, and duration
+calculations. Keep unrealized/open-position value in equity/account
+results. Test a BuyHold run that remains open at the end.
+
+Acceptance: open-position fees cannot become a synthetic losing trade;
+closed-trade metrics reconcile with the actual closed position set.
 
 ### 12.1 completion evidence
 
@@ -144,6 +148,45 @@ git_commit_sha: 8d54b19
 next_task: 12.4
 ```
 
+### 12.4 completion evidence
+
+```yaml
+task_id: 12.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/api/routers/runs.py
+  - backend/tests/api/test_runs_create.py
+  - frontend/src/pages/TearSheet/index.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added:
+  - backend/tests/api/test_runs_create.py::test_multi_symbol_universe_rejected
+  - backend/tests/api/test_runs_create.py::test_single_symbol_universe_accepted
+  - frontend/src/pages/TearSheet/index.test.tsx (multi-symbol header note)
+tests_modified:
+  - backend/tests/api/test_runs_create.py::test_default_name_generation_multi_symbol_rejected (renamed from _multi_symbol; now expects 422)
+  - backend/tests/api/test_runs_create.py::test_universe_round_trip_preserves_order (universe reduced to single symbol)
+  - frontend/src/pages/TearSheet/index.test.tsx::renders the universe and formatted date range (updated header assertion)
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+tree_state: uncommitted_12.4_diff
+acceptance_output:
+  pytest: "388 passed"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 26 source files"
+  tsc: "exit 0"
+  vitest: "166 passed"
+  build: "exit 0"
+git_commit_sha: 839ca1f
+next_task: 13.1
+```
+
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
 Conventional Commits format defined in `WORKFLOW.md` §3.
 
@@ -176,6 +219,7 @@ From the latest Quant Research Integrity Audit:
 - Ingestion can reach its page cap and still report success. Addressed
   by task 12.3 (fail-closed on truncated range).
 - Trade KPIs can treat an open position as a losing trade/fee result.
+  Addressed by Phase 13 (Closed-Trade Statistics).
 
 ### P1 / high
 
