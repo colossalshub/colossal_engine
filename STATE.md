@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 15
 current_phase_status: IN_PROGRESS
-current_task: 15.3
+current_task: 15.4
 current_task_status: READY
-next_task: 15.4
-last_completed_task: 15.2
+next_task: null
+last_completed_task: 15.3
 last_completed_phase: 14
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -39,7 +39,7 @@ human_transition_required: true
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
-- **Phase 15 — IN_PROGRESS; 15.3 is the current task**
+- **Phase 15 — IN_PROGRESS; 15.4 is the current task**
 - Phase 16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -59,16 +59,16 @@ human_transition_required: true
 
 - [x] **15.1 — Pin current assumptions** — COMPLETE
 - [x] **15.2 — Return assumptions on run metadata** — COMPLETE
-- [ ] **15.3 — Show assumptions on the tear sheet** — READY
-- [ ] **15.4 — Future-bar mutation** — NOT STARTED
+- [x] **15.3 — Show assumptions on the tear sheet** — COMPLETE
+- [ ] **15.4 — Future-bar mutation** — READY
 
 Do not implement a custom matcher. Do not change fill behavior in this phase. Record what the runner already does.
 
 ### Current task
 
-**15.3 — Show assumptions on the tear sheet** — READY
+**15.4 — Future-bar mutation** — READY
 
-Render `execution_assumptions` from the tear sheet response on the Data tab. Show the run's maker and taker fees and the structural pins (bar time, order type, fill model not passed). Do not build the rest of the U.3.2 methodology header. Do not change the API or order matching.
+Add one test that runs BuyHold twice through `run_backtest` on the same bars, changing only the last bar's OHLC. Fills, and every portfolio return except the last, stay identical. Ending balances are allowed to differ, and the test must show that they do. Do not change the runner, strategies, or matching. If the test fails, stop and report.
 
 ### 12.1 completion evidence
 
@@ -437,6 +437,40 @@ notes: |
   types fall back to the default without coercion. Reviewer whole-tree
   pytest hit the pre-existing I-005 log-capture failure once. That test
   is not part of this diff. The three new tests passed in that run.
+```
+
+### 15.3 completion evidence
+
+```yaml
+task_id: 15.3
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/api/types.ts
+  - frontend/src/pages/TearSheet/tabs/DataTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+  - frontend/src/pages/Compare/index.test.tsx
+  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/index.test.tsx::data tab shows execution assumptions from tear sheet
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "25 files, 182 passed"
+  build: "exit 0"
+git_commit_sha: b775da2feb3b7558295d48af41166530f1134ac9
+next_task: 15.4
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build. Data tab
+  renders maker fee, taker fee, bar time, order type, and fill model
+  from execution_assumptions. The test uses maker_fee 0.009 against
+  params.maker_fee 0.002, and the header still shows fees 0.20%.
+  U.3.2 placeholder remains. PROJECT.md §4.4 still omits
+  execution_assumptions; that docs sync is not part of this task.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
