@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { ThemeToggle } from './ThemeToggle'
 
 function breadcrumbFor(pathname: string): string {
   if (pathname === '/') return 'Command Center'
@@ -12,7 +13,9 @@ export function TopBar() {
   return (
     <header className="topbar">
       <span className="topbar__breadcrumb">{breadcrumbFor(pathname)}</span>
-      <span className="topbar__status" aria-hidden="true" />
+      <div className="topbar__actions">
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

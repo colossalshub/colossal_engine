@@ -90,8 +90,10 @@
   color: var(--text-dim);
 }
 
-.topbar__status {
-  min-width: 40px;
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
 }
 
 .shell__content {

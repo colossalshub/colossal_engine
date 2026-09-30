@@ -1,19 +1,24 @@
-:root {
+:root,
+[data-theme="light"] {
   /* surfaces */
-  --bg:        #000000;
-  --panel:     #000000;
-  --panel-2:   #000000;
-  --border:    #262626;
-  --border-2:  #333333;
+  --bg:        #f7f7f8;
+  --panel:     #ffffff;
+  --panel-2:   #f4f5f7;
+  --border:    #e5e7eb;
+  --border-2:  #d1d5db;
   /* text */
-  --text:      #d1d5db;
-  --text-dim:  #9ca3af;
-  --text-mute: #6b7280;
-  /* semantic */
+  --text:      #111827;
+  --text-dim:  #4b5563;
+  --text-mute: #9ca3af;
+  /* semantic — chart fills and candles (bright) */
   --pos:       #22c55e;
   --neg:       #ef4444;
   --warn:      #f59e0b;
   --accent:    #3b82f6;
+  /* semantic — text and numbers (contrast-safe on light bg) */
+  --pos-text:  #15803d;
+  --neg-text:  #dc2626;
+  --warn-text: #b45309;
   /* spacing scale (px) */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-6: 24px;
   /* type scale */
@@ -24,4 +29,26 @@
   --topbar-h:  48px;
   --row-h:     28px;
   --radius:    4px;
+}
+
+[data-theme="dark"] {
+  /* surfaces */
+  --bg:        #0e1117;
+  --panel:     #131722;
+  --panel-2:   #1a1f2e;
+  --border:    #1f2937;
+  --border-2:  #2a3441;
+  /* text */
+  --text:      #d1d5db;
+  --text-dim:  #9ca3af;
+  --text-mute: #6b7280;
+  /* semantic — same as light for fills */
+  --pos:       #22c55e;
+  --neg:       #ef4444;
+  --warn:      #f59e0b;
+  --accent:    #3b82f6;
+  /* semantic — text on dark bg uses bright colors directly */
+  --pos-text:  #22c55e;
+  --neg-text:  #ef4444;
+  --warn-text: #f59e0b;
 }
