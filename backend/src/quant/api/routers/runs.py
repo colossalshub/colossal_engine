@@ -42,6 +42,7 @@ from quant.api.schemas import (
     ApiError,
     DrawdownPoint,
     EquityPoint,
+    ExecutionAssumptions,
     KpiBlock,
     MonthlyReturns,
     RunCreate,
@@ -59,6 +60,7 @@ from quant.data.runs_store import (
     fail_stale_running,
     insert_run_with_connection,
 )
+from quant.engine.assumptions import CURRENT_ASSUMPTIONS
 from quant.git_state import capture_git_state
 from quant.strategies.registry import is_deterministic
 
@@ -364,6 +366,38 @@ def _build_verification(equity_points: list[EquityPoint]) -> Verification:
     )
 
 
+def _fee_rate_or_default(params: dict[str, Any], key: str, default: str) -> str:
+    """Return the run's fee param when it is a non-empty string, else `default`.
+
+    Numeric params (e.g. a float `maker_fee`) are not coerced — they fall
+    back to the pinned default, per the task's explicit rule.
+    """
+    value = params.get(key)
+    if isinstance(value, str) and value != "":
+        return value
+    return default
+
+
+def _execution_assumptions_for_params(params: dict[str, Any]) -> ExecutionAssumptions:
+    pins = CURRENT_ASSUMPTIONS
+    return ExecutionAssumptions(
+        bar_ts=pins.bar_ts,
+        nautilus_bar_ts_event=pins.nautilus_bar_ts_event,
+        signal_and_order=pins.signal_and_order,
+        order_type=pins.order_type,
+        sizing_price_when_deploy_pct_positive=pins.sizing_price_when_deploy_pct_positive,
+        maker_fee_default=pins.maker_fee_default,
+        taker_fee_default=pins.taker_fee_default,
+        maker_fee=_fee_rate_or_default(params, "maker_fee", pins.maker_fee_default),
+        taker_fee=_fee_rate_or_default(params, "taker_fee", pins.taker_fee_default),
+        fill_model=pins.fill_model,
+        latency=pins.latency,
+        spread=pins.spread,
+        queue_model=pins.queue_model,
+        partial_fills=pins.partial_fills,
+    )
+
+
 def _empty_tearsheet(
     summary: RunSummary,
     params: dict[str, Any],
@@ -385,6 +419,7 @@ def _empty_tearsheet(
             discrepancy_pct=0.0,
             source=source,
         ),
+        execution_assumptions=_execution_assumptions_for_params(params),
         artifacts=artifacts_dict if isinstance(artifacts_dict, dict) else {},
     )
 
@@ -492,6 +527,7 @@ def get_tearsheet(
         markers=markers,
         monthly_returns=monthly_returns,
         verification=verification,
+        execution_assumptions=_execution_assumptions_for_params(params_dict),
         artifacts=artifacts_dict if isinstance(artifacts_dict, dict) else {},
     )
 

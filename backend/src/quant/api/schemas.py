@@ -32,6 +32,7 @@ __all__ = [
     "TradeMarker",
     "MonthlyReturns",
     "Verification",
+    "ExecutionAssumptions",
     "TearSheet",
     "Trade",
     "TradePage",
@@ -192,6 +193,33 @@ class Verification(BaseModel):
     source: str
 
 
+class ExecutionAssumptions(BaseModel):
+    """Pinned execution assumptions surfaced on the tear sheet (Phase 15.2).
+
+    Structural fields are copied verbatim from
+    `quant.engine.assumptions.CURRENT_ASSUMPTIONS`. `maker_fee`/`taker_fee`
+    are the effective fee rates for the specific run (its params, falling
+    back to the pinned defaults).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    bar_ts: str
+    nautilus_bar_ts_event: str
+    signal_and_order: str
+    order_type: str
+    sizing_price_when_deploy_pct_positive: str
+    maker_fee_default: str
+    taker_fee_default: str
+    maker_fee: str
+    taker_fee: str
+    fill_model: str
+    latency: str
+    spread: str
+    queue_model: str
+    partial_fills: str
+
+
 class TearSheet(BaseModel):
     """Full response for `GET /api/runs/{id}/tearsheet` (§4.4)."""
 
@@ -206,6 +234,7 @@ class TearSheet(BaseModel):
     markers: list[TradeMarker]
     monthly_returns: list[MonthlyReturns]
     verification: Verification
+    execution_assumptions: ExecutionAssumptions
     artifacts: dict[str, str]
 
 

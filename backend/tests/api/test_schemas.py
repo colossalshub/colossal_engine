@@ -16,6 +16,7 @@ from quant.api.schemas import (
     CoverageResponse,
     DrawdownPoint,
     EquityPoint,
+    ExecutionAssumptions,
     KpiBlock,
     MonthlyReturns,
     RunCreate,
@@ -121,7 +122,27 @@ def _tear_sheet_dict() -> dict[str, Any]:
             "discrepancy_pct": 0.12,
             "source": "reconstructed_from_portfolio_returns",
         },
+        "execution_assumptions": _execution_assumptions_dict(),
         "artifacts": {"equity": "equity.parquet", "drawdown": "drawdown.parquet"},
+    }
+
+
+def _execution_assumptions_dict() -> dict[str, Any]:
+    return {
+        "bar_ts": "open",
+        "nautilus_bar_ts_event": "close",
+        "signal_and_order": "on_bar",
+        "order_type": "market",
+        "sizing_price_when_deploy_pct_positive": "bar.close",
+        "maker_fee_default": "0.001",
+        "taker_fee_default": "0.001",
+        "maker_fee": "0.001",
+        "taker_fee": "0.001",
+        "fill_model": "not_passed",
+        "latency": "not_passed",
+        "spread": "not_passed",
+        "queue_model": "not_passed",
+        "partial_fills": "not_passed",
     }
 
 
@@ -264,6 +285,13 @@ def test_tear_sheet_constructs() -> None:
     assert sheet.run.status == "done"
     assert sheet.kpis.sharpe == 1.42
     assert len(sheet.monthly_returns[0].months) == 12
+    assert sheet.execution_assumptions.maker_fee == "0.001"
+    assert sheet.execution_assumptions.bar_ts == "open"
+
+
+def test_execution_assumptions_extra_field_forbidden_raises() -> None:
+    with pytest.raises(ValidationError):
+        ExecutionAssumptions(**_execution_assumptions_dict(), extra_field="nope")
 
 
 def test_tear_sheet_with_empty_artifacts() -> None:

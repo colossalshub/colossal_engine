@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 
 from quant.api.routers.runs import router
 from quant.data.runs_store import RunRecord, _now_ms, init_runs_schema, insert_run
+from quant.engine.assumptions import CURRENT_ASSUMPTIONS
 
 _EQUITY_TYPES: dict[str, pa.DataType] = {
     "ts": pa.int64(),
@@ -322,6 +323,49 @@ def test_equity_duplicate_ts_keeps_first(
     assert len(equity_points) == 2
     assert equity_points[0]["ts"] == 1_000
     assert equity_points[0]["equity"] == 101_000.0
+
+
+def test_done_run_reports_custom_fees_in_execution_assumptions(
+    client: TestClient, db_path: Path, artifacts_dir: Path
+) -> None:
+    record = _record(
+        status="done", params={"maker_fee": "0.002", "taker_fee": "0.003"}
+    )
+    insert_run(db_path, record)
+
+    run_dir = artifacts_dir / record.run_id
+    _write_artifacts(run_dir)
+
+    response = client.get(f"/api/runs/{record.run_id}/tearsheet")
+    assert response.status_code == 200
+    ea = response.json()["execution_assumptions"]
+
+    assert ea["maker_fee"] == "0.002"
+    assert ea["taker_fee"] == "0.003"
+    assert ea["maker_fee_default"] == CURRENT_ASSUMPTIONS.maker_fee_default
+    assert ea["taker_fee_default"] == CURRENT_ASSUMPTIONS.taker_fee_default
+    assert ea["bar_ts"] == CURRENT_ASSUMPTIONS.bar_ts
+    assert ea["order_type"] == CURRENT_ASSUMPTIONS.order_type
+    assert ea["fill_model"] == CURRENT_ASSUMPTIONS.fill_model
+    assert ea["bar_ts"] == "open"
+    assert ea["order_type"] == "market"
+    assert ea["fill_model"] == "not_passed"
+
+
+def test_queued_run_with_no_fee_params_defaults_and_does_not_500(
+    client: TestClient, db_path: Path
+) -> None:
+    record = _record(status="queued", params={})
+    insert_run(db_path, record)
+
+    response = client.get(f"/api/runs/{record.run_id}/tearsheet")
+    assert response.status_code == 200
+    ea = response.json()["execution_assumptions"]
+
+    assert ea["maker_fee"] == CURRENT_ASSUMPTIONS.maker_fee_default
+    assert ea["taker_fee"] == CURRENT_ASSUMPTIONS.taker_fee_default
+    assert ea["maker_fee"] == "0.001"
+    assert ea["taker_fee"] == "0.001"
 
 
 def test_monthly_returns_three_months(
