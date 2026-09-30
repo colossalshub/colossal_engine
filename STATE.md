@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 15
 current_phase_status: IN_PROGRESS
-current_task: 15.2
+current_task: 15.3
 current_task_status: READY
-next_task: 15.3
-last_completed_task: 15.1
+next_task: 15.4
+last_completed_task: 15.2
 last_completed_phase: 14
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -39,7 +39,7 @@ human_transition_required: true
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
-- **Phase 15 — IN_PROGRESS; 15.2 is the current task**
+- **Phase 15 — IN_PROGRESS; 15.3 is the current task**
 - Phase 16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -58,17 +58,17 @@ human_transition_required: true
 ### Tasks
 
 - [x] **15.1 — Pin current assumptions** — COMPLETE
-- [ ] **15.2 — Return assumptions on run metadata** — READY
-- [ ] **15.3 — Show assumptions on the tear sheet** — NOT STARTED
+- [x] **15.2 — Return assumptions on run metadata** — COMPLETE
+- [ ] **15.3 — Show assumptions on the tear sheet** — READY
 - [ ] **15.4 — Future-bar mutation** — NOT STARTED
 
 Do not implement a custom matcher. Do not change fill behavior in this phase. Record what the runner already does.
 
 ### Current task
 
-**15.2 — Return assumptions on run metadata** — READY
+**15.3 — Show assumptions on the tear sheet** — READY
 
-Add the pinned execution assumptions to the tear sheet JSON. Include the maker and taker fee rates stored on that run. Do not render them in the UI. Do not change order matching. Existing tear sheet fields stay as they are.
+Render `execution_assumptions` from the tear sheet response on the Data tab. Show the run's maker and taker fees and the structural pins (bar time, order type, fill model not passed). Do not build the rest of the U.3.2 methodology header. Do not change the API or order matching.
 
 ### 12.1 completion evidence
 
@@ -402,6 +402,41 @@ notes: |
   annotate the Nautilus method spies. Sizing-at-bar.close is recorded
   on the dataclass and was not exercised, because the run used the
   default deploy_pct of "0".
+```
+
+### 15.2 completion evidence
+
+```yaml
+task_id: 15.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/api/schemas.py
+  - backend/src/quant/api/routers/runs.py
+  - backend/tests/api/test_schemas.py
+  - backend/tests/api/test_runs_tearsheet.py
+tests_added:
+  - backend/tests/api/test_schemas.py::test_execution_assumptions_extra_field_forbidden_raises
+  - backend/tests/api/test_runs_tearsheet.py::test_done_run_reports_custom_fees_in_execution_assumptions
+  - backend/tests/api/test_runs_tearsheet.py::test_queued_run_with_no_fee_params_defaults_and_does_not_500
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "1 failed, 423 passed, 69 warnings in 58.87s"
+  pytest_failure: "test_on_order_rejected_warns_and_resets_entered (I-005 capfd); isolated rerun passed in 1.64s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: c7dd5ff
+next_task: 15.3
+notes: |
+  Tear sheet JSON includes execution_assumptions. Structural fields come
+  from CURRENT_ASSUMPTIONS. Non-empty string fee params are used; other
+  types fall back to the default without coercion. Reviewer whole-tree
+  pytest hit the pre-existing I-005 log-capture failure once. That test
+  is not part of this diff. The three new tests passed in that run.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
