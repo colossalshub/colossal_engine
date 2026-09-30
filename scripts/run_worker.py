@@ -95,6 +95,7 @@ def _execute_claimed_run(
             finished_at=_now_ms(),
             metrics=updated.metrics,
             artifacts=updated.artifacts,
+            data_snapshot=updated.data_snapshot,
         )
         elapsed = time.monotonic() - started
         logger.info("run_id=%s done in %.1fs", record.run_id, elapsed)

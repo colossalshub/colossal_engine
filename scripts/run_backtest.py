@@ -1,8 +1,8 @@
 """End-to-end backtest CLI: Nautilus run → extract equity/metrics/artifacts → meta_runs.
 
-On success, inserts one ``meta_runs`` row with ``status='done'``. Does not implement
-the §4.5 queued → running → done worker lifecycle (Phase 7). ``data_snapshot`` is left
-NULL until snapshot capture is implemented.
+On success, inserts one ``meta_runs`` row with ``status='done'`` and the ordered-bar
+``data_snapshot`` fingerprint from ``execute_run``. Does not implement the §4.5
+queued → running → done worker lifecycle (Phase 7).
 """
 
 from __future__ import annotations

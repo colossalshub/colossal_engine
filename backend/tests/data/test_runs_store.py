@@ -432,6 +432,34 @@ def test_update_run_status_failed_with_error(tmp_path: Path) -> None:
     assert row["error"] == "boom"
 
 
+def test_update_run_status_data_snapshot_optional(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(
+        run_id="run-snapshot",
+        status="running",
+        data_snapshot="original-sha",
+    )
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        update_run_status(conn, "run-snapshot", status="running")
+        assert _fetch_run(db_path, "run-snapshot")["data_snapshot"] == "original-sha"
+
+        update_run_status(
+            conn,
+            "run-snapshot",
+            status="done",
+            data_snapshot="f" * 64,
+        )
+    finally:
+        conn.close()
+
+    row = _fetch_run(db_path, "run-snapshot")
+    assert row["status"] == "done"
+    assert row["data_snapshot"] == "f" * 64
+
+
 def test_update_run_status_sets_finished_at(tmp_path: Path) -> None:
     db_path = _init(tmp_path)
     record = _record(run_id="run-finished", status="running", finished_at=None)

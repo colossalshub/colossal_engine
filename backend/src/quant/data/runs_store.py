@@ -245,6 +245,7 @@ def update_run_status(
     artifacts: dict[str, Any] | None = None,
     git_sha: str | None = None,
     git_dirty: bool | None = None,
+    data_snapshot: str | None = None,
 ) -> None:
     """Update a run's terminal/transitional fields with a dynamic SET clause.
 
@@ -271,6 +272,9 @@ def update_run_status(
     if git_dirty is not None:
         set_clauses.append("git_dirty = ?")
         values.append(1 if git_dirty else 0)
+    if data_snapshot is not None:
+        set_clauses.append("data_snapshot = ?")
+        values.append(data_snapshot)
 
     values.append(run_id)
     conn.execute(
