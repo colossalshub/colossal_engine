@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 16.2
+current_task: 16.3
 current_task_status: READY
-next_task: 16.3
-last_completed_task: 16.1
+next_task: 16.4
+last_completed_task: 16.2
 last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -40,7 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.2 is the current task** (research-integrity foundation; commit to
+- **Phase 16 — IN_PROGRESS; 16.3 is the current task** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -71,17 +71,17 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 ### Tasks
 
 - [x] **16.1 — Pin the current equity clock** — COMPLETE
-- [ ] **16.2 — Benchmark timestamps cover the equity clock** — READY
-- [ ] **16.3 — Marker time is not earlier than the fill** — NOT STARTED
+- [x] **16.2 — Benchmark timestamps cover the equity clock** — COMPLETE
+- [ ] **16.3 — Marker time is not earlier than the fill** — READY
 - [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
 
 16.1 does not move timestamps. 16.4 waits until the human confirms the target clock. Do not edit `PROJECT.md` for that note.
 
 ### Current task
 
-**16.2 — Benchmark timestamps cover the equity clock** — READY
+**16.3 — Marker time is not earlier than the fill** — READY
 
-One test runs `execute_run` with a benchmark whose stored timestamps are candle opens. The last equity point is the last bar's close, one day after the last stored open, and its benchmark is the normalized last close. Do not change the orchestrator or extraction. If the test fails, stop and report.
+One test runs the same buy-hold as 16.1 (`deploy_pct` `"0"`, `trade_size` `"1"`, volume `1.0`). The chart marker comes from `_map_position_row` and `_build_markers`. That marker's timestamp equals the fill timestamp `1735776000000`, the first bar's close, and it is later than the stored bar open. Do not change production code. If the test fails, stop and report.
 
 ### 12.1 completion evidence
 
@@ -543,6 +543,37 @@ notes: |
   to 1735776000000. Equity starts at 1735689600000. The next equity
   point is 1735862400000, equal to portfolio_returns[0][0]. The fill
   timestamp is not an equity point. No production code changed.
+```
+
+### 16.2 completion evidence
+
+```yaml
+task_id: 16.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/tests/engine/test_benchmark_clock.py
+tests_added:
+  - backend/tests/engine/test_benchmark_clock.py::test_benchmark_last_point_is_last_close_on_the_equity_clock
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "427 passed, 77 warnings in 59.62s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: e873f85d3bb0e556f1fc75da2a8197a12073f9d6
+next_task: 16.3
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, and mypy in the project venv.
+  Stored benchmark timestamps are the five candle opens. The last equity
+  point is one day after the last stored open, and its benchmark equals
+  the first equity point times the last stored close over the first
+  stored close. deploy_pct is "0"; the default "1.0" on volume-1 bars
+  buys 999 and the account goes negative before any equity series exists.
+  No production code changed.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
