@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 12
 current_phase_status: IN_PROGRESS
-current_task: 12.2
+current_task: 12.3
 current_task_status: READY
-next_task: 12.3
-last_completed_task: 12.1
+next_task: 12.4
+last_completed_task: 12.2
 last_completed_phase: 11
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -35,7 +35,7 @@ human_transition_required: true
 - Phase 9 — COMPLETE
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
-- **Phase 12 — IN PROGRESS; 12.1 COMPLETE; 12.2 READY**
+- **Phase 12 — IN PROGRESS; 12.1–12.2 COMPLETE; 12.3 READY**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -54,15 +54,19 @@ human_transition_required: true
 ### Tasks
 
 - [x] **12.1 — Instrument Identity** — COMPLETE
-- [ ] **12.2 — OHLCV Integrity** — READY
-- [ ] **12.3 — Ingestion Completeness**
+- [x] **12.2 — OHLCV Integrity** — COMPLETE
+- [ ] **12.3 — Ingestion Completeness** — READY
 - [ ] **12.4 — Single-Symbol Universe Enforcement**
 
 ### Current task
 
-**12.2 — OHLCV Integrity** — READY
+**12.3 — Ingestion Completeness** — READY
 
-Validate OHLCV at the ingestion and read boundaries. Malformed bars must fail with an explicit error. Valid bars must load unchanged. Do not start this task until a human begins it.
+Detect provider and internal page caps during ingestion. If the requested
+range may remain incomplete, fail with a non-zero exit or return an
+explicit incomplete status. Never report a truncated dataset as complete.
+Preserve the requested start/end range in the result. Do not start this
+task until a human begins it.
 
 ### 12.1 completion evidence
 
@@ -88,6 +92,32 @@ acceptance_output:
   mypy: "Success: no issues found in 26 source files"
 git_commit_sha: ccadbfc
 next_task: 12.2
+```
+
+### 12.2 completion evidence
+
+```yaml
+task_id: 12.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-09-30
+files_changed:
+  - backend/src/quant/data/store.py
+  - backend/tests/data/test_store.py
+  - backend/tests/data/test_read.py
+  - backend/tests/api/test_data_coverage.py
+tests_added:
+  - backend/tests/data/test_store.py (12 new rejection + batch tests)
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "381 passed"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 26 source files"
+git_commit_sha: 4567de9
+next_task: 12.3
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
