@@ -1,6 +1,8 @@
 import { provideGlobalGridOptions } from 'ag-grid-community'
 
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-quartz.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
