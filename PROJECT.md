@@ -513,10 +513,13 @@ surfaces. Keep dark mode available. Fix chart scroll hijacking.
 **Non-goals:** research semantics, metric calculations, API contracts.
 KPI values, chart data, and grid columns are unchanged.
 
-**Sequencing:** Tasks U.0–U.2 ship before Phase 13. Tasks U.3–U.4 ship
-after Phase 13, because Phase 13 changes the KPI semantics (win_rate,
-profit_factor, avg_duration_days become null for open positions) and
-polishing those cards twice is wasted work.
+**Sequencing:** Tasks U.0–U.3.1 ship before Phase 13. Tasks U.3.2
+(methodology header) and U.4 (KPI polish) ship after Phase 13, because
+Phase 13 changes the KPI semantics (win_rate, profit_factor,
+avg_duration_days become null for open positions) and polishing those
+cards twice is wasted work. U.3.1 is layout and routing only — it moves
+where components render, not what they display, so it is independent of
+the KPI change.
 
 **Tasks:**
 
@@ -532,10 +535,14 @@ polishing those cards twice is wasted work.
   read from active theme. On theme change, call `chart.applyOptions()`
   only — do NOT remount. Series colors (candles, equity line, drawdown,
   markers) are semantic and constant across themes. DONE.
-- **U.3 — Tear Sheet layout (deferred to after Phase 13)** — tabbed
-  navigation (Overview / Performance / Trades). Overview: KPI cards +
-  monthly heatmap. Performance: price, equity, underwater. Trades: trade
-  ledger.
+- **U.3.1 — Tear Sheet tabbed layout** — tabbed navigation with nav
+  rail. Real tabs: Overview (KPIs + monthly heatmap), Performance
+  (price, equity, underwater), Trades (ledger), Data (placeholder).
+  Placeholder tabs: Regimes, Robustness, Execution. Removes
+  react-grid-layout from the tear sheet. DONE.
+- **U.3.2 — Methodology header (deferred to after Phase 13)** — populate
+  the Data tab with the reproducibility header: strategy version, git
+  SHA, dataset identity, timeframe, fees, benchmark, verification.
 - **U.4 — Polish (deferred to after Phase 13)** — KPI card restyle,
   spacing, hover transitions. Also fix: Qty column renders `0.0000`
   instead of `0`; Avg Duration renders `—` when it should show a

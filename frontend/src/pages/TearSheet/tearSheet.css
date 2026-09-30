@@ -132,11 +132,6 @@
   gap: var(--s-4);
 }
 
-.tear-sheet__grid.react-grid-layout,
-.tear-sheet__grid .react-grid-item {
-  transition: none;
-}
-
 .tear-sheet__grid .react-grid-item.react-grid-placeholder {
   background: var(--accent);
   opacity: 0.15;

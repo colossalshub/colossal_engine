@@ -15,7 +15,7 @@ current_phase_status: IN_PROGRESS
 current_task: null
 current_task_status: null
 next_task: null
-last_completed_task: U.2
+last_completed_task: U.3.1
 last_completed_phase: 12
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -36,7 +36,7 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — PARTIAL; U.0–U.2 COMPLETE; U.3–U.4 DEFERRED until after Phase 13**
+- **Phase 12.5 — IN PROGRESS; U.0–U.3.1 COMPLETE; U.3.2 and U.4 deferred until after Phase 13**
 - **Phase 13 — READY; 13.1 is the first task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
@@ -72,7 +72,7 @@ results. Test a BuyHold run that remains open at the end.
 Acceptance: open-position fees cannot become a synthetic losing trade;
 closed-trade metrics reconcile with the actual closed position set.
 
-Do not start until Phase 12.5's U.0–U.2 live check has been confirmed
+Do not start until Phase 12.5's U.0–U.3.1 live check has been confirmed
 by a human.
 
 ### 12.1 completion evidence
@@ -226,6 +226,44 @@ next_task: null
 notes: |
   Live check (zoom preservation across theme toggle) not run by agent.
   Requires human confirmation before Phase 13 begins.
+```
+
+### U.3.1 completion evidence
+
+```yaml
+task_id: U.3.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/App.tsx
+  - frontend/src/pages/TearSheet/index.tsx
+  - frontend/src/pages/TearSheet/TearSheetNav.tsx (new)
+  - frontend/src/pages/TearSheet/tearSheetNav.css (new)
+  - frontend/src/pages/TearSheet/tearSheet.css
+  - frontend/src/pages/TearSheet/tabs/ (new: OverviewTab, PerformanceTab,
+    TradesTab, DataTab, PlaceholderTab)
+  - frontend/src/pages/TearSheet/index.test.tsx
+deviations_accepted:
+  - Removed the "Widgets" picker from the header. It had no purpose
+    without the drag layout. Back button, name, badges, and meta line
+    unchanged.
+tests_removed: 5 (drag-layout specific)
+tests_added: 8 (tab rendering, nav rail, active state, redirect)
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+tree_state: uncommitted_U.3.1_diff
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "188 passed"
+  build: "exit 0"
+git_commit_sha: 15eebc2
+next_task: null
+notes: |
+  Live check not run by agent. Requires human confirmation of tab
+  switching, deep links, and per-tab chart rendering before Phase 13.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
