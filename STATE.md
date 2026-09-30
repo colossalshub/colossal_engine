@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 16.3.1
+current_task: 16.4
 current_task_status: READY
-next_task: 16.4
-last_completed_task: 16.3
+next_task: null
+last_completed_task: 16.3.1
 last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -40,7 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.3.1 is the current task** (research-integrity foundation; commit to
+- **Phase 16 — IN_PROGRESS; 16.4 is the current task** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -73,16 +73,18 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 - [x] **16.1 — Pin the current equity clock** — COMPLETE
 - [x] **16.2 — Benchmark timestamps cover the equity clock** — COMPLETE
 - [x] **16.3 — Marker time is not earlier than the fill** — COMPLETE
-- [ ] **16.3.1 — Equity grid keeps every daily close** — READY
-- [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
+- [x] **16.3.1 — Equity grid keeps every daily close** — COMPLETE
+- [ ] **16.4 — Record the clock next to the execution assumptions** — READY
 
 The human confirmed the target clock on 2026-10-01. For daily bars, the close of one bar and the open of the next bar are the same timestamp. The equity series keeps the account start on the first open and a point on every bar close, including the first close. The same-bar fill and that first close share one timestamp, and the equity point at that timestamp includes the fill. Do not edit `PROJECT.md` for this note. 16.4 records that clock after 16.3.1 lands.
 
 ### Current task
 
-**16.3.1 — Equity grid keeps every daily close** — READY
+**16.4 — Record the clock next to the execution assumptions** — READY
 
-`run_backtest` publishes the configured starting cash at the first open and a return at every equity snapshot, including the first close. The market fill is not visible at the end of `on_bar`. BuyHold replaces that bar's snapshot inside `on_order_filled`, at the fill timestamp, so the Jan 2 point includes the fill. Do not append a second point at that timestamp. Update the 16.1 clock test and the runner tests that pinned the skipped day. Do not edit `PROJECT.md`.
+Add the confirmed daily clock to `CURRENT_ASSUMPTIONS` and to the tear-sheet assumptions the Data tab already shows. Do not move timestamps. Do not edit `PROJECT.md`.
+
+`equity_ts` is `open_then_each_close`. `fill_ts` is `bar_close`. `marker_ts` is `fill`. `fill_included_in_equity` is `same_timestamp`.
 
 ### 12.1 completion evidence
 
@@ -604,6 +606,45 @@ notes: |
   1735776000000, equal to both fills and later than the stored bar open.
   The position stays open, so there is no exit marker. No production
   code changed. 16.4 is blocked until the human confirms the target clock.
+```
+
+### 16.3.1 completion evidence
+
+```yaml
+task_id: 16.3.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/engine/runner.py
+  - backend/src/quant/strategies/buy_hold.py
+  - backend/tests/engine/test_clock.py
+  - backend/tests/engine/test_runner.py
+  - backend/tests/strategies/test_buy_hold.py
+tests_added: []
+tests_updated:
+  - backend/tests/engine/test_clock.py::test_buy_hold_equity_keeps_every_daily_close
+  - backend/tests/engine/test_runner.py (first return is the first close; equity length 11)
+  - backend/tests/strategies/test_buy_hold.py::test_on_order_filled_sets_entered_flag
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "428 passed, 81 warnings in 68.17s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: 53248c52891f6e475981f66108dec118fb1c3ddd
+next_task: 16.4
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, and mypy in the project venv.
+  Equity timestamps are the first open and then every daily close. Jan 2
+  equity includes the fill because on_order_filled replaces that snapshot.
+  Accepted deviations: a fill timestamp that does not match the last
+  snapshot raises RuntimeError instead of appending a point. The fill-flag
+  test runs the engine first because portfolio has no USDT balance until
+  then, and wraps that run in capfd.disabled() so the rejected-order log
+  test still captures output. The denied-order test passed in isolation.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
