@@ -114,11 +114,51 @@ def _strategy() -> BuyHold:
     return BuyHold(instrument_id=_INSTRUMENT_ID, bar_type=_BAR_TYPE)
 
 
-def test_on_order_filled_sets_entered_flag() -> None:
-    strategy = _strategy()
-    assert strategy._entered is False
-    strategy.on_order_filled(SimpleNamespace())  # type: ignore[arg-type]  # only the flag is read
-    assert strategy._entered is True
+def test_on_order_filled_sets_entered_flag(
+    capfd: pytest.CaptureFixture[str],
+) -> None:
+    fill_ts_ms = 1_735_776_000_000
+    with capfd.disabled():
+        engine = _engine()
+        engine.add_instrument(
+            CurrencyPair(
+                instrument_id=InstrumentId.from_str(_INSTRUMENT_ID),
+                raw_symbol=Symbol("BTCUSDT"),
+                base_currency=BTC,
+                quote_currency=USDT,
+                price_precision=2,
+                size_precision=6,
+                price_increment=Price.from_str("0.01"),
+                size_increment=Quantity.from_str("0.000001"),
+                ts_event=0,
+                ts_init=0,
+                maker_fee=Decimal(0),
+                taker_fee=Decimal(0),
+            ),
+        )
+        engine.add_data(_bars([100.0]))
+        strategy = BuyHold(
+            instrument_id=_INSTRUMENT_ID,
+            bar_type=_BAR_TYPE,
+            trade_size="1.000000",
+        )
+        engine.add_strategy(strategy)
+    try:
+        # The portfolio only holds account state once the engine has run.
+        with capfd.disabled():
+            engine.run()
+        strategy._entered = False
+        strategy.equity_snapshots[:] = [(fill_ts_ms, 0.0)]
+        strategy.on_order_filled(
+            SimpleNamespace(ts_event=fill_ts_ms * 1_000_000),  # type: ignore[arg-type]  # handler reads ts_event only; portfolio comes from the registered engine
+        )
+        assert strategy._entered is True
+        assert len(strategy.equity_snapshots) == 1
+        assert strategy.equity_snapshots[0][0] == fill_ts_ms
+        assert strategy.equity_snapshots[0][1] != 0.0
+    finally:
+        with capfd.disabled():
+            engine.dispose()
 
 
 def test_on_order_rejected_warns_and_resets_entered(

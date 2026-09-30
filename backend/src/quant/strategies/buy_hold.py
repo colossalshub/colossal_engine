@@ -4,7 +4,7 @@ from nautilus_trader.model.currencies import USDT
 from nautilus_trader.model.data import Bar, BarType
 from nautilus_trader.model.enums import OrderSide
 from nautilus_trader.model.events import OrderDenied, OrderFilled, OrderRejected
-from nautilus_trader.model.identifiers import InstrumentId
+from nautilus_trader.model.identifiers import InstrumentId, Venue
 from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
 
@@ -14,7 +14,8 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
 
     After ``engine.run()``, the runner reads ``equity_snapshots``: one
     ``(bar_ts_ms, usdt_equity)`` per ``on_bar``, marked at bar close via
-    ``portfolio.equity(venue)[USDT]``.
+    ``portfolio.equity(venue)[USDT]``. A same-bar fill replaces that bar's
+    snapshot with the equity read in ``on_order_filled``.
 
     Sizing modes: when ``deploy_pct`` is a positive decimal string, the
     entry is sized as ``deploy_pct * equity / bar.close`` (with a 0.999
@@ -48,13 +49,13 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
 
     def on_bar(self, bar: Bar) -> None:
         venue_obj = InstrumentId.from_str(self._instrument_id_str).venue
+        if not self._entered:
+            self._submit_entry(bar, venue_obj)
         money = self.portfolio.equity(venue_obj)[USDT]
         equity = float(money.as_double())
         self.equity_snapshots.append((bar.ts_event // 1_000_000, equity))
 
-        if self._entered:
-            return
-
+    def _submit_entry(self, bar: Bar, venue_obj: Venue) -> None:
         deploy = float(self._deploy_pct) if self._deploy_pct else 0.0
         if deploy > 0:
             if bar.close <= 0:
@@ -81,6 +82,14 @@ class BuyHold(Strategy):  # type: ignore[misc]  # Strategy resolves to Any witho
 
     def on_order_filled(self, event: OrderFilled) -> None:
         self._entered = True
+        fill_ts = event.ts_event // 1_000_000
+        if not self.equity_snapshots or self.equity_snapshots[-1][0] != fill_ts:
+            last = self.equity_snapshots[-1][0] if self.equity_snapshots else None
+            msg = f"fill ts {fill_ts} != last snapshot ts {last}"
+            raise RuntimeError(msg)
+        venue_obj = InstrumentId.from_str(self._instrument_id_str).venue
+        money = self.portfolio.equity(venue_obj)[USDT]
+        self.equity_snapshots[-1] = (fill_ts, float(money.as_double()))
 
     def on_order_rejected(self, event: OrderRejected) -> None:
         self.log.warning(f"order rejected: {event.reason}")

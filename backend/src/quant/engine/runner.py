@@ -266,22 +266,19 @@ def run_backtest(
             raise RuntimeError(msg)
 
         snapshots = ran_strategy.equity_snapshots
-        if len(snapshots) >= 2:
-            for i in range(1, len(snapshots)):
-                _prev_ts, prev_eq = snapshots[i - 1]
-                curr_ts, curr_eq = snapshots[i]
-                if prev_eq == 0:
-                    ret = 0.0
-                else:
-                    ret = (curr_eq - prev_eq) / prev_eq
-                portfolio_returns.append((curr_ts, float(ret)))
+        # Returns run from the configured cash at the first open (rows[0]["ts"])
+        # through every snapshot, including the first bar close.
+        prev_eq = float(starting_balance_usdt)
+        for curr_ts, curr_eq in snapshots:
+            if prev_eq == 0:
+                ret = 0.0
+            else:
+                ret = (curr_eq - prev_eq) / prev_eq
+            portfolio_returns.append((curr_ts, float(ret)))
+            prev_eq = curr_eq
 
-        if snapshots:
-            starting_balance = snapshots[0][1]
-            ending_balance = snapshots[-1][1]
-        else:
-            starting_balance = float(starting_balance_usdt)
-            ending_balance = 0.0
+        starting_balance = float(starting_balance_usdt)
+        ending_balance = snapshots[-1][1] if snapshots else 0.0
 
         # Per-currency snapshot at run end — not a time series; USDT row is cash-only.
         account_df: pd.DataFrame = engine.trader.generate_account_report(

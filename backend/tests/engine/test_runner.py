@@ -76,9 +76,9 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
 
     assert isinstance(result, BacktestResult)
     assert len(result.portfolio_returns) >= 9
-    # Returns start at the second snapshot; that bar's ts_event is its close.
-    second_bar_close_ts = start_ts + 2 * _DAY_MS
-    assert result.portfolio_returns[0][0] == second_bar_close_ts
+    # Returns start at the first snapshot; that bar's ts_event is its close.
+    first_bar_close_ts = start_ts + _DAY_MS
+    assert result.portfolio_returns[0][0] == first_bar_close_ts
     ts_values = [pair[0] for pair in result.portfolio_returns]
     assert ts_values == sorted(ts_values)
     assert result.starting_balance == 100_000.0
@@ -398,7 +398,7 @@ def test_run_backtest_ema_cross_constructs_ema_cross_only(
     assert _CountingEmaCross.call_count == 1
     assert _CountingBuyHold.call_count == 0
     assert isinstance(result, BacktestResult)
-    assert len(result.portfolio_returns) + 1 == 10
+    assert len(result.portfolio_returns) + 1 == 11
 
 
 def test_run_backtest_buy_hold_constructs_buy_hold_only(
@@ -424,7 +424,7 @@ def test_run_backtest_buy_hold_constructs_buy_hold_only(
     assert _CountingBuyHold.call_count == 1
     assert _CountingEmaCross.call_count == 0
     assert isinstance(result, BacktestResult)
-    assert len(result.portfolio_returns) + 1 == 10
+    assert len(result.portfolio_returns) + 1 == 11
 
 
 def _store_symbol_bars(

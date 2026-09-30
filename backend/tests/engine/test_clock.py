@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from pandas import Timestamp
 
 from quant.engine.runner import run_backtest
@@ -29,8 +30,7 @@ def _flat_bars() -> list[dict[str, object]]:
         )
     return rows
 
-
-def test_buy_hold_fill_lands_between_the_first_two_equity_points() -> None:
+def test_buy_hold_equity_keeps_every_daily_close() -> None:
     result = run_backtest(
         venue="binance",
         symbol="BTC/USDT",
@@ -54,10 +54,15 @@ def test_buy_hold_fill_lands_between_the_first_two_equity_points() -> None:
 
     assert fill_ts_values == [_FILL_TS_MS, _FILL_TS_MS]
 
+    assert [point.ts for point in equity] == [
+        _START_TS + i * _DAY_MS for i in range(_BAR_COUNT + 1)
+    ]
     assert equity[0].ts == _START_TS
-    assert equity[1].ts == _SECOND_EQUITY_TS
+    assert equity[0].equity == 100_000.0
+    assert equity[1].ts == _FILL_TS_MS
     assert equity[1].ts == portfolio_returns[0][0]
+    assert equity[1].equity != equity[0].equity
+    assert equity[2].equity == pytest.approx(equity[1].equity)
     assert len(equity) == len(portfolio_returns) + 1
-
-    equity_ts_set = {point.ts for point in equity}
-    assert _FILL_TS_MS not in equity_ts_set
+    for prev, curr in zip(equity, equity[1:], strict=False):
+        assert curr.ts - prev.ts == _DAY_MS
