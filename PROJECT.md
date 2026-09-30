@@ -530,7 +530,8 @@ polishing those cards twice is wasted work.
   provider.
 - **U.2 — Chart theme migration** — LWC options and AG Grid theme class
   read from active theme. On theme change, call `chart.applyOptions()`
-  and re-apply series colors — do NOT remount. Re-apply marker colors.
+  only — do NOT remount. Series colors (candles, equity line, drawdown,
+  markers) are semantic and constant across themes. DONE.
 - **U.3 — Tear Sheet layout (deferred to after Phase 13)** — tabbed
   navigation (Overview / Performance / Trades). Overview: KPI cards +
   monthly heatmap. Performance: price, equity, underwater. Trades: trade

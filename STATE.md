@@ -11,11 +11,11 @@
 
 ```yaml
 current_phase: 12.5
-current_phase_status: READY
-current_task: U.1
-current_task_status: READY
-next_task: U.2
-last_completed_task: 12.4
+current_phase_status: IN_PROGRESS
+current_task: null
+current_task_status: null
+next_task: null
+last_completed_task: U.2
 last_completed_phase: 12
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -36,7 +36,7 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — IN PROGRESS; U.0 COMPLETE; U.1 READY**
+- **Phase 12.5 — PARTIAL; U.0–U.2 COMPLETE; U.3–U.4 DEFERRED until after Phase 13**
 - **Phase 13 — READY; 13.1 is the first task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
@@ -62,16 +62,18 @@ human_transition_required: true
 
 ### Current task
 
-**U.1 — Theme foundation** — READY
+**Phase 13 — Closed-Trade Statistics** — READY
 
-Add light + dark token sets to `styles/theme.css`. Set `data-theme` on
-`<html>` via an inline pre-mount script in `index.html` (prevents flash
-of wrong theme on reload). Add a theme toggle to the TopBar. Persist
-choice in localStorage. Default: light. Add a vitest covering default
-state, toggle behavior, and persistence.
+Trade-level KPIs must represent closed trades only. Exclude positions
+without `ts_closed` from win rate, profit factor, and duration
+calculations. Keep unrealized/open-position value in equity/account
+results. Test a BuyHold run that remains open at the end.
 
-Do not start until U.0's live verification (page scroll + axis drag)
-has been confirmed by a human.
+Acceptance: open-position fees cannot become a synthetic losing trade;
+closed-trade metrics reconcile with the actual closed position set.
+
+Do not start until Phase 12.5's U.0–U.2 live check has been confirmed
+by a human.
 
 ### 12.1 completion evidence
 
@@ -187,6 +189,43 @@ acceptance_output:
   build: "exit 0"
 git_commit_sha: 839ca1f
 next_task: 13.1
+```
+
+### U.2 completion evidence
+
+```yaml
+task_id: U.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/components/charts/chartOptions.ts (new)
+  - frontend/src/components/charts/chartOptions.test.ts (new)
+  - frontend/src/components/charts/BaseChart.tsx
+  - frontend/src/components/charts/BaseChart.test.tsx
+  - frontend/src/lib/theme.ts
+  - frontend/src/lib/theme.test.ts
+  - frontend/src/components/grid/agGridTheme.css
+  - frontend/src/pages/CommandCenter/RunHistoryTable.tsx
+  - frontend/src/pages/TearSheet/TradeLedger.tsx
+tests_added:
+  - chartOptions.test.ts (4)
+  - theme.test.ts (+4)
+  - BaseChart.test.tsx (+1)
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+tree_state: uncommitted_U.2_diff
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "26 files, 185 passed"
+  build: "exit 0"
+git_commit_sha: 2b0bb35
+next_task: null
+notes: |
+  Live check (zoom preservation across theme toggle) not run by agent.
+  Requires human confirmation before Phase 13 begins.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
