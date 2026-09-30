@@ -346,6 +346,7 @@ This section defines **WHAT** the project must become. `STATE.md` defines **WHER
 8. Every phase has an explicit goal, non-goals, tasks, acceptance requirements, and completion evidence.
 9. Historical notes must be labeled historical. They never override `STATE.md`.
 10. When a phase is completed, update `STATE.md` with the evidence before advancing.
+11. Commits follow Conventional Commits with the roadmap phase as a parenthetical suffix: `type(scope): description (Phase X.Y)`. See WORKFLOW.md §3.
 
 ### Phase 0 — Bootstrap
 

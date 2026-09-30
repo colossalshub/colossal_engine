@@ -73,7 +73,16 @@ This pattern saved Phase 2.2 (Nautilus engine construction), Phase 2.2.2 (`portf
 - If a task needs schema creation + orchestration, split into `.1` / `.2a` / `.2b`.
 - If a task needs a bug fix in a prior phase's file to proceed, split into the fix phase + the original phase.
 - Documentation and small fixes get suffixes: `Phase 3.1.1`, `Phase 2.2.3`, `Phase 2.1.2`.
-- **Commit message format:** `Phase X.Y: description` — no trailing period, no prefixes, no emoji.
+- **Commit message format:** `<type>(<scope>): <description> (Phase X.Y)`
+  - `<type>` ∈ {feat, fix, docs, chore, refactor, test, style, perf, build, ci}
+  - `<scope>` is the module: strategy, engine, extract, api, ui, data, docs
+  - `<description>` is imperative mood, lowercase, no trailing period
+  - `(Phase X.Y)` is the roadmap linkage; omit for `docs:` and `chore:`
+    commits that don't map to a specific phase
+  - Examples:
+    - `feat(strategy): reject non-BTC instruments before engine construction (Phase 12.1)`
+    - `fix(extract): use last row per currency in account report (Phase T.4.1)`
+    - `docs: sync PROJECT.md with trust-pass behavior`
 
 ---
 
@@ -322,7 +331,7 @@ Human decision/action required:
 If the issue is a contradiction between authoritative project information and repository evidence, use the existing `STATE CONFLICT` format instead.
 
 **Never continue debugging solely to avoid reporting a failure.**
-
+ 
 ---
 
 ## 9. Anti-patterns to watch for
