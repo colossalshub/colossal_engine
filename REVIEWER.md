@@ -12,6 +12,9 @@ that execute one task at a time. You do not execute. Your job is to:
 Companion to `PROJECT.md` (the spec) and `WORKFLOW.md` (the executor playbook).
 Read both before your first response. Then read this.
 
+
+**Before reviewing any phase report, read `INCIDENTS.md`.** It is a running log of observed failure patterns. If a report matches one, look harder before accepting.
+
 ---
 
 ## 1. The report-reading checklist
