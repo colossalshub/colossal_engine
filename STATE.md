@@ -12,9 +12,9 @@
 ```yaml
 current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 16.4
-current_task_status: BLOCKED
-next_task: null
+current_task: 16.3.1
+current_task_status: READY
+next_task: 16.4
 last_completed_task: 16.3
 last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
@@ -40,7 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.4 is blocked on a human clock confirmation** (research-integrity foundation; commit to
+- **Phase 16 — IN_PROGRESS; 16.3.1 is the current task** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -73,15 +73,16 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 - [x] **16.1 — Pin the current equity clock** — COMPLETE
 - [x] **16.2 — Benchmark timestamps cover the equity clock** — COMPLETE
 - [x] **16.3 — Marker time is not earlier than the fill** — COMPLETE
-- [ ] **16.4 — Record the clock next to the execution assumptions** — BLOCKED pending human confirmation of the target clock
+- [ ] **16.3.1 — Equity grid keeps every daily close** — READY
+- [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
 
-16.1 does not move timestamps. 16.4 waits until the human confirms the target clock. Do not edit `PROJECT.md` for that note.
+The human confirmed the target clock on 2026-10-01. For daily bars, the close of one bar and the open of the next bar are the same timestamp. The equity series keeps the account start on the first open and a point on every bar close, including the first close. The same-bar fill and that first close share one timestamp, and the equity point at that timestamp includes the fill. Do not edit `PROJECT.md` for this note. 16.4 records that clock after 16.3.1 lands.
 
 ### Current task
 
-**16.4 — Record the clock next to the execution assumptions** — BLOCKED
+**16.3.1 — Equity grid keeps every daily close** — READY
 
-Do not implement 16.4 until the human confirms the target clock. Do not edit `PROJECT.md` for that note. Do not move timestamps while waiting.
+`run_backtest` publishes the configured starting cash at the first open and a return at every equity snapshot, including the first close. BuyHold marks equity after `submit_order`, so the Jan 2 point includes the same-bar fill. Update the 16.1 clock test, which pinned the skipped day. Do not edit `PROJECT.md`.
 
 ### 12.1 completion evidence
 
