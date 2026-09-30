@@ -23,9 +23,17 @@ Before planning or writing code:
 
 ## Rules
 
-- Never modify `STATE.md`, `PROJECT.md`, `WORKFLOW.md`, `REVIEWER.md`, or
-  `.cursor/`.
-- One task = one commit. Commit via terminal only.
+- Never modify `PROJECT.md`, `WORKFLOW.md`, `REVIEWER.md`, or `.cursor/`.
+- Never modify `STATE.md` while implementing a task. The implementing
+  agent does not mark its own work complete.
+- After the reviewer accepts a task, the reviewer updates `STATE.md`
+  before writing the next task prompt. That update is its own docs
+  commit. Record the evidence block from `STATE.md` §7, mark the task
+  complete, and set `current_task` to the next task. If the next phase
+  has no task split yet, write the split in that same commit and set
+  only the first task to `READY`.
+- One task = one commit. Commit via terminal only. The state-advance
+  commit is separate from the task commit.
 - Every deliverable includes its test.
 - Do not add dependencies without approval.
 - Run acceptance commands from the repo root on the whole tree.

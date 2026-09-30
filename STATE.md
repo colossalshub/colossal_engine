@@ -10,13 +10,13 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 14
+current_phase: 15
 current_phase_status: IN_PROGRESS
-current_task: 14.4
+current_task: 15.1
 current_task_status: READY
-next_task: null
-last_completed_task: 14.3
-last_completed_phase: 13
+next_task: 15.2
+last_completed_task: 14.4
+last_completed_phase: 14
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
 ```
@@ -38,8 +38,9 @@ human_transition_required: true
 - **Phase 12 — COMPLETE (all 4 tasks)**
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
-- **Phase 14 — IN_PROGRESS; 14.4 is the current task**
-- Phase 15–16 — NOT STARTED (research-integrity foundation; commit to
+- **Phase 14 — COMPLETE (14.1–14.4)**
+- **Phase 15 — IN_PROGRESS; 15.1 is the current task**
+- Phase 16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -50,26 +51,24 @@ human_transition_required: true
 
 ## 2. Current Objective
 
-### Phase 12 — Fail Closed
+### Phase 15 — Execution Assumptions
 
-**Goal:** Prevent apparently valid research from being produced when the data, instrument identity, ingestion completeness, or declared universe is invalid for the current execution architecture.
+**Goal:** Make the execution assumptions the engine already uses explicit, before anyone treats a result as realistic execution.
 
 ### Tasks
 
-- [x] **12.1 — Instrument Identity** — COMPLETE
-- [x] **12.2 — OHLCV Integrity** — COMPLETE
-- [x] **12.3 — Ingestion Completeness** — COMPLETE
-- [x] **12.4 — Universe Contract** — COMPLETE
+- [ ] **15.1 — Pin current assumptions** — READY
+- [ ] **15.2 — Return assumptions on run metadata** — NOT STARTED
+- [ ] **15.3 — Show assumptions on the tear sheet** — NOT STARTED
+- [ ] **15.4 — Future-bar mutation** — NOT STARTED
+
+Do not implement a custom matcher. Do not change fill behavior in this phase. Record what the runner already does.
 
 ### Current task
 
-**14.4 — Cross-process reproducibility** — READY
+**15.1 — Pin current assumptions** — READY
 
-Run the same backtest through two paths: `scripts/run_backtest.py` and
-the API POST + worker. Both must produce the same `data_snapshot` and
-byte-identical `equity.parquet`, or the difference must be explained.
-
-Do not start until Phase 14.3's live check has been confirmed by a human.
+Add one module and one test that state the assumptions `runner.py` already uses: bar `ts` is open time, the strategy submits from `on_bar` using that bar's close, maker and taker fees default to `0.001`, and `add_venue` passes no custom fill model, latency, spread, queue, or partial-fill model. The test must fail if the runner's call stops matching that record. No API field, no tear-sheet UI, and no change to order matching.
 
 ### 12.1 completion evidence
 
@@ -338,6 +337,39 @@ notes: |
   experiment_id column added via ALTER TABLE migration. Seed semantics
   honest: deterministic strategies get None, non-deterministic read
   params["seed"].
+```
+
+### 14.4 completion evidence
+
+```yaml
+task_id: 14.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/data/runs_store.py
+  - scripts/run_worker.py
+  - scripts/run_backtest.py
+  - backend/tests/engine/test_cross_process_repro.py
+  - backend/tests/data/test_runs_store.py
+tests_added:
+  - backend/tests/engine/test_cross_process_repro.py::test_cli_and_worker_produce_identical_snapshot_and_equity
+  - backend/tests/data/test_runs_store.py::test_update_run_status_data_snapshot_optional
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "420 passed, 67 warnings in 53.79s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 29 source files"
+git_commit_sha: 3bc970a
+next_task: 15.1
+notes: |
+  Reviewer re-ran acceptance. Worker success path persists data_snapshot.
+  CLI and API-plus-worker produced the same snapshot and byte-identical
+  equity.parquet. Accepted deviation: subprocess stdout uses utf-8 with
+  errors=replace so Nautilus log bytes do not crash capture on Windows.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
