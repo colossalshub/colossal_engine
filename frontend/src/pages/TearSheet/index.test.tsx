@@ -71,9 +71,27 @@ describe('TearSheet page', () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
     await waitFor(() => {
-      expect(screen.getByText('BTC/USDT · ETH/USDT')).toBeInTheDocument()
+      expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
     })
+    expect(screen.getByText('only first symbol executed')).toBeInTheDocument()
+    expect(screen.queryByText('ETH/USDT')).not.toBeInTheDocument()
     expect(screen.getByText('2024-01-01 → 2024-01-31')).toBeInTheDocument()
+  })
+
+  it('multi-symbol universe renders the note', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      run: {
+        ...sampleTearsheet.run,
+        universe: ['BTC/USDT', 'ETH/USDT'],
+      },
+    })
+    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
+    })
+    expect(screen.getByText('only first symbol executed')).toBeInTheDocument()
+    expect(screen.queryByText('ETH/USDT')).not.toBeInTheDocument()
   })
 
   it('displays fees when params contain maker_fee', async () => {

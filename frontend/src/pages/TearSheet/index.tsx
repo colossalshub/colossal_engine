@@ -297,7 +297,15 @@ export default function TearSheet() {
           ) : null}
         </div>
         <div className="tear-sheet__meta">
-          <span>{run.universe.join(' · ')}</span>
+          <span>{run.universe[0]}</span>
+          {run.universe.length > 1 ? (
+            <>
+              <span className="tear-sheet__meta-sep">·</span>
+              <span className="tear-sheet__meta-mono">
+                only first symbol executed
+              </span>
+            </>
+          ) : null}
           <span className="tear-sheet__meta-sep">·</span>
           <span>
             {formatDate(run.start_ts)} → {formatDate(run.end_ts)}

@@ -632,8 +632,11 @@ def create_run(
     db: RunsDb,
     payload: RunCreate,
 ) -> RunSummary:
-    if not payload.universe:
-        raise _validation_error("universe must contain at least one symbol")
+    if len(payload.universe) != 1:
+        raise _validation_error(
+            "universe must contain exactly one symbol; "
+            "multi-instrument execution is not yet supported"
+        )
     if not payload.start_ts < payload.end_ts:
         raise _validation_error("start_ts must be before end_ts")
     if payload.strategy not in _VALID_STRATEGIES:

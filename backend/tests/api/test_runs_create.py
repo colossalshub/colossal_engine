@@ -149,17 +149,17 @@ def test_default_name_generation_single_symbol(
     assert row["name"] == "buy_hold BTC/USDT"
 
 
-def test_default_name_generation_multi_symbol(
+def test_default_name_generation_multi_symbol_rejected(
     client: TestClient, db_path: Path
 ) -> None:
     response = client.post(
         "/api/runs",
         json=_valid_payload(universe=["BTC/USDT", "ETH/USDT"]),
     )
-    assert response.status_code == 201
-    run_id = response.json()["run_id"]
-    row = _fetch_run(db_path, run_id)
-    assert row["name"] == "buy_hold BTC/USDT,ETH/USDT"
+    assert response.status_code == 422
+    body = response.json()
+    assert body["detail"]["error"]["code"] == "VALIDATION"
+    assert "exactly one symbol" in body["detail"]["error"]["message"]
 
 
 def test_explicit_name_is_preserved(client: TestClient, db_path: Path) -> None:
@@ -182,9 +182,44 @@ def test_params_round_trip(client: TestClient, db_path: Path) -> None:
 def test_universe_round_trip_preserves_order(
     client: TestClient, db_path: Path
 ) -> None:
-    universe = ["BTC/USDT", "ETH/USDT"]
+    universe = ["ETH/USDT"]
     response = client.post("/api/runs", json=_valid_payload(universe=universe))
     assert response.status_code == 201
     run_id = response.json()["run_id"]
     row = _fetch_run(db_path, run_id)
     assert json.loads(row["universe"]) == universe
+
+
+def _count_runs(db_path: Path) -> int:
+    conn = sqlite3.connect(db_path)
+    try:
+        row = conn.execute("SELECT COUNT(*) FROM meta_runs").fetchone()
+        assert row is not None
+        return int(row[0])
+    finally:
+        conn.close()
+
+
+def test_multi_symbol_universe_rejected(client: TestClient, db_path: Path) -> None:
+    before = _count_runs(db_path)
+    response = client.post(
+        "/api/runs",
+        json=_valid_payload(universe=["BTC/USDT", "ETH/USDT"]),
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert body["detail"]["error"]["code"] == "VALIDATION"
+    assert "exactly one symbol" in body["detail"]["error"]["message"]
+    assert _count_runs(db_path) == before
+
+
+def test_single_symbol_universe_accepted(
+    client: TestClient, db_path: Path
+) -> None:
+    before = _count_runs(db_path)
+    response = client.post(
+        "/api/runs",
+        json=_valid_payload(universe=["BTC/USDT"]),
+    )
+    assert response.status_code == 201
+    assert _count_runs(db_path) == before + 1
