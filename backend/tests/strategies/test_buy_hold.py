@@ -1,3 +1,4 @@
+import time
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -19,6 +20,22 @@ from quant.strategies.buy_hold import BuyHold
 _INSTRUMENT_ID = "BTCUSDT.BINANCE"
 _BAR_TYPE = "BTCUSDT.BINANCE-1-DAY-LAST-EXTERNAL"
 _DAY_NS = 86_400 * 1_000_000_000
+_WARN_CAPTURE_TIMEOUT_S = 2.0
+
+
+def _assert_fd_warning(
+    capfd: pytest.CaptureFixture[str],
+    needle: str,
+) -> None:
+    """Nautilus logs via a Rust bridge; stdout may arrive after the callback returns."""
+    captured = ""
+    deadline = time.monotonic() + _WARN_CAPTURE_TIMEOUT_S
+    while time.monotonic() < deadline:
+        captured += capfd.readouterr().out
+        if needle in captured:
+            return
+        time.sleep(0.01)
+    assert needle in captured
 
 
 def test_buy_hold_is_strategy_subclass() -> None:
@@ -107,37 +124,39 @@ def test_on_order_filled_sets_entered_flag() -> None:
 def test_on_order_rejected_warns_and_resets_entered(
     capfd: pytest.CaptureFixture[str],
 ) -> None:
-    engine = _engine()
-    strategy = _strategy()
-    engine.add_strategy(strategy)
+    with capfd.disabled():
+        engine = _engine()
+        strategy = _strategy()
+        engine.add_strategy(strategy)
     try:
         strategy._entered = True
         strategy.on_order_rejected(
             SimpleNamespace(reason="insufficient margin"),  # type: ignore[arg-type]  # callback reads reason only
         )
         assert strategy._entered is False
-        captured = capfd.readouterr()
-        assert "order rejected: insufficient margin" in captured.out
+        _assert_fd_warning(capfd, "order rejected: insufficient margin")
     finally:
-        engine.dispose()
+        with capfd.disabled():
+            engine.dispose()
 
 
 def test_on_order_denied_warns_and_resets_entered(
     capfd: pytest.CaptureFixture[str],
 ) -> None:
-    engine = _engine()
-    strategy = _strategy()
-    engine.add_strategy(strategy)
+    with capfd.disabled():
+        engine = _engine()
+        strategy = _strategy()
+        engine.add_strategy(strategy)
     try:
         strategy._entered = True
         strategy.on_order_denied(
             SimpleNamespace(reason="risk limit"),  # type: ignore[arg-type]  # callback reads reason only
         )
         assert strategy._entered is False
-        captured = capfd.readouterr()
-        assert "order denied: risk limit" in captured.out
+        _assert_fd_warning(capfd, "order denied: risk limit")
     finally:
-        engine.dispose()
+        with capfd.disabled():
+            engine.dispose()
 
 
 class _FillProbe(BuyHold):  # type: ignore[misc]  # Strategy resolves to Any without stubs
