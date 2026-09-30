@@ -10,13 +10,13 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 12.5
-current_phase_status: IN_PROGRESS
-current_task: null
-current_task_status: null
-next_task: null
-last_completed_task: U.3.1
-last_completed_phase: 12
+current_phase: 14
+current_phase_status: READY
+current_task: 14.1
+current_task_status: READY
+next_task: 14.2
+last_completed_task: 13.1
+last_completed_phase: 13
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
 ```
@@ -36,8 +36,9 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — IN PROGRESS; U.0–U.3.1 COMPLETE; U.3.2 and U.4 deferred until after Phase 13**
-- **Phase 13 — READY; 13.1 is the first task**
+- **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
+- **Phase 13 — COMPLETE**
+- **Phase 14 — READY; 14.1 is the first task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -62,18 +63,29 @@ human_transition_required: true
 
 ### Current task
 
-**Phase 13 — Closed-Trade Statistics** — READY
+**Phase 14 — Run Identity and Reproducibility** — READY
 
-Trade-level KPIs must represent closed trades only. Exclude positions
-without `ts_closed` from win rate, profit factor, and duration
-calculations. Keep unrealized/open-position value in equity/account
-results. Test a BuyHold run that remains open at the end.
+A run must record enough identity to determine exactly what code and
+bars produced it. Currently `data_snapshot` is the weak max-timestamp
+formula, and `git_sha` is not reliably captured through the UI/worker
+execution path.
 
-Acceptance: open-position fees cannot become a synthetic losing trade;
-closed-trade metrics reconcile with the actual closed position set.
+Scope:
+- Replace the max-timestamp dataset identity with a fingerprint of the
+  exact ordered bar rows consumed by the run.
+- Capture git SHA through UI/worker execution paths.
+- Record venue, symbol, timeframe, range, strategy, parameters, and
+  experiment identity.
+- Make seed semantics honest: a stored seed is only meaningful when
+  randomness can affect execution.
+- Add reproducibility tests.
 
-Do not start until Phase 12.5's U.0–U.3.1 live check has been confirmed
-by a human.
+Acceptance: changing a historical bar changes the dataset fingerprint;
+changing only max timestamp is not sufficient; repeated deterministic
+runs can be compared by identity and artifacts.
+
+Split into tasks at the reviewer's discretion. Do not start until a
+human begins it.
 
 ### 12.1 completion evidence
 
@@ -266,6 +278,39 @@ notes: |
   switching, deep links, and per-tab chart rendering before Phase 13.
 ```
 
+### 13.1 completion evidence
+
+```yaml
+task_id: 13.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/extract/metrics.py
+  - backend/src/quant/engine/orchestrator.py
+  - backend/tests/extract/test_metrics.py
+  - backend/tests/engine/test_orchestrator.py
+tests_added:
+  - backend/tests/extract/test_metrics.py (+4 closed-trade cases)
+  - backend/tests/engine/test_orchestrator.py (+1 full-path test)
+tests_updated:
+  - Multiple TradeSummary constructions gained the closed=True flag
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+tree_state: uncommitted_13.1_diff
+acceptance_output:
+  pytest: "393 passed"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 26 source files"
+git_commit_sha: db6729f
+next_task: 14.1
+notes: |
+  ts_closed is Python None on open BuyHold positions (not pd.NaT).
+  pd.notna covers both. Frontend KpiCards renders null as "—".
+```
+
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
 Conventional Commits format defined in `WORKFLOW.md` §3.
 
@@ -293,12 +338,12 @@ From the latest Quant Research Integrity Audit:
 
 ### P0 / critical
 
-- Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path. Addressed by task 12.1; the audit text is unchanged.
+- Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path. ADDRESSED by task 12.1 (commit ccadbfc); the audit text is unchanged.
 - OHLCV data is not sufficiently validated.
-- Ingestion can reach its page cap and still report success. Addressed
-  by task 12.3 (fail-closed on truncated range).
+- Ingestion can reach its page cap and still report success. ADDRESSED
+  by task 12.3 (commit 8d54b19) (fail-closed on truncated range).
 - Trade KPIs can treat an open position as a losing trade/fee result.
-  Addressed by Phase 13 (Closed-Trade Statistics).
+  ADDRESSED by Phase 13 (commit db6729f).
 
 ### P1 / high
 
