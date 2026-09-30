@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { listRuns } from '../../api/runs'
 import type { RunSummary } from '../../api/types'
 import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
+import { useTheme } from '../../lib/theme'
 import '../../components/grid/agGridTheme.css'
 
 const colDefs: ColDef<RunSummary>[] = [
@@ -66,6 +67,7 @@ interface RunHistoryTableProps {
 }
 
 export function RunHistoryTable({ onSelectionChange }: RunHistoryTableProps) {
+  const theme = useTheme()
   const navigate = useNavigate()
 
   const onRowDoubleClicked = useCallback(
@@ -124,7 +126,9 @@ export function RunHistoryTable({ onSelectionChange }: RunHistoryTableProps) {
   }
 
   return (
-    <div className="ag-theme-quartz-dark run-history__grid">
+    <div
+      className={`${theme === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'} run-history__grid`}
+    >
       <AgGridReact<RunSummary>
         rowData={rows}
         columnDefs={colDefs}

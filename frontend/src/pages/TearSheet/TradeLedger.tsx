@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 import { getTrades } from '../../api/runs'
 import type { Trade } from '../../api/types'
 import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
+import { useTheme } from '../../lib/theme'
 import '../../components/grid/agGridTheme.css'
 import './tradeLedger.css'
 
@@ -128,6 +129,7 @@ const colDefs: ColDef<Trade>[] = [
 ]
 
 export function TradeLedger({ runId, pageSize = 50, height }: TradeLedgerProps) {
+  const theme = useTheme()
   const [page, setPage] = useState(1)
 
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -186,7 +188,9 @@ export function TradeLedger({ runId, pageSize = 50, height }: TradeLedgerProps) 
       className={height !== undefined ? 'trade-ledger trade-ledger--fill' : 'trade-ledger'}
       style={fillStyle}
     >
-      <div className="ag-theme-quartz-dark trade-ledger__grid">
+      <div
+        className={`${theme === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'} trade-ledger__grid`}
+      >
         <AgGridReact<Trade>
           rowData={trades}
           columnDefs={colDefs}

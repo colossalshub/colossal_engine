@@ -12,3 +12,18 @@
   --ag-row-border-color:        #262626;
   --ag-cell-horizontal-padding: 12px;
 }
+
+.ag-theme-quartz {
+  --ag-background-color:        #ffffff;
+  --ag-foreground-color:        #111827;
+  --ag-border-color:            #e5e7eb;
+  --ag-header-background-color: #f4f5f7;
+  --ag-header-foreground-color: #4b5563;
+  --ag-row-height:              28px;
+  --ag-header-height:           32px;
+  --ag-font-size:               12px;
+  --ag-font-family:             'JetBrains Mono', monospace;
+  --ag-odd-row-background-color: transparent;
+  --ag-row-border-color:        #e5e7eb;
+  --ag-cell-horizontal-padding: 12px;
+}

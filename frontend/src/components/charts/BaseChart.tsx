@@ -1,7 +1,5 @@
 import {
   createChart,
-  CrosshairMode,
-  LineStyle,
   type ChartOptions,
   type DeepPartial,
   type IChartApi,
@@ -11,6 +9,7 @@ import {
   type Time,
 } from 'lightweight-charts'
 import { useEffect, useRef, useState } from 'react'
+import { chartOptionsFor, readTheme } from './chartOptions'
 import './baseChart.css'
 
 export interface TooltipRow {
@@ -42,28 +41,7 @@ interface TooltipState {
 const TOOLTIP_OFFSET_PX = 12
 const TOOLTIP_FALLBACK_WIDTH_PX = 120
 
-const CHART_OPTIONS: DeepPartial<ChartOptions> = {
-  layout: {
-    background: { color: '#000000' },
-    textColor: '#9ca3af',
-    fontSize: 11,
-    fontFamily: 'Inter, sans-serif',
-  },
-  grid: {
-    vertLines: { color: '#262626' },
-    horzLines: { color: '#262626' },
-  },
-  rightPriceScale: { borderColor: '#262626' },
-  timeScale: {
-    borderColor: '#262626',
-    timeVisible: true,
-    secondsVisible: false,
-  },
-  crosshair: {
-    mode: CrosshairMode.Magnet,
-    vertLine: { color: '#6b7280', style: LineStyle.LargeDashed },
-    horzLine: { color: '#6b7280', style: LineStyle.LargeDashed },
-  },
+const INTERACTION_OPTIONS: DeepPartial<ChartOptions> = {
   handleScroll: {
     mouseWheel: false,
     pressedMouseMove: true,
@@ -106,7 +84,8 @@ export function BaseChart({ height, createSeries, buildTooltip, onReady }: BaseC
     if (!container) return
 
     const chart = createChart(container, {
-      ...CHART_OPTIONS,
+      ...chartOptionsFor(readTheme()),
+      ...INTERACTION_OPTIONS,
       width: container.clientWidth,
       height: container.clientHeight,
     })
@@ -150,6 +129,20 @@ export function BaseChart({ height, createSeries, buildTooltip, onReady }: BaseC
       chartRef.current = null
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- chart is created once per mount; factories are read at mount only
+  }, [])
+
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
+
+    const observer = new MutationObserver(() => {
+      chart.applyOptions(chartOptionsFor(readTheme()))
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+    return () => observer.disconnect()
   }, [])
 
   return (

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { applyTheme, getStoredTheme } from './theme'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { applyTheme, getStoredTheme, useTheme } from './theme'
 
 describe('theme', () => {
   beforeEach(() => {
@@ -35,6 +36,36 @@ describe('theme', () => {
     applyTheme('light')
     expect(document.documentElement.getAttribute('data-theme')).toBe('light')
     expect(localStorage.getItem('quant-theme')).toBe('light')
+  })
+
+  it('useTheme returns light when attribute is missing', () => {
+    const { result } = renderHook(() => useTheme())
+    expect(result.current).toBe('light')
+  })
+
+  it('useTheme returns light when attribute is light', () => {
+    document.documentElement.setAttribute('data-theme', 'light')
+    const { result } = renderHook(() => useTheme())
+    expect(result.current).toBe('light')
+  })
+
+  it('useTheme returns dark when attribute is dark', () => {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    const { result } = renderHook(() => useTheme())
+    expect(result.current).toBe('dark')
+  })
+
+  it('useTheme updates when the attribute changes', async () => {
+    const { result } = renderHook(() => useTheme())
+    expect(result.current).toBe('light')
+    await act(async () => {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    })
+    await waitFor(() => expect(result.current).toBe('dark'))
+    await act(async () => {
+      document.documentElement.setAttribute('data-theme', 'light')
+    })
+    await waitFor(() => expect(result.current).toBe('light'))
   })
 
   it('applyTheme swallows localStorage write errors', () => {

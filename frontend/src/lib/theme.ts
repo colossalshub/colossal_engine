@@ -1,4 +1,25 @@
+import { useEffect, useState } from 'react'
+
 export type Theme = 'light' | 'dark'
+
+function readAttr(): Theme {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+}
+
+export function useTheme(): Theme {
+  const [theme, setTheme] = useState<Theme>(readAttr)
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTheme(readAttr()))
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  return theme
+}
 
 const STORAGE_KEY = 'quant-theme'
 

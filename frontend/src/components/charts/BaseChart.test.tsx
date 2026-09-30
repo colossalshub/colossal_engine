@@ -66,6 +66,25 @@ describe('BaseChart', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     lwc.state.handler = null
+    document.documentElement.removeAttribute('data-theme')
+  })
+
+  it('applies light chart options when data-theme changes, without remounting', async () => {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    renderChart()
+    lwc.chart.applyOptions.mockClear()
+
+    await act(async () => {
+      document.documentElement.setAttribute('data-theme', 'light')
+    })
+
+    await vi.waitFor(() => expect(lwc.chart.applyOptions).toHaveBeenCalled())
+    const opts = lwc.chart.applyOptions.mock.calls[0] as unknown as [
+      { layout: { background: { color: string } } },
+    ]
+    expect(opts[0].layout.background.color).toBe('#ffffff')
+    expect(lwc.createChart).toHaveBeenCalledTimes(1)
+    expect(lwc.chart.remove).not.toHaveBeenCalled()
   })
 
   it('renders the container without crashing', () => {
