@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 12
 current_phase_status: IN_PROGRESS
-current_task: 12.3
+current_task: 12.4
 current_task_status: READY
-next_task: 12.4
-last_completed_task: 12.2
+next_task: null
+last_completed_task: 12.3
 last_completed_phase: 11
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -35,7 +35,7 @@ human_transition_required: true
 - Phase 9 — COMPLETE
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
-- **Phase 12 — IN PROGRESS; 12.1–12.2 COMPLETE; 12.3 READY**
+- **Phase 12 — IN PROGRESS; 12.1–12.3 COMPLETE; 12.4 READY**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -55,18 +55,17 @@ human_transition_required: true
 
 - [x] **12.1 — Instrument Identity** — COMPLETE
 - [x] **12.2 — OHLCV Integrity** — COMPLETE
-- [ ] **12.3 — Ingestion Completeness** — READY
-- [ ] **12.4 — Single-Symbol Universe Enforcement**
+- [x] **12.3 — Ingestion Completeness** — COMPLETE
+- [ ] **12.4 — Universe Contract** — READY
 
 ### Current task
 
-**12.3 — Ingestion Completeness** — READY
+**12.4 — Universe Contract** — READY
 
-Detect provider and internal page caps during ingestion. If the requested
-range may remain incomplete, fail with a non-zero exit or return an
-explicit incomplete status. Never report a truncated dataset as complete.
-Preserve the requested start/end range in the result. Do not start this
-task until a human begins it.
+Current execution is single-instrument. Reject `len(universe) != 1`
+until Phase 23 explicitly changes the architecture. Tear sheet metadata
+must not claim symbols were traded when only the first symbol was
+executed. Do not start this task until a human begins it.
 
 ### 12.1 completion evidence
 
@@ -120,6 +119,31 @@ git_commit_sha: 4567de9
 next_task: 12.3
 ```
 
+### 12.3 completion evidence
+
+```yaml
+task_id: 12.3
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - scripts/ingest_bars.py
+  - backend/tests/test_ingest_completeness.py
+tests_added:
+  - backend/tests/test_ingest_completeness.py (5 tests)
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+tree_state: uncommitted_12.3_diff
+acceptance_output:
+  pytest: "386 passed (first run 384 passed + 2 flaky capfd; re-run green)"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 26 source files"
+git_commit_sha: 8d54b19
+next_task: 12.4
+```
+
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
 Conventional Commits format defined in `WORKFLOW.md` §3.
 
@@ -149,7 +173,8 @@ From the latest Quant Research Integrity Audit:
 
 - Non-BTC symbols can be settled as BTC because the runner hardcodes the BTC/USDT account currency path. Addressed by task 12.1; the audit text is unchanged.
 - OHLCV data is not sufficiently validated.
-- Ingestion can reach its page cap and still report success.
+- Ingestion can reach its page cap and still report success. Addressed
+  by task 12.3 (fail-closed on truncated range).
 - Trade KPIs can treat an open position as a losing trade/fee result.
 
 ### P1 / high
