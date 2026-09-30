@@ -508,34 +508,43 @@ Validate at ingestion/read boundaries as appropriate:
 
 **Goal:** Modernize the UI to a light-first dashboard aesthetic: card-
 based layouts, tabbed tear sheet navigation, generous whitespace on KPI
-surfaces. Keep dark mode available. Fix chart scroll hijacking. Reduce
-tear sheet vertical scroll via tabbed navigation.
+surfaces. Keep dark mode available. Fix chart scroll hijacking.
 
 **Non-goals:** research semantics, metric calculations, API contracts.
-This is presentation only. KPI values, chart data, and grid columns are
-unchanged.
+KPI values, chart data, and grid columns are unchanged.
+
+**Sequencing:** Tasks U.0–U.2 ship before Phase 13. Tasks U.3–U.4 ship
+after Phase 13, because Phase 13 changes the KPI semantics (win_rate,
+profit_factor, avg_duration_days become null for open positions) and
+polishing those cards twice is wasted work.
 
 **Tasks:**
 
-- **12.5.0 — Chart scroll fix** — disable `handleScroll.mouseWheel` and
-  `handleScale.mouseWheel` in `BaseChart.tsx`. Optional Shift+scroll for
-  zoom. One file, one commit.
-- **12.5.1 — Theme foundation** — light + dark token sets in
-  `styles/theme.css`, `data-theme` attribute on `<html>`, theme toggle
-  in TopBar, localStorage persistence, default light.
-- **12.5.2 — Chart theme migration** — `useChartOptions` hook returns
-  LWC options from active theme; `BaseChart.tsx` uses it; AG Grid theme
-  class switches with theme.
-- **12.5.3 — Tear Sheet layout** — tabbed navigation (Overview /
-  Performance / Trades). Overview: KPI cards + monthly heatmap.
-  Performance: price, equity, underwater. Trades: trade ledger.
-- **12.5.4 — Polish** — KPI card restyle (more breathing room, larger
-  numbers), hover transitions, spacing pass across all three screens.
+- **U.0 — Chart scroll fix** — disable wheel-based chart scroll/zoom in
+  `BaseChart.tsx`. Preserve drag-to-scale on the price axis and
+  pinch-to-zoom on touch. DONE in 12.5.0 + 12.5.0.1.
+- **U.1 — Theme foundation** — light + dark token sets in
+  `styles/theme.css`, `data-theme` attribute on `<html>`, inline
+  pre-mount script in `index.html` to prevent flash, theme toggle in
+  TopBar, localStorage persistence, default light. Vitest for the theme
+  provider.
+- **U.2 — Chart theme migration** — LWC options and AG Grid theme class
+  read from active theme. On theme change, call `chart.applyOptions()`
+  and re-apply series colors — do NOT remount. Re-apply marker colors.
+- **U.3 — Tear Sheet layout (deferred to after Phase 13)** — tabbed
+  navigation (Overview / Performance / Trades). Overview: KPI cards +
+  monthly heatmap. Performance: price, equity, underwater. Trades: trade
+  ledger.
+- **U.4 — Polish (deferred to after Phase 13)** — KPI card restyle,
+  spacing, hover transitions. Also fix: Qty column renders `0.0000`
+  instead of `0`; Avg Duration renders `—` when it should show a
+  computed value or be removed.
 
-**Acceptance:** light theme renders cleanly on all three screens; dark
-theme renders cleanly on all three screens; page scroll is not hijacked
-by charts; tear sheet fits 1440×900 with one tab visible at a time; all
-existing frontend tests pass.
+**Acceptance:** light theme renders on all three screens; dark theme
+renders on all three screens; page scroll is not hijacked by charts;
+theme persists across reload without flash; tear sheet fits 1440×900
+with one tab visible at a time; all existing frontend tests pass; new
+theme-provider test passes.
 
 **Phase 12.5 completion:** all five tasks implemented, tested, whole-tree
 acceptance green, and `STATE.md` updated with evidence.
@@ -851,7 +860,9 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
 
 - Both light and dark themes are supported via `data-theme` on `<html>`.
   Default: light. Toggle in TopBar. Choice persists via localStorage.
-- Data is bright, chrome is dim, in both themes.
+- Chrome is quiet; data is high-contrast. In light mode this means grey
+  page background with white content cards. In dark mode this means a
+  near-black page with slightly lighter panels.
 - Numbers are monospace, tabular, right-aligned in both themes. Font:
   JetBrains Mono, SF Mono, monospace. Always `font-variant-numeric:
   tabular-nums`.
@@ -874,7 +885,7 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
 :root,
 [data-theme="light"] {
   /* surfaces */
-  --bg:        #ffffff;
+  --bg:        #f7f7f8;
   --panel:     #ffffff;
   --panel-2:   #f4f5f7;
   --border:    #e5e7eb;
@@ -883,11 +894,15 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
   --text:      #111827;
   --text-dim:  #4b5563;
   --text-mute: #9ca3af;
-  /* semantic */
+  /* semantic — chart fills and candles (bright) */
   --pos:       #22c55e;
   --neg:       #ef4444;
   --warn:      #f59e0b;
   --accent:    #3b82f6;
+  /* semantic — text and numbers (contrast-safe on light bg) */
+  --pos-text:  #15803d;
+  --neg-text:  #dc2626;
+  --warn-text: #b45309;
   /* spacing scale (px) */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-6: 24px;
   /* type scale */
@@ -911,13 +926,22 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
   --text:      #d1d5db;
   --text-dim:  #9ca3af;
   --text-mute: #6b7280;
-  /* semantic colors identical */
+  /* semantic — same as light for fills */
   --pos:       #22c55e;
   --neg:       #ef4444;
   --warn:      #f59e0b;
   --accent:    #3b82f6;
+  /* semantic — text on dark bg uses bright colors directly */
+  --pos-text:  #22c55e;
+  --neg-text:  #ef4444;
+  --warn-text: #f59e0b;
 }
 ```
+
+Components that render numbers, badges, or values use `--pos-text` /
+`--neg-text` / `--warn-text`. Charts and candle fills use `--pos` /
+`--neg`. On dark theme these are identical; on light theme the text
+variants are darker to meet WCAG AA contrast (4.5:1).
 
 Font stack: Inter, -apple-system, sans-serif for text. JetBrains Mono for numbers.
 

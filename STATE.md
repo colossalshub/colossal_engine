@@ -12,7 +12,7 @@
 ```yaml
 current_phase: 12.5
 current_phase_status: READY
-current_task: 12.5.0
+current_task: U.1
 current_task_status: READY
 next_task: 12.5.1
 last_completed_task: 12.4
@@ -62,11 +62,16 @@ human_transition_required: true
 
 ### Current task
 
-**Phase 12.5 — UI Redesign** — READY
+**U.1 — Theme foundation** — READY
 
-Light-first dashboard redesign. Chart scroll fix, theme infrastructure,
-chart theme migration, tabbed tear sheet, polish. Presentation only —
-research semantics unchanged.
+Add light + dark token sets to `styles/theme.css`. Set `data-theme` on
+`<html>` via an inline pre-mount script in `index.html` (prevents flash
+of wrong theme on reload). Add a theme toggle to the TopBar. Persist
+choice in localStorage. Default: light. Add a vitest covering default
+state, toggle behavior, and persistence.
+
+Do not start until U.0's live verification (page scroll + axis drag)
+has been confirmed by a human.
 
 ### 12.1 completion evidence
 
