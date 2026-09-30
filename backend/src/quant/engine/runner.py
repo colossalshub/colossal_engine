@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 import pandas as pd  # type: ignore[import-untyped]  # stubs not in dev deps; pandas via nautilus_trader
 from nautilus_trader.backtest.config import (
@@ -22,6 +23,13 @@ from quant.data.read import read_bars_json
 from quant.strategies.buy_hold import BuyHold
 from quant.strategies.ema_cross import EmaCross
 
+# The execution path settles one spot pair. Currencies are taken from this
+# map, then checked against the symbol, so a non-BTC symbol cannot be built
+# as BTC/USDT.
+_SUPPORTED_SPOT: dict[str, tuple[Any, Any]] = {
+    "BTC/USDT": (BTC, USDT),
+}
+
 _NT_TIMEFRAME_TO_CANONICAL: dict[str, str] = {
     "MINUTE": "1m",  # only used when count == 1
     "HOUR": "1h",
@@ -29,6 +37,28 @@ _NT_TIMEFRAME_TO_CANONICAL: dict[str, str] = {
     "WEEK": "1w",
     "MONTH": "1mo",
 }
+
+def _resolve_spot_instrument(symbol: str) -> tuple[str, str, Any, Any]:
+    """Map a symbol to its base/quote currencies, or fail closed.
+
+    Only ``BTC/USDT`` is supported. The returned currencies are the Nautilus
+    objects whose codes rejoin to ``symbol``.
+    """
+    currencies = _SUPPORTED_SPOT.get(symbol)
+    if currencies is None:
+        msg = f"unsupported instrument {symbol!r}: only BTC/USDT spot is supported"
+        raise ValueError(msg)
+    base_currency, quote_currency = currencies
+    base = str(base_currency.code)
+    quote = str(quote_currency.code)
+    if f"{base}/{quote}" != symbol:
+        msg = (
+            f"instrument currency mapping mismatch for {symbol!r}: "
+            f"{base}/{quote}"
+        )
+        raise ValueError(msg)
+    return base, quote, base_currency, quote_currency
+
 
 def _as_int(value: object) -> int:
     if isinstance(value, bool):
@@ -112,6 +142,8 @@ def run_backtest(
     ``"buy_hold"`` (default) constructs ``BuyHold`` only; ``"ema_cross"``
     constructs ``EmaCross`` only, with ``fast=9`` and ``slow=21``. Any other
     value raises ``ValueError`` before the ``BacktestEngine`` is created.
+    Any symbol other than ``BTC/USDT`` raises ``ValueError`` before the
+    engine is created.
 
     ``deploy_pct`` (string decimal, default ``"0"``) is forwarded to the
     selected strategy: when positive, the entry is sized as a fraction of
@@ -121,6 +153,8 @@ def run_backtest(
     if strategy not in ("buy_hold", "ema_cross"):
         msg = f"unknown strategy: {strategy!r}"
         raise ValueError(msg)
+
+    base, quote, base_currency, quote_currency = _resolve_spot_instrument(symbol)
 
     canonical_timeframe = _canonical_from_bar_type(bar_type_str)
     rows = read_bars_json(
@@ -152,13 +186,12 @@ def run_backtest(
         ],
     )
 
-    base, quote = symbol.split("/")
     instrument_id = InstrumentId.from_str(f"{base}{quote}.{venue.upper()}")
     instrument = CurrencyPair(
         instrument_id=instrument_id,
         raw_symbol=Symbol(f"{base}{quote}"),
-        base_currency=BTC,
-        quote_currency=USDT,
+        base_currency=base_currency,
+        quote_currency=quote_currency,
         price_precision=2,
         size_precision=6,
         price_increment=Price.from_str("0.01"),
@@ -168,6 +201,15 @@ def run_backtest(
         maker_fee=Decimal(maker_fee),
         taker_fee=Decimal(taker_fee),
     )
+    mapped_base = str(instrument.base_currency.code)
+    mapped_quote = str(instrument.quote_currency.code)
+    if mapped_base != base or mapped_quote != quote:
+        engine.dispose()
+        msg = (
+            f"instrument currency mapping mismatch for {symbol!r}: "
+            f"expected {base}/{quote}, got {mapped_base}/{mapped_quote}"
+        )
+        raise ValueError(msg)
     engine.add_instrument(instrument)
 
     bar_type = BarType.from_str(bar_type_str)

@@ -449,6 +449,91 @@ def test_run_backtest_buy_hold_constructs_buy_hold_only(
     assert len(result.portfolio_returns) + 1 == 10
 
 
+def _store_symbol_bars(
+    db_path: Path,
+    *,
+    symbol: str,
+    start_ts: int,
+    count: int = 10,
+) -> tuple[int, int]:
+    ensure_canonical_bars(db_path)
+    rows: list[dict[str, object]] = []
+    for i in range(count):
+        rows.append(
+            {
+                "venue": _VENUE,
+                "symbol": symbol,
+                "asset_class": "crypto",
+                "timeframe": "1d",
+                "ts": start_ts + i * _DAY_MS,
+                "open": 100.0,
+                "high": 110.0,
+                "low": 90.0,
+                "close": 100.0,
+                "volume": 1.0,
+            }
+        )
+    upsert_bars(db_path, rows)
+    return start_ts, start_ts + (count - 1) * _DAY_MS
+
+
+@pytest.mark.parametrize("symbol", ["ETH/USDT", "BTC/USD", "ETH/BTC"])
+def test_unsupported_instrument_fails_before_engine(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_symbol_bars(db_path, symbol=symbol, start_ts=start_ts)
+
+    def _engine_must_not_start(*_args: object, **_kwargs: object) -> None:
+        msg = "BacktestEngine must not start for an unsupported instrument"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(runner_module, "BacktestEngine", _engine_must_not_start)
+
+    with pytest.raises(ValueError, match="unsupported instrument"):
+        run_backtest(
+            venue=_VENUE,
+            symbol=symbol,
+            bar_type_str=_BAR_TYPE,
+            bars_db_path=db_path,
+            start_ts=start_ts,
+            end_ts=end_ts,
+        )
+
+
+def test_btc_usdt_instrument_maps_btc_base_and_usdt_quote(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    start_ts = 1_735_689_600_000
+    start_ts, end_ts = _store_daily_bars(db_path, start_ts=start_ts, count=10)
+    captured: dict[str, str] = {}
+    real_currency_pair = runner_module.CurrencyPair
+
+    def _capturing_currency_pair(**kwargs: object) -> object:
+        base_currency = kwargs["base_currency"]
+        quote_currency = kwargs["quote_currency"]
+        captured["base"] = str(base_currency.code)  # type: ignore[attr-defined]  # Nautilus Currency is untyped
+        captured["quote"] = str(quote_currency.code)  # type: ignore[attr-defined]  # Nautilus Currency is untyped
+        return real_currency_pair(**kwargs)
+
+    monkeypatch.setattr(runner_module, "CurrencyPair", _capturing_currency_pair)
+
+    run_backtest(
+        venue=_VENUE,
+        symbol=_SYMBOL,
+        bar_type_str=_BAR_TYPE,
+        bars_db_path=db_path,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
+
+    assert captured == {"base": "BTC", "quote": "USDT"}
+
+
 def test_run_backtest_unknown_strategy_raises_value_error(tmp_path: Path) -> None:
     db_path = tmp_path / "bars.duckdb"
     start_ts = 1_735_689_600_000
