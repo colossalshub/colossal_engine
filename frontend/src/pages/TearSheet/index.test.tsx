@@ -1,12 +1,10 @@
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+﻿import { screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as runsApi from '../../api/runs'
 import type { TearSheet } from '../../api/types'
 import { renderWithProviders } from '../../test-utils'
-import TearSheetPage from './index'
-import { LAYOUT_STORAGE_KEY, defaultLayout } from './tearsheetLayout'
+import App from '../../App'
 
 class ResizeObserverStub implements ResizeObserver {
   observe(): void {}
@@ -60,7 +58,7 @@ afterEach(() => {
 describe('TearSheet page', () => {
   it('renders the run name and status badge on success', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('buy_hold BTC/USDT 1d')).toBeInTheDocument()
     })
@@ -69,7 +67,7 @@ describe('TearSheet page', () => {
 
   it('renders the universe and formatted date range', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
     })
@@ -86,7 +84,7 @@ describe('TearSheet page', () => {
         universe: ['BTC/USDT', 'ETH/USDT'],
       },
     })
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
     })
@@ -99,7 +97,7 @@ describe('TearSheet page', () => {
       ...sampleTearsheet,
       params: { maker_fee: '0.001' },
     })
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('fees 0.10%')).toBeInTheDocument()
     })
@@ -110,7 +108,7 @@ describe('TearSheet page', () => {
       ...sampleTearsheet,
       params: { benchmark_symbol: 'BTC/USDT' },
     })
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('benchmark BTC/USDT')).toBeInTheDocument()
     })
@@ -118,36 +116,119 @@ describe('TearSheet page', () => {
 
   it('renders the short git sha', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText(/git abcdef1/)).toBeInTheDocument()
     })
   })
 
-  it('renders all six placeholder sections', async () => {
+  it('overview tab renders KPI cards and monthly heatmap', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
-      expect(screen.getByText('KPIs')).toBeInTheDocument()
+      expect(screen.getByText('Sharpe')).toBeInTheDocument()
     })
-    expect(screen.getByText('Price + Fills')).toBeInTheDocument()
-    expect(screen.getByText('Equity')).toBeInTheDocument()
-    expect(screen.getByText('Underwater')).toBeInTheDocument()
-    expect(screen.getByText('Monthly Returns')).toBeInTheDocument()
-    expect(screen.getByText('Trade Ledger')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Monthly Returns' })).toBeInTheDocument()
   })
 
+  it('performance tab renders price, equity and underwater sections', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/performance' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Price + Fills' })).toBeInTheDocument()
+    })
+    expect(screen.getByRole('heading', { name: 'Equity' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Underwater' })).toBeInTheDocument()
+  })
+
+  it('trades tab renders the trade ledger', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    vi.spyOn(runsApi, 'getTrades').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: 50,
+    })
+    renderWithProviders(<App />, { route: '/runs/r-1/trades' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Trade Ledger' })).toBeInTheDocument()
+    })
+    await waitFor(() => {
+      expect(screen.getByText('No trades generated for this period.')).toBeInTheDocument()
+    })
+  })
+
+  it('data tab renders the placeholder', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/data' })
+    await waitFor(() => {
+      expect(
+        screen.getByText('Full methodology header arrives in Phase U.3.2'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('regimes tab renders the placeholder with its phase label', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/regimes' })
+    await waitFor(() => {
+      expect(screen.getByText(/Phase 21\./)).toBeInTheDocument()
+    })
+  })
+
+  it('nav rail renders all seven items', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
+    const nav = await screen.findByRole('navigation', { name: 'Tear sheet sections' })
+    const links = within(nav).getAllByRole('link')
+    expect(links).toHaveLength(7)
+    for (const label of [
+      'Overview',
+      'Performance',
+      'Trades',
+      'Data',
+      'Regimes',
+      'Robustness',
+      'Execution',
+    ]) {
+      expect(within(nav).getByRole('link', { name: new RegExp('^' + label) })).toBeInTheDocument()
+    }
+  })
+
+  it('marks the active nav item', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/performance' })
+    const nav = await screen.findByRole('navigation', { name: 'Tear sheet sections' })
+    expect(within(nav).getByRole('link', { name: /^Performance/ })).toHaveClass(
+      'tear-sheet-nav__item--active',
+    )
+    expect(within(nav).getByRole('link', { name: /^Overview/ })).not.toHaveClass(
+      'tear-sheet-nav__item--active',
+    )
+  })
+
+  it('index route redirects to overview', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1' })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Monthly Returns' })).toBeInTheDocument()
+    })
+    const nav = screen.getByRole('navigation', { name: 'Tear sheet sections' })
+    expect(within(nav).getByRole('link', { name: /^Overview/ })).toHaveClass(
+      'tear-sheet-nav__item--active',
+    )
+  })
   it('shows a loading state before data resolves', () => {
     vi.spyOn(runsApi, 'getTearsheet').mockImplementation(
       () => new Promise(() => {}),
     )
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     expect(screen.getByText('Loading tear sheet…')).toBeInTheDocument()
   })
 
   it('shows an error state when the fetch fails', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockRejectedValue(new Error('boom'))
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText(/Failed to load tear sheet/)).toBeInTheDocument()
     })
@@ -161,7 +242,7 @@ describe('TearSheet page', () => {
         run: { ...sampleTearsheet.run, status: 'queued' },
       })
 
-      renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+      renderWithProviders(<App />, { route: '/runs/r-1/overview' })
 
       await waitFor(() => {
         expect(getTearsheetSpy).toHaveBeenCalledTimes(1)
@@ -184,7 +265,7 @@ describe('TearSheet page', () => {
         .spyOn(runsApi, 'getTearsheet')
         .mockResolvedValue(sampleTearsheet)
 
-      renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+      renderWithProviders(<App />, { route: '/runs/r-1/overview' })
 
       await waitFor(() => {
         expect(getTearsheetSpy).toHaveBeenCalledTimes(1)
@@ -203,77 +284,13 @@ describe('TearSheet page', () => {
       ...sampleTearsheet,
       run: { ...sampleTearsheet.run, status: 'queued' },
     })
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
+    renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
       expect(screen.getByText('Backtest in progress…')).toBeInTheDocument()
     })
     expect(screen.queryByText('KPIs')).not.toBeInTheDocument()
     expect(screen.queryByText('Price + Fills')).not.toBeInTheDocument()
   })
-
-  it('renders a drag handle on each visible widget', async () => {
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
-    })
-    expect(document.querySelectorAll('.drag-handle')).toHaveLength(6)
-  })
-
-  it('hides a widget from the picker and keeps it available to restore', async () => {
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    const user = userEvent.setup()
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Price + Fills' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /widgets/i }))
-    await user.click(screen.getByRole('checkbox', { name: 'Price + Fills' }))
-
-    expect(screen.queryByRole('heading', { name: 'Price + Fills' })).not.toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Price + Fills' })).not.toBeChecked()
-    expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
-  })
-
-  it('debounces layout toggles into localStorage', async () => {
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    const user = userEvent.setup()
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /widgets/i })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: /widgets/i }))
-    await user.click(screen.getByRole('checkbox', { name: 'KPIs' }))
-
-    await waitFor(() => {
-      const raw = localStorage.getItem(LAYOUT_STORAGE_KEY)
-      expect(raw).toBeTruthy()
-      const parsed = JSON.parse(raw ?? '') as {
-        widgets: { kpis: { visible: boolean } }
-      }
-      expect(parsed.widgets.kpis.visible).toBe(false)
-    })
-  })
-
-  it('restores a saved layout and ignores invalid JSON', async () => {
-    const stored = defaultLayout()
-    stored.widgets.ledger.visible = false
-    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(stored))
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    const { unmount } = renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
-    })
-    expect(screen.queryByRole('heading', { name: 'Trade Ledger' })).not.toBeInTheDocument()
-    unmount()
-
-    localStorage.setItem(LAYOUT_STORAGE_KEY, '{not-json')
-    renderWithProviders(<TearSheetPage />, { route: '/runs/r-1' })
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Trade Ledger' })).toBeInTheDocument()
-    })
-    expect(screen.getByRole('heading', { name: 'KPIs' })).toBeInTheDocument()
-  })
 })
+
+

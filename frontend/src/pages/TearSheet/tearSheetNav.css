@@ -1,0 +1,47 @@
+.tear-sheet-nav {
+  width: 160px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--s-2) 0;
+  border-right: 1px solid var(--border);
+}
+
+.tear-sheet-nav__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  position: relative;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.tear-sheet-nav__item:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.tear-sheet-nav__item--active {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.tear-sheet-nav__item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+.tear-sheet-nav__planned {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-mute);
+}
