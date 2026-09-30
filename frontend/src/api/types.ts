@@ -114,6 +114,23 @@ export interface Verification {
   source: string;
 }
 
+export interface ExecutionAssumptions {
+  bar_ts: string;
+  nautilus_bar_ts_event: string;
+  signal_and_order: string;
+  order_type: string;
+  sizing_price_when_deploy_pct_positive: string;
+  maker_fee_default: string;
+  taker_fee_default: string;
+  maker_fee: string;
+  taker_fee: string;
+  fill_model: string;
+  latency: string;
+  spread: string;
+  queue_model: string;
+  partial_fills: string;
+}
+
 // ---------------------------------------------------------------------
 // Tear sheet
 // ---------------------------------------------------------------------
@@ -128,6 +145,7 @@ export interface TearSheet {
   markers: TradeMarker[];
   monthly_returns: MonthlyReturns[];
   verification: Verification;
+  execution_assumptions: ExecutionAssumptions;
   artifacts: Record<string, string>;
 }
 

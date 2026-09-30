@@ -14,6 +14,23 @@ class ResizeObserverStub implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverStub
 
+const defaultExecutionAssumptions = {
+  bar_ts: 'open',
+  nautilus_bar_ts_event: 'close',
+  signal_and_order: 'on_bar',
+  order_type: 'market',
+  sizing_price_when_deploy_pct_positive: 'bar.close',
+  maker_fee_default: '0.001',
+  taker_fee_default: '0.001',
+  maker_fee: '0.001',
+  taker_fee: '0.001',
+  fill_model: 'not_passed',
+  latency: 'not_passed',
+  spread: 'not_passed',
+  queue_model: 'not_passed',
+  partial_fills: 'not_passed',
+}
+
 const sampleTearsheet: TearSheet = {
   run: {
     run_id: 'r-1',
@@ -44,6 +61,7 @@ const sampleTearsheet: TearSheet = {
   markers: [],
   monthly_returns: [],
   verification: { verified: true, discrepancy_pct: 0.0, source: 'reconstructed' },
+  execution_assumptions: defaultExecutionAssumptions,
   artifacts: {},
 }
 
@@ -159,14 +177,29 @@ describe('TearSheet page', () => {
     })
   })
 
-  it('data tab renders the placeholder', async () => {
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+  it('data tab shows execution assumptions from tear sheet', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      params: { maker_fee: '0.002' },
+      execution_assumptions: {
+        ...defaultExecutionAssumptions,
+        maker_fee: '0.009',
+        taker_fee: '0.008',
+      },
+    })
     renderWithProviders(<App />, { route: '/runs/r-1/data' })
     await waitFor(() => {
       expect(
         screen.getByText('Full methodology header arrives in Phase U.3.2'),
       ).toBeInTheDocument()
     })
+    expect(screen.getByText('0.009')).toBeInTheDocument()
+    expect(screen.getByText('0.008')).toBeInTheDocument()
+    expect(screen.getByText('open')).toBeInTheDocument()
+    expect(screen.getByText('market')).toBeInTheDocument()
+    expect(screen.getByText('not_passed')).toBeInTheDocument()
+    expect(screen.queryByText('on_bar')).not.toBeInTheDocument()
+    expect(screen.getByText('fees 0.20%')).toBeInTheDocument()
   })
 
   it('regimes tab renders the placeholder with its phase label', async () => {

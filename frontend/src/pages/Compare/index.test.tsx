@@ -48,6 +48,22 @@ function makeTearsheet(id: string, name: string): TearSheet {
     markers: [],
     monthly_returns: [],
     verification: { verified: true, discrepancy_pct: 0, source: 'reconstructed' },
+    execution_assumptions: {
+      bar_ts: 'open',
+      nautilus_bar_ts_event: 'close',
+      signal_and_order: 'on_bar',
+      order_type: 'market',
+      sizing_price_when_deploy_pct_positive: 'bar.close',
+      maker_fee_default: '0.001',
+      taker_fee_default: '0.001',
+      maker_fee: '0.001',
+      taker_fee: '0.001',
+      fill_model: 'not_passed',
+      latency: 'not_passed',
+      spread: 'not_passed',
+      queue_model: 'not_passed',
+      partial_fills: 'not_passed',
+    },
     artifacts: {},
   }
 }
