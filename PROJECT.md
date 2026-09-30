@@ -169,18 +169,29 @@ Every run writes to `data/runs/{run_id}/`:
 | `trades.parquet` | `generate_positions_report()` | see §4.4 Trade |
 | `fills.parquet` | `generate_fills_report()` | ts, order_side, last_px, last_qty, commission |
 
-**Equity reconstruction (mandatory — do not trust Nautilus's built-in equity chart):**
+**Equity reconstruction and verification (mandatory — do not trust Nautilus's built-in equity chart):**
+
+The equity series is rebuilt from per-bar snapshots taken inside the strategy:
 
 ```text
 equity[0] = account_starting_balance
 equity[t] = equity[t-1] * (1 + portfolio_returns[t])
-discrepancy = abs(final_reconstructed - account_ending_balance) / ending_balance
+```
+
+Two verification modes exist (see §4.4 `Verification.source`):
+
+1. `"account_report"` — reconstruction is compared against Nautilus's authoritative end-of-run account state (USDT cash + base-currency balance marked at the last bar's close). This is the independent check.
+
+```text
+discrepancy = abs(reconstructed_final - independent_ending_balance) / independent_ending_balance
 verified = discrepancy < 0.005
 ```
 
+2. `"self_consistent"` — fallback for runs where the account report is unavailable. Reconstruction is compared against the snapshot-derived ending balance. Self-referential; treated as a weaker check.
+
 Store `verified` (bool) and `discrepancy_pct` (the value `discrepancy * 100`, i.e. a percentage where `0.5` means `0.5%`) in the API response. UI shows a badge. See §4.4 `Verification` for units.
 
-**`benchmark`** — buy-and-hold of the first symbol in `universe`, normalized to the starting equity, resampled to the run timeframe. `null` when the first symbol has no bars in range.
+**`benchmark`** — controlled by `params["benchmark_symbol"]`. When set to a non-empty symbol that has bars in the same venue and timeframe as the run, the benchmark is a buy-and-hold of that symbol normalized to the starting equity. When empty, or when the symbol has no bars in range, all `EquityPoint.benchmark` values are `null` and the run still succeeds.
 
 ### 4.4 API JSON shapes
 
@@ -269,7 +280,7 @@ interface MonthlyReturns { year: number; months: (number | null)[]; } // length 
 interface Verification {
   verified: boolean;
   discrepancy_pct: number;   // percentage, e.g. 0.5 means 0.5%
-  source: string;            // "reconstructed_from_portfolio_returns"
+  source: string;            // "account_report" | "self_consistent"
 }
 
 // GET /api/runs/{id}/trades?page=1&page_size=100
@@ -1034,6 +1045,6 @@ Rules:
 | AgGrid | `components/grid/AgGrid.tsx` | Themed wrapper + defaults |
 | Shell | `components/layout/Shell.tsx` | Sidebar + TopBar + Outlet |
 | MonthlyHeatmap | `pages/TearSheet/MonthlyHeatmap.tsx` | Year × 12-month SVG heatmap |
-| TradeLedger | `components/grid/TradeLedger.tsx` | Server-paginated trade table |
+| TradeLedger | `pages/TearSheet/TradeLedger.tsx` | Server-paginated trade table |
 
 *Inventory is not exhaustive — additional presentational components may be added as needed, matching the conventions in §5.*

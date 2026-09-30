@@ -76,15 +76,11 @@ cd frontend
 npm run dev
 ```
 
-In each new terminal, activate the virtual environment again (`.venv\Scripts\Activate.ps1` on Windows).
-
 ### 7. Start the worker (terminal 3)
 
 ```powershell
 python scripts/run_worker.py
 ```
-
-In each new terminal, activate the virtual environment again (`.venv\Scripts\Activate.ps1` on Windows).
 
 ### 8. Open the app
 
