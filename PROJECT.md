@@ -506,9 +506,10 @@ Validate at ingestion/read boundaries as appropriate:
 
 ### Phase 12.5 — UI Redesign
 
-**Goal:** Modernize the UI to a light-first dashboard aesthetic (OpenStatz-
-style reference), keep dark mode available, fix chart scroll hijacking,
-and reduce tear sheet vertical scroll via tabbed navigation.
+**Goal:** Modernize the UI to a light-first dashboard aesthetic: card-
+based layouts, tabbed tear sheet navigation, generous whitespace on KPI
+surfaces. Keep dark mode available. Fix chart scroll hijacking. Reduce
+tear sheet vertical scroll via tabbed navigation.
 
 **Non-goals:** research semantics, metric calculations, API contracts.
 This is presentation only. KPI values, chart data, and grid columns are
