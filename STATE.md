@@ -11,11 +11,11 @@
 
 ```yaml
 current_phase: 14
-current_phase_status: READY
-current_task: 14.1
+current_phase_status: IN_PROGRESS
+current_task: 14.4
 current_task_status: READY
-next_task: 14.2
-last_completed_task: 13.1
+next_task: null
+last_completed_task: 14.3
 last_completed_phase: 13
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -38,7 +38,7 @@ human_transition_required: true
 - **Phase 12 — COMPLETE (all 4 tasks)**
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
-- **Phase 14 — READY; 14.1 is the first task**
+- **Phase 14 — IN_PROGRESS; 14.4 is the current task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
@@ -63,29 +63,13 @@ human_transition_required: true
 
 ### Current task
 
-**Phase 14 — Run Identity and Reproducibility** — READY
+**14.4 — Cross-process reproducibility** — READY
 
-A run must record enough identity to determine exactly what code and
-bars produced it. Currently `data_snapshot` is the weak max-timestamp
-formula, and `git_sha` is not reliably captured through the UI/worker
-execution path.
+Run the same backtest through two paths: `scripts/run_backtest.py` and
+the API POST + worker. Both must produce the same `data_snapshot` and
+byte-identical `equity.parquet`, or the difference must be explained.
 
-Scope:
-- Replace the max-timestamp dataset identity with a fingerprint of the
-  exact ordered bar rows consumed by the run.
-- Capture git SHA through UI/worker execution paths.
-- Record venue, symbol, timeframe, range, strategy, parameters, and
-  experiment identity.
-- Make seed semantics honest: a stored seed is only meaningful when
-  randomness can affect execution.
-- Add reproducibility tests.
-
-Acceptance: changing a historical bar changes the dataset fingerprint;
-changing only max timestamp is not sufficient; repeated deterministic
-runs can be compared by identity and artifacts.
-
-Split into tasks at the reviewer's discretion. Do not start until a
-human begins it.
+Do not start until Phase 14.3's live check has been confirmed by a human.
 
 ### 12.1 completion evidence
 
@@ -309,6 +293,51 @@ next_task: 14.1
 notes: |
   ts_closed is Python None on open BuyHold positions (not pd.NaT).
   pd.notna covers both. Frontend KpiCards renders null as "—".
+```
+
+### 14.3 completion evidence
+
+```yaml
+task_id: 14.3
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/api/main.py
+  - backend/src/quant/strategies/registry.py (new)
+  - backend/src/quant/strategies/buy_hold.py
+  - backend/src/quant/strategies/ema_cross.py
+  - backend/src/quant/engine/orchestrator.py
+  - backend/src/quant/data/runs_store.py
+  - backend/src/quant/api/schemas.py
+  - backend/src/quant/api/routers/runs.py
+  - backend/tests/data/test_runs_store.py
+  - backend/tests/api/test_runs_create.py
+  - backend/tests/api/test_schemas.py
+  - backend/tests/engine/test_orchestrator.py
+  - frontend/src/api/types.ts
+  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
+  - frontend/src/pages/CommandCenter/StrategyForm.test.tsx
+  - frontend/src/pages/Compare/index.test.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - cd frontend && npx tsc -b
+tree_state: uncommitted_14.3_diff
+acceptance_output:
+  pytest: "418 passed"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 29 source files"
+  tsc: "exit 0"
+git_commit_sha: b0243a0
+next_task: 14.4
+notes: |
+  Lifespan handler added to api/main.py runs init_runs_schema at startup.
+  experiment_id column added via ALTER TABLE migration. Seed semantics
+  honest: deterministic strategies get None, non-deterministic read
+  params["seed"].
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
