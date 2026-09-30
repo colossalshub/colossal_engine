@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 16.3
-current_task_status: READY
-next_task: 16.4
-last_completed_task: 16.2
+current_task: 16.4
+current_task_status: BLOCKED
+next_task: null
+last_completed_task: 16.3
 last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -40,7 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.3 is the current task** (research-integrity foundation; commit to
+- **Phase 16 — IN_PROGRESS; 16.4 is blocked on a human clock confirmation** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -72,16 +72,16 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 
 - [x] **16.1 — Pin the current equity clock** — COMPLETE
 - [x] **16.2 — Benchmark timestamps cover the equity clock** — COMPLETE
-- [ ] **16.3 — Marker time is not earlier than the fill** — READY
-- [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
+- [x] **16.3 — Marker time is not earlier than the fill** — COMPLETE
+- [ ] **16.4 — Record the clock next to the execution assumptions** — BLOCKED pending human confirmation of the target clock
 
 16.1 does not move timestamps. 16.4 waits until the human confirms the target clock. Do not edit `PROJECT.md` for that note.
 
 ### Current task
 
-**16.3 — Marker time is not earlier than the fill** — READY
+**16.4 — Record the clock next to the execution assumptions** — BLOCKED
 
-One test runs the same buy-hold as 16.1 (`deploy_pct` `"0"`, `trade_size` `"1"`, volume `1.0`). The chart marker comes from `_map_position_row` and `_build_markers`. That marker's timestamp equals the fill timestamp `1735776000000`, the first bar's close, and it is later than the stored bar open. Do not change production code. If the test fails, stop and report.
+Do not implement 16.4 until the human confirms the target clock. Do not edit `PROJECT.md` for that note. Do not move timestamps while waiting.
 
 ### 12.1 completion evidence
 
@@ -574,6 +574,35 @@ notes: |
   stored close. deploy_pct is "0"; the default "1.0" on volume-1 bars
   buys 999 and the account goes negative before any equity series exists.
   No production code changed.
+```
+
+### 16.3 completion evidence
+
+```yaml
+task_id: 16.3
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/tests/engine/test_marker_clock.py
+tests_added:
+  - backend/tests/engine/test_marker_clock.py::test_buy_marker_is_not_earlier_than_the_fill
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "428 passed, 79 warnings in 47.74s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: e8eb2a5afc862789a738c2a81e880b1b82c8f83d
+next_task: 16.4
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, and mypy in the project venv.
+  The buy marker from _map_position_row and _build_markers is
+  1735776000000, equal to both fills and later than the stored bar open.
+  The position stays open, so there is no exit marker. No production
+  code changed. 16.4 is blocked until the human confirms the target clock.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
