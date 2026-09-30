@@ -140,6 +140,10 @@ If these files conflict with repository evidence, stop and resolve the conflict 
 - Local-only. No auth, no multi-user, no cloud deployment.
 - Personal research project. Built for individual backtesting and portfolio demonstration rather than multi-tenant production use.
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 ## Scripts
 
 - `scripts/ingest_bars.py` — fetch OHLCV bars from ccxt into DuckDB
