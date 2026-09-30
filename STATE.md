@@ -14,7 +14,7 @@ current_phase: 12.5
 current_phase_status: READY
 current_task: U.1
 current_task_status: READY
-next_task: 12.5.1
+next_task: U.2
 last_completed_task: 12.4
 last_completed_phase: 12
 execution_mode: ONE_TASK_AT_A_TIME
@@ -36,7 +36,7 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — READY; 12.5.0 is the first task**
+- **Phase 12.5 — IN PROGRESS; U.0 COMPLETE; U.1 READY**
 - **Phase 13 — READY; 13.1 is the first task**
 - Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
