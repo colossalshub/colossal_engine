@@ -4,14 +4,21 @@ Asset-class inference: if ``--asset-class`` is omitted, symbols containing ``/``
 (e.g. ``BTC/USDT``) are treated as ``crypto``; all other symbols are ``equity``.
 
 Requires the ingestion extra: ``pip install -e ".[ingestion]"`` (installs ccxt).
+
+Ingestion is fail-closed. If the internal page cap is reached before
+the requested end timestamp is covered, the script raises
+``RuntimeError``, exits non-zero, and does NOT print a success summary.
+Bars fetched before the cap are still written to DuckDB so a narrower
+re-run is incremental.
 """
 
 from __future__ import annotations
 
 import argparse
-import logging
 import sys
 import time
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 import ccxt
@@ -21,11 +28,14 @@ from quant.data.normalize import normalize_timeframe, to_epoch_ms
 from quant.data.store import ensure_canonical_bars, upsert_bars
 from quant.logging_setup import configure_logging
 
-_MAX_PAGES = 100
+_MAX_PAGES = 500
 _PAGE_LIMIT = 1000
 _DATE_ONLY_LEN = 10
 
-logger = logging.getLogger(__name__)
+
+def _iso(ms: int) -> str:
+    """Format epoch ms as ISO-8601 UTC."""
+    return datetime.fromtimestamp(ms / 1000, tz=UTC).isoformat()
 
 
 def default_db_path() -> Path:
@@ -77,7 +87,7 @@ def candle_to_row(
 
 
 def fetch_and_ingest(
-    exchange: ccxt.Exchange,
+    fetch_ohlcv: Callable[..., list[list[float | int]]],
     *,
     venue: str,
     symbol: str,
@@ -94,9 +104,10 @@ def fetch_and_ingest(
     total_written = 0
     since = start_ms
     pages = 0
+    last_ts_ms: int | None = None
 
     while since <= end_ms and pages < _MAX_PAGES:
-        batch = exchange.fetch_ohlcv(
+        batch = fetch_ohlcv(
             symbol,
             ccxt_timeframe,
             since=since,
@@ -122,18 +133,20 @@ def fetch_and_ingest(
         ]
         total_written += upsert_bars(db_path, rows)
 
-        last_ts = int(batch[-1][0])
-        if last_ts >= end_ms:
+        last_ts_ms = int(batch[-1][0])
+        if last_ts_ms >= end_ms:
             break
-        since = last_ts + 1
+        since = last_ts_ms + 1
 
-    if pages >= _MAX_PAGES and since <= end_ms:
-        logger.warning(
-            "Stopped after %s pages (since=%s still <= end_ms=%s)",
-            _MAX_PAGES,
-            since,
-            end_ms,
+    if pages >= _MAX_PAGES and last_ts_ms is not None and last_ts_ms < end_ms:
+        msg = (
+            f"ingestion incomplete: reached page cap {_MAX_PAGES} "
+            f"before covering requested range. "
+            f"last ts = {_iso(last_ts_ms)}, requested end = {_iso(end_ms)}, "
+            f"bars written = {total_written}. "
+            f"Retry with a narrower range (e.g. --end {_iso(last_ts_ms)})."
         )
+        raise RuntimeError(msg)
 
     return total_written
 
@@ -210,17 +223,21 @@ def main() -> None:
         sys.exit(2)
 
     exchange = exchange_cls()
-    total = fetch_and_ingest(
-        exchange,
-        venue=args.venue,
-        symbol=args.symbol,
-        ccxt_timeframe=args.timeframe,
-        canonical_timeframe=canonical_timeframe,
-        asset_class=asset_class,
-        start_ms=start_ms,
-        end_ms=end_ms,
-        db_path=db_path,
-    )
+    try:
+        total = fetch_and_ingest(
+            exchange.fetch_ohlcv,
+            venue=args.venue,
+            symbol=args.symbol,
+            ccxt_timeframe=args.timeframe,
+            canonical_timeframe=canonical_timeframe,
+            asset_class=asset_class,
+            start_ms=start_ms,
+            end_ms=end_ms,
+            db_path=db_path,
+        )
+    except RuntimeError as exc:
+        print(exc, file=sys.stderr)  # noqa: T201
+        sys.exit(2)
 
     print(  # noqa: T201
         f"ingested {total} bars: {args.venue} {args.symbol} "
