@@ -82,7 +82,7 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 **16.3.1 — Equity grid keeps every daily close** — READY
 
-`run_backtest` publishes the configured starting cash at the first open and a return at every equity snapshot, including the first close. BuyHold marks equity after `submit_order`, so the Jan 2 point includes the same-bar fill. Update the 16.1 clock test, which pinned the skipped day. Do not edit `PROJECT.md`.
+`run_backtest` publishes the configured starting cash at the first open and a return at every equity snapshot, including the first close. The market fill is not visible at the end of `on_bar`. BuyHold replaces that bar's snapshot inside `on_order_filled`, at the fill timestamp, so the Jan 2 point includes the fill. Do not append a second point at that timestamp. Update the 16.1 clock test and the runner tests that pinned the skipped day. Do not edit `PROJECT.md`.
 
 ### 12.1 completion evidence
 
