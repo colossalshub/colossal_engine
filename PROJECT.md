@@ -504,6 +504,41 @@ Validate at ingestion/read boundaries as appropriate:
 
 **Phase 12 completion:** all four tasks implemented, tested, whole-tree acceptance green, and `STATE.md` updated with evidence.
 
+### Phase 12.5 — UI Redesign
+
+**Goal:** Modernize the UI to a light-first dashboard aesthetic (OpenStatz-
+style reference), keep dark mode available, fix chart scroll hijacking,
+and reduce tear sheet vertical scroll via tabbed navigation.
+
+**Non-goals:** research semantics, metric calculations, API contracts.
+This is presentation only. KPI values, chart data, and grid columns are
+unchanged.
+
+**Tasks:**
+
+- **12.5.0 — Chart scroll fix** — disable `handleScroll.mouseWheel` and
+  `handleScale.mouseWheel` in `BaseChart.tsx`. Optional Shift+scroll for
+  zoom. One file, one commit.
+- **12.5.1 — Theme foundation** — light + dark token sets in
+  `styles/theme.css`, `data-theme` attribute on `<html>`, theme toggle
+  in TopBar, localStorage persistence, default light.
+- **12.5.2 — Chart theme migration** — `useChartOptions` hook returns
+  LWC options from active theme; `BaseChart.tsx` uses it; AG Grid theme
+  class switches with theme.
+- **12.5.3 — Tear Sheet layout** — tabbed navigation (Overview /
+  Performance / Trades). Overview: KPI cards + monthly heatmap.
+  Performance: price, equity, underwater. Trades: trade ledger.
+- **12.5.4 — Polish** — KPI card restyle (more breathing room, larger
+  numbers), hover transitions, spacing pass across all three screens.
+
+**Acceptance:** light theme renders cleanly on all three screens; dark
+theme renders cleanly on all three screens; page scroll is not hijacked
+by charts; tear sheet fits 1440×900 with one tab visible at a time; all
+existing frontend tests pass.
+
+**Phase 12.5 completion:** all five tasks implemented, tested, whole-tree
+acceptance green, and `STATE.md` updated with evidence.
+
 ### Phase 13 — Closed-Trade Statistics
 
 **Goal:** Trade-level KPIs represent closed trades only.
@@ -813,31 +848,40 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
 
 ### 9.1 Design principles
 
-* Dark theme only. Traders stare for hours. No light mode toggle.
-* Data is bright, chrome is dim. Page bg `#0e1117`, panels `#131722`, borders `#1f2937`, primary text `#d1d5db`, secondary `#9ca3af`.
-* Numbers are monospace, tabular, right-aligned. Font: JetBrains Mono, SF Mono, monospace. Always `font-variant-numeric: tabular-nums`.
-* Color has meaning, not decoration. Green `#22c55e` = profit/buy. Red `#ef4444` = loss/sell. Amber `#f59e0b` = warning. Never anything else.
-* Density over whitespace. Row height 28px. Padding 8/12px. No `padding: 2rem` anywhere.
-* Borders, not shadows. 1px solid `#1f2937`. No `box-shadow`.
-* Radius max 4px. No pill buttons. No rounded cards.
-* No animation except status transitions and 120ms hovers.
-* Empty states are designed, not blank. Every list/chart has one.
-* Every screen fits 1440×900 without horizontal scroll.
+- Both light and dark themes are supported via `data-theme` on `<html>`.
+  Default: light. Toggle in TopBar. Choice persists via localStorage.
+- Data is bright, chrome is dim, in both themes.
+- Numbers are monospace, tabular, right-aligned in both themes. Font:
+  JetBrains Mono, SF Mono, monospace. Always `font-variant-numeric:
+  tabular-nums`.
+- Color has meaning, not decoration. Green `#22c55e` = profit/buy. Red
+  `#ef4444` = loss/sell. Amber `#f59e0b` = warning. Same values in both
+  themes.
+- Density:
+  - Tables and grids: row height 28px, cell padding 8/12px.
+  - Sections and cards: 16–24px padding. KPI cards may breathe.
+- Borders, not shadows. 1px solid `var(--border)` in both themes.
+- Radius: 4px for tables and dense panels; 6px for KPI cards is allowed.
+- No animation except status transitions, 120ms hovers, and 150ms tab
+  switches.
+- Empty states are designed, not blank. Every list/chart has one.
+- Every screen fits 1440×900 without horizontal scroll.
 
 ### 9.2 Tokens (define once in `styles/theme.css`)
 
 ```css
-:root {
+:root,
+[data-theme="light"] {
   /* surfaces */
-  --bg:        #0e1117;
-  --panel:     #131722;
-  --panel-2:   #1a1f2e;
-  --border:    #1f2937;
-  --border-2:  #2a3441;
+  --bg:        #ffffff;
+  --panel:     #ffffff;
+  --panel-2:   #f4f5f7;
+  --border:    #e5e7eb;
+  --border-2:  #d1d5db;
   /* text */
-  --text:      #d1d5db;
-  --text-dim:  #9ca3af;
-  --text-mute: #6b7280;
+  --text:      #111827;
+  --text-dim:  #4b5563;
+  --text-mute: #9ca3af;
   /* semantic */
   --pos:       #22c55e;
   --neg:       #ef4444;
@@ -853,6 +897,24 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
   --topbar-h:  48px;
   --row-h:     28px;
   --radius:    4px;
+}
+
+[data-theme="dark"] {
+  /* surfaces */
+  --bg:        #0e1117;
+  --panel:     #131722;
+  --panel-2:   #1a1f2e;
+  --border:    #1f2937;
+  --border-2:  #2a3441;
+  /* text */
+  --text:      #d1d5db;
+  --text-dim:  #9ca3af;
+  --text-mute: #6b7280;
+  /* semantic colors identical */
+  --pos:       #22c55e;
+  --neg:       #ef4444;
+  --warn:      #f59e0b;
+  --accent:    #3b82f6;
 }
 ```
 
