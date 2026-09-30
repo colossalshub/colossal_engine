@@ -10,13 +10,13 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 15
+current_phase: 16
 current_phase_status: IN_PROGRESS
-current_task: 15.4
+current_task: 16.1
 current_task_status: READY
-next_task: null
-last_completed_task: 15.3
-last_completed_phase: 14
+next_task: 16.2
+last_completed_task: 15.4
+last_completed_phase: 15
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
 ```
@@ -39,8 +39,8 @@ human_transition_required: true
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
-- **Phase 15 — IN_PROGRESS; 15.4 is the current task**
-- Phase 16 — NOT STARTED (research-integrity foundation; commit to
+- **Phase 15 — COMPLETE (15.1–15.4)**
+- **Phase 16 — IN_PROGRESS; 16.1 is the current task** (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
@@ -60,15 +60,28 @@ human_transition_required: true
 - [x] **15.1 — Pin current assumptions** — COMPLETE
 - [x] **15.2 — Return assumptions on run metadata** — COMPLETE
 - [x] **15.3 — Show assumptions on the tear sheet** — COMPLETE
-- [ ] **15.4 — Future-bar mutation** — READY
+- [x] **15.4 — Future-bar mutation** — COMPLETE
 
 Do not implement a custom matcher. Do not change fill behavior in this phase. Record what the runner already does.
 
+### Phase 16 — Clock and Artifact Alignment
+
+**Goal:** Every research artifact uses an explicit and coherent timestamp contract. Pin the current clock before moving any timestamp.
+
+### Tasks
+
+- [ ] **16.1 — Pin the current equity clock** — READY
+- [ ] **16.2 — Benchmark timestamps cover the equity clock** — NOT STARTED
+- [ ] **16.3 — Marker time is not earlier than the fill** — NOT STARTED
+- [ ] **16.4 — Record the clock next to the execution assumptions** — NOT STARTED
+
+16.1 does not move timestamps. 16.4 waits until the human confirms the target clock. Do not edit `PROJECT.md` for that note.
+
 ### Current task
 
-**15.4 — Future-bar mutation** — READY
+**16.1 — Pin the current equity clock** — READY
 
-Add one test that runs BuyHold twice through `run_backtest` on the same bars, changing only the last bar's OHLC. Fills, and every portfolio return except the last, stay identical. Ending balances are allowed to differ, and the test must show that they do. Do not change the runner, strategies, or matching. If the test fails, stop and report.
+One test runs the five-bar BuyHold path and records the current mapping. The fill timestamp is the first bar's close. The first equity point is the first bar's open. The next equity point is two days after that open. Do not change extraction, the runner, or matching.
 
 ### 12.1 completion evidence
 
@@ -471,6 +484,37 @@ notes: |
   params.maker_fee 0.002, and the header still shows fees 0.20%.
   U.3.2 placeholder remains. PROJECT.md §4.4 still omits
   execution_assumptions; that docs sync is not part of this task.
+```
+
+### 15.4 completion evidence
+
+```yaml
+task_id: 15.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/tests/engine/test_future_bar.py
+tests_added:
+  - backend/tests/engine/test_future_bar.py::test_mutating_last_bar_leaves_earlier_buy_hold_results_unchanged
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+acceptance_output:
+  pytest: "425 passed, 73 warnings in 64.58s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+git_commit_sha: 56e4e0369ce74d440e8d6e63f5f2d6281c051c4a
+next_task: 16.1
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, and mypy. Mutating the last
+  bar leaves the two fill rows and portfolio_returns[:-1] unchanged.
+  Both ending balances move. With volume 1.0 and trade_size 1, Nautilus
+  1.231.0 emits two fills on one order at the first bar close: 0.25 at
+  100.00 and 0.75 at 100.01. The first prompt's len == 1 assertion was
+  wrong; the test pins those two rows. No production code changed.
+  The I-005 denied-order test did not fail on this run.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
