@@ -39,7 +39,7 @@ human_transition_required: true
 - **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — IN_PROGRESS; 14.4 is the current task**
-- Phase 13–16 — NOT STARTED (research-integrity foundation; commit to
+- Phase 15–16 — NOT STARTED (research-integrity foundation; commit to
   this before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
