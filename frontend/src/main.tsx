@@ -1,3 +1,5 @@
+import { provideGlobalGridOptions } from 'ag-grid-community'
+
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
@@ -21,6 +23,8 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+provideGlobalGridOptions({ theme: 'legacy' })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
