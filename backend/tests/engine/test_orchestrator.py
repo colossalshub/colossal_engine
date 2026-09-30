@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pyarrow.parquet as pq
@@ -116,6 +117,65 @@ def test_execute_run_happy_path(tmp_path: Path) -> None:
     assert set(updated.artifacts) == {"equity", "drawdown", "price", "trades", "fills"}
     for rel_path in updated.artifacts.values():
         assert (artifacts_dir / updated.run_id / Path(rel_path).name).is_file()
+
+
+def _snapshot_for(db_path: Path, artifacts_dir: Path, end_ts: int) -> str | None:
+    record = _make_record(start_ts=_START_TS, end_ts=end_ts)
+    return execute_run(
+        record, bars_db_path=db_path, artifacts_dir=artifacts_dir
+    ).data_snapshot
+
+
+def test_execute_run_populates_data_snapshot(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+
+    snapshot = _snapshot_for(db_path, tmp_path / "artifacts", end_ts)
+
+    assert snapshot is not None
+    assert re.fullmatch(r"[0-9a-f]{64}", snapshot)
+
+
+def test_execute_run_same_bars_same_fingerprint(tmp_path: Path) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+
+    first = _snapshot_for(db_path, tmp_path / "a1", end_ts)
+    second = _snapshot_for(db_path, tmp_path / "a2", end_ts)
+
+    assert first is not None
+    assert first == second
+
+
+def test_execute_run_changed_historical_bar_changes_fingerprint(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    before = _snapshot_for(db_path, tmp_path / "a1", end_ts)
+
+    upsert_bars(
+        db_path,
+        [
+            {
+                "venue": _VENUE,
+                "symbol": _SYMBOL,
+                "asset_class": "crypto",
+                "timeframe": "1d",
+                "ts": _START_TS + 3 * _DAY_MS,
+                "open": 100.0,
+                "high": 110.0,
+                "low": 90.0,
+                "close": 100.0 + 1e-6,
+                "volume": 1_000_000.0,
+            }
+        ],
+    )
+    after = _snapshot_for(db_path, tmp_path / "a2", end_ts)
+
+    assert before is not None
+    assert after is not None
+    assert before != after
 
 
 def test_execute_run_does_not_mutate_input_record(tmp_path: Path) -> None:

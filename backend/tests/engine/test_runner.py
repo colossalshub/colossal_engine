@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from quant.data.read import read_bars_json
 from quant.data.store import ensure_canonical_bars, upsert_bars
 from quant.engine import runner as runner_module
 from quant.engine.runner import BacktestResult, run_backtest
@@ -43,19 +44,22 @@ def _store_daily_bars(
     return start_ts, end_ts
 
 
-def test_run_backtest_raises_when_no_bars_in_range(tmp_path: Path) -> None:
-    db_path = tmp_path / "bars.duckdb"
-    ensure_canonical_bars(db_path)
-    start_ts = 1_735_689_600_000
-    with pytest.raises(ValueError, match="no bars"):
-        run_backtest(
-            venue=_VENUE,
-            symbol=_SYMBOL,
-            bar_type_str=_BAR_TYPE,
-            bars_db_path=db_path,
-            start_ts=start_ts,
-            end_ts=start_ts + 9 * _DAY_MS,
-        )
+def _rows(
+    db_path: Path,
+    start_ts: int,
+    end_ts: int,
+    *,
+    symbol: str = _SYMBOL,
+    timeframe: str = "1d",
+) -> list[dict[str, object]]:
+    return read_bars_json(
+        db_path=db_path,
+        venue=_VENUE,
+        symbol=symbol,
+        timeframe=timeframe,
+        start_ts=start_ts,
+        end_ts=end_ts,
+    )
 
 
 def test_run_backtest_happy_path(tmp_path: Path) -> None:
@@ -67,9 +71,7 @@ def test_run_backtest_happy_path(tmp_path: Path) -> None:
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
     )
 
     assert isinstance(result, BacktestResult)
@@ -121,9 +123,7 @@ def test_run_backtest_bar_timestamps_are_close_times(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
     )
 
     assert len(captured) == count
@@ -186,9 +186,7 @@ def test_final_monthly_bar_closes_thirty_days_after_open(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_MONTH_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts, timeframe="1mo"),
     )
 
     assert len(captured) == len(offsets_ms)
@@ -212,9 +210,7 @@ def test_run_backtest_custom_fees_change_pnl(tmp_path: Path) -> None:
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         maker_fee="0.0001",
         taker_fee="0.0001",
     )
@@ -222,9 +218,7 @@ def test_run_backtest_custom_fees_change_pnl(tmp_path: Path) -> None:
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         maker_fee="0.01",
         taker_fee="0.01",
     )
@@ -273,18 +267,14 @@ def test_run_backtest_higher_deploy_pct_produces_higher_ending_balance(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         deploy_pct="0.5",
     )
     high_deploy = run_backtest(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         deploy_pct="1.0",
     )
 
@@ -300,9 +290,7 @@ def test_run_backtest_independent_ending_balance_populated(tmp_path: Path) -> No
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
     )
 
     assert result.independent_ending_balance is not None
@@ -324,9 +312,7 @@ def test_run_backtest_independent_ending_balance_computed_independently(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
     )
 
     assert result.independent_ending_balance is not None
@@ -347,9 +333,7 @@ def test_run_backtest_full_deploy_reconciles_on_flat_prices(tmp_path: Path) -> N
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         deploy_pct="1.0",
     )
 
@@ -371,9 +355,7 @@ def test_run_backtest_raises_on_invalid_bar_type(tmp_path: Path) -> None:
             venue=_VENUE,
             symbol=_SYMBOL,
             bar_type_str="NOT-A-REAL-BAR-TYPE",
-            bars_db_path=db_path,
-            start_ts=start_ts,
-            end_ts=end_ts,
+            rows=_rows(db_path, start_ts, end_ts),
         )
 
 
@@ -409,9 +391,7 @@ def test_run_backtest_ema_cross_constructs_ema_cross_only(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         strategy="ema_cross",
     )
 
@@ -437,9 +417,7 @@ def test_run_backtest_buy_hold_constructs_buy_hold_only(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
         strategy="buy_hold",
     )
 
@@ -498,9 +476,7 @@ def test_unsupported_instrument_fails_before_engine(
             venue=_VENUE,
             symbol=symbol,
             bar_type_str=_BAR_TYPE,
-            bars_db_path=db_path,
-            start_ts=start_ts,
-            end_ts=end_ts,
+            rows=_rows(db_path, start_ts, end_ts, symbol=symbol),
         )
 
 
@@ -526,9 +502,7 @@ def test_btc_usdt_instrument_maps_btc_base_and_usdt_quote(
         venue=_VENUE,
         symbol=_SYMBOL,
         bar_type_str=_BAR_TYPE,
-        bars_db_path=db_path,
-        start_ts=start_ts,
-        end_ts=end_ts,
+        rows=_rows(db_path, start_ts, end_ts),
     )
 
     assert captured == {"base": "BTC", "quote": "USDT"}
@@ -544,8 +518,6 @@ def test_run_backtest_unknown_strategy_raises_value_error(tmp_path: Path) -> Non
             venue=_VENUE,
             symbol=_SYMBOL,
             bar_type_str=_BAR_TYPE,
-            bars_db_path=db_path,
-            start_ts=start_ts,
-            end_ts=end_ts,
+            rows=_rows(db_path, start_ts, end_ts),
             strategy="momentum",
         )

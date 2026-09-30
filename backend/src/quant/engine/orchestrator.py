@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, cast
 
 import pandas as pd  # type: ignore[import-untyped]  # stubs not in dev deps; pandas via nautilus_trader
 
+from quant.data.fingerprint import fingerprint_bars
 from quant.data.read import read_bars_json
 from quant.engine.runner import run_backtest
 from quant.extract.artifacts import write_artifacts
@@ -204,13 +205,24 @@ def execute_run(
     if not isinstance(deploy_pct_raw, str):
         raise ValueError("params['deploy_pct'] must be a string")
 
+    rows = read_bars_json(
+        db_path=bars_db_path,
+        venue=venue,
+        symbol=symbol,
+        timeframe=timeframe,
+        start_ts=record.start_ts,
+        end_ts=record.end_ts,
+    )
+    if not rows:
+        msg = f"no bars in range for {venue} {symbol} {timeframe}"
+        raise ValueError(msg)
+    snapshot = fingerprint_bars(rows)
+
     result = run_backtest(
         venue=venue,
         symbol=symbol,
         bar_type_str=bar_type_str,
-        bars_db_path=bars_db_path,
-        start_ts=record.start_ts,
-        end_ts=record.end_ts,
+        rows=rows,
         starting_balance_usdt=starting_balance,
         trade_size=trade_size,
         deploy_pct=deploy_pct_raw,
@@ -284,21 +296,18 @@ def execute_run(
         "source": extraction.verification.source,
     }
 
-    price_bars = read_bars_json(
-        db_path=bars_db_path,
-        venue=venue,
-        symbol=symbol,
-        timeframe=timeframe,
-        start_ts=record.start_ts,
-        end_ts=record.end_ts,
-    )
     artifacts = write_artifacts(
         record.run_id,
         base_dir=artifacts_dir,
         extraction=extraction,
-        price_bars=price_bars,
+        price_bars=rows,
         position_report=result.position_report,
         fills_report=result.fills_report,
     )
 
-    return dataclasses.replace(record, metrics=metrics, artifacts=artifacts)
+    return dataclasses.replace(
+        record,
+        metrics=metrics,
+        artifacts=artifacts,
+        data_snapshot=snapshot,
+    )

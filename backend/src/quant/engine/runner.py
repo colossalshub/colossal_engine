@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from pathlib import Path
 from typing import Any
 
 import pandas as pd  # type: ignore[import-untyped]  # stubs not in dev deps; pandas via nautilus_trader
@@ -19,7 +18,6 @@ from nautilus_trader.model.identifiers import InstrumentId, Symbol, Venue
 from nautilus_trader.model.instruments import CurrencyPair
 from nautilus_trader.model.objects import Money, Price, Quantity
 
-from quant.data.read import read_bars_json
 from quant.strategies.buy_hold import BuyHold
 from quant.strategies.ema_cross import EmaCross
 
@@ -126,9 +124,7 @@ def run_backtest(
     venue: str,
     symbol: str,
     bar_type_str: str,
-    bars_db_path: Path,
-    start_ts: int,
-    end_ts: int,
+    rows: list[dict[str, object]],
     starting_balance_usdt: float = 100_000.0,
     trade_size: str = "1",
     deploy_pct: str = "0",
@@ -157,17 +153,10 @@ def run_backtest(
     base, quote, base_currency, quote_currency = _resolve_spot_instrument(symbol)
 
     canonical_timeframe = _canonical_from_bar_type(bar_type_str)
-    rows = read_bars_json(
-        db_path=bars_db_path,
-        venue=venue,
-        symbol=symbol,
-        timeframe=canonical_timeframe,
-        start_ts=start_ts,
-        end_ts=end_ts,
-    )
     if not rows:
-        msg = f"no bars in range for {venue} {symbol} {canonical_timeframe}"
+        msg = "rows must not be empty"
         raise ValueError(msg)
+    first_bar_ts = _as_int(rows[0]["ts"])
 
     venue_config = BacktestVenueConfig(
         name=venue.upper(),
@@ -196,8 +185,8 @@ def run_backtest(
         size_precision=6,
         price_increment=Price.from_str("0.01"),
         size_increment=Quantity.from_str("0.000001"),
-        ts_event=start_ts * 1_000_000,
-        ts_init=start_ts * 1_000_000,
+        ts_event=first_bar_ts * 1_000_000,
+        ts_init=first_bar_ts * 1_000_000,
         maker_fee=Decimal(maker_fee),
         taker_fee=Decimal(taker_fee),
     )
