@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.2
+current_task: 17.3
 current_task_status: READY
-next_task: 17.3
-last_completed_task: 17.1
+next_task: 17.4
+last_completed_task: 17.2
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,15 +66,15 @@ work.
 
 ### Current task
 
-**17.2 — Research metadata API schemas** — READY. Add the persisted
-research metadata fields to the API schema contracts without adding the
-transport wiring reserved for 17.3.
+**17.3 — Research metadata API transport** — READY. Wire the persisted
+research metadata through the API creation and response paths without adding
+CLI or frontend behavior.
 
 ### Phase 17 tasks
 
 - [x] **17.1 — Research metadata persistence contract** — COMPLETE
-- [ ] **17.2 — Research metadata API schemas** — READY
-- [ ] **17.3 — Research metadata API transport** — NOT_STARTED
+- [x] **17.2 — Research metadata API schemas** — COMPLETE
+- [ ] **17.3 — Research metadata API transport** — READY
 - [ ] **17.4 — Backtest CLI research metadata inputs** — NOT_STARTED
 - [ ] **17.5 — Frontend research metadata wire types** — NOT_STARTED
 - [ ] **17.6 — Research metadata creation controls** — NOT_STARTED
@@ -137,6 +137,43 @@ notes: |
   the known I-005 Rust-bridge capfd polling tests with deterministic
   warning spies. The reviewer then re-ran every whole-tree acceptance
   command without retries. No API, frontend, optimizer, or Phase 18
+  validation behavior is included.
+```
+
+### 17.2 completion evidence
+
+```yaml
+task_id: 17.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/api/schemas.py
+  - backend/tests/api/test_schemas.py
+tests_added_or_updated:
+  - RunSummary accepts and serializes all nullable research metadata
+  - RunCreate accepts all nullable research metadata
+  - omitted research metadata defaults to None
+  - invalid research_stage values are rejected
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "435 passed, 81 warnings"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+  diff_check: "exit 0"
+  status: "clean"
+git_commit_sha: 62a2365
+next_task: 17.3
+deviations: []
+notes: |
+  Reviewer independently re-ran every whole-tree acceptance command.
+  The implementation changes only API schema contracts and their direct
+  tests. No API transport wiring, frontend, optimizer, or Phase 18
   validation behavior is included.
 ```
 
