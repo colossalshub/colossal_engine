@@ -11,12 +11,12 @@
 
 ```yaml
 current_phase: 16
-current_phase_status: IN_PROGRESS
-current_task: 16.4
-current_task_status: READY
+current_phase_status: COMPLETE
+current_task: null
+current_task_status: null
 next_task: null
-last_completed_task: 16.3.1
-last_completed_phase: 15
+last_completed_task: 16.4
+last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
 ```
@@ -40,8 +40,7 @@ human_transition_required: true
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
-- **Phase 16 — IN_PROGRESS; 16.4 is the current task** (research-integrity foundation; commit to
-  this before Phase 17+)
+- **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -74,17 +73,15 @@ Do not implement a custom matcher. Do not change fill behavior in this phase. Re
 - [x] **16.2 — Benchmark timestamps cover the equity clock** — COMPLETE
 - [x] **16.3 — Marker time is not earlier than the fill** — COMPLETE
 - [x] **16.3.1 — Equity grid keeps every daily close** — COMPLETE
-- [ ] **16.4 — Record the clock next to the execution assumptions** — READY
+- [x] **16.4 — Record the clock next to the execution assumptions** — COMPLETE
 
 The human confirmed the target clock on 2026-10-01. For daily bars, the close of one bar and the open of the next bar are the same timestamp. The equity series keeps the account start on the first open and a point on every bar close, including the first close. The same-bar fill and that first close share one timestamp, and the equity point at that timestamp includes the fill. Do not edit `PROJECT.md` for this note. 16.4 records that clock after 16.3.1 lands.
 
 ### Current task
 
-**16.4 — Record the clock next to the execution assumptions** — READY
+None. Phase 16 is complete. Phase 17 is not started.
 
-Add the confirmed daily clock to `CURRENT_ASSUMPTIONS` and to the tear-sheet assumptions the Data tab already shows. Do not move timestamps. Do not edit `PROJECT.md`.
-
-`equity_ts` is `open_then_each_close`. `fill_ts` is `bar_close`. `marker_ts` is `fill`. `fill_included_in_equity` is `same_timestamp`.
+The human must explicitly commit to Phase 17 or defer it. Do not invent a Phase 17 task split from the roadmap paragraph alone. U.3.2 and U.4 remain pending. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync was out of scope for 16.4.
 
 ### 12.1 completion evidence
 
@@ -645,6 +642,51 @@ notes: |
   test runs the engine first because portfolio has no USDT balance until
   then, and wraps that run in capfd.disabled() so the rejected-order log
   test still captures output. The denied-order test passed in isolation.
+```
+
+### 16.4 completion evidence
+
+```yaml
+task_id: 16.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/engine/assumptions.py
+  - backend/src/quant/api/schemas.py
+  - backend/src/quant/api/routers/runs.py
+  - backend/tests/engine/test_assumptions.py
+  - backend/tests/api/test_schemas.py
+  - backend/tests/api/test_runs_tearsheet.py
+  - frontend/src/api/types.ts
+  - frontend/src/pages/TearSheet/tabs/DataTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
+  - frontend/src/pages/Compare/index.test.tsx
+tests_added:
+  - backend/tests/engine/test_assumptions.py::test_current_assumptions_record_the_confirmed_daily_clock
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  pytest: "429 passed, 81 warnings in 49.58s"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+  tsc: "exit 0"
+  vitest: "25 files, 182 passed"
+  build: "exit 0"
+git_commit_sha: f31dd1aadfc45de570feb60cfb26b41790db8916
+next_task: null
+notes: |
+  Reviewer re-ran whole-tree pytest, ruff, mypy, tsc -b, vitest, and
+  the production build. The four clock labels are on CURRENT_ASSUMPTIONS,
+  copied onto the tear-sheet payload, and shown on the Data tab. The new
+  test asserts those literals only. No timestamp code changed. PROJECT.md
+  §4.4 still omits execution_assumptions. Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
