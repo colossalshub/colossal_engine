@@ -41,25 +41,24 @@ describe('OverviewSummary', () => {
     expect(within(card('Sortino')).getByText('1.80')).toBeInTheDocument()
     expect(within(card('Volatility')).getByText('20.0%')).toBeInTheDocument()
     expect(within(card('Calmar')).getByText('1.90')).toBeInTheDocument()
-    expect(within(card('Win Rate')).getByText('60.0%')).toBeInTheDocument()
     expect(within(card('Profit Factor')).getByText('1.70')).toBeInTheDocument()
-    expect(within(card('Trades')).getByText('10')).toBeInTheDocument()
-    expect(within(card('Avg Duration')).getByText('3.2d')).toBeInTheDocument()
     expect(within(card('Turnover')).getByText('0.50')).toBeInTheDocument()
+    expect(screen.queryByText('Win Rate')).not.toBeInTheDocument()
+    expect(screen.queryByText('Trades')).not.toBeInTheDocument()
+    expect(screen.queryByText('Avg Duration')).not.toBeInTheDocument()
 
     expect(within(card('Sharpe')).getByText('1.23').className).toContain('kpi-card__value--pos')
     expect(within(card('Max DD')).getByText('-8.3%').className).toContain('kpi-card__value--neg')
     expect(within(card('Volatility')).getByText('20.0%').className).toContain('kpi-card__value--neutral')
   })
 
-  it('renders nulls as em dashes and omits a null average duration', () => {
+  it('renders null headline KPIs as em dashes', () => {
     render(
       <OverviewSummary
         kpis={fullKpis({
           sharpe: null,
           cagr: null,
           max_drawdown: null,
-          avg_duration_days: null,
         })}
       />,
     )
@@ -67,7 +66,6 @@ describe('OverviewSummary', () => {
     expect(within(card('Sharpe')).getByText('—')).toBeInTheDocument()
     expect(within(card('CAGR')).getByText('—')).toBeInTheDocument()
     expect(within(card('Max DD')).getByText('—')).toBeInTheDocument()
-    expect(screen.queryByText('Avg Duration')).not.toBeInTheDocument()
     expect(screen.getByText('Turnover')).toBeInTheDocument()
   })
 

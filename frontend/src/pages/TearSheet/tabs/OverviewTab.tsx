@@ -1,6 +1,5 @@
 import { useOutletContext } from 'react-router-dom'
 
-import { DrawdownChart } from '../DrawdownChart'
 import { EquityCurve } from '../EquityCurve'
 import { MonthlyHeatmap } from '../MonthlyHeatmap'
 import { OverviewSummary } from '../OverviewSummary'
@@ -14,10 +13,6 @@ export default function OverviewTab() {
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Equity</h2>
         <EquityCurve data={data.equity} />
-      </section>
-      <section className="tear-sheet-tab__section">
-        <h2 className="tear-sheet-tab__heading">Underwater</h2>
-        <DrawdownChart data={data.drawdown} />
       </section>
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Monthly Returns</h2>

@@ -16,11 +16,6 @@ function fmtNum(v: number | null, digits = 2): string {
   return v.toFixed(digits)
 }
 
-function fmtInt(v: number | null): string {
-  if (v == null) return '—'
-  return Math.round(v).toString()
-}
-
 function toneFrom(v: number | null): 'pos' | 'neg' | 'neutral' {
   if (v == null) return 'neutral'
   if (v > 0) return 'pos'
@@ -45,16 +40,7 @@ export function OverviewSummary({ kpis }: OverviewSummaryProps) {
           <KpiCard label="Sortino" value={fmtNum(kpis.sortino)} tone={toneFrom(kpis.sortino)} />
           <KpiCard label="Volatility" value={fmtPct(kpis.volatility)} tone="neutral" />
           <KpiCard label="Calmar" value={fmtNum(kpis.calmar)} tone={toneFrom(kpis.calmar)} />
-          <KpiCard label="Win Rate" value={fmtPct(kpis.win_rate)} tone="neutral" />
           <KpiCard label="Profit Factor" value={fmtNum(kpis.profit_factor)} tone="neutral" />
-          <KpiCard label="Trades" value={fmtInt(kpis.total_trades)} tone="neutral" />
-          {kpis.avg_duration_days != null ? (
-            <KpiCard
-              label="Avg Duration"
-              value={`${kpis.avg_duration_days.toFixed(1)}d`}
-              tone="neutral"
-            />
-          ) : null}
           <KpiCard label="Turnover" value={fmtNum(kpis.turnover)} tone="neutral" />
         </div>
       </section>

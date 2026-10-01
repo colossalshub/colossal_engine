@@ -169,20 +169,20 @@ describe('TearSheet page', () => {
       'Sortino',
       'Volatility',
       'Calmar',
-      'Win Rate',
       'Profit Factor',
-      'Trades',
-      'Avg Duration',
       'Turnover',
     ]) {
       expect(within(secondary as HTMLElement).getByText(label)).toBeInTheDocument()
     }
     expect(screen.queryByRole('tab', { name: 'Returns' })).not.toBeInTheDocument()
+    expect(within(secondary as HTMLElement).queryByText('Win Rate')).not.toBeInTheDocument()
+    expect(within(secondary as HTMLElement).queryByText('Trades')).not.toBeInTheDocument()
+    expect(within(secondary as HTMLElement).queryByText('Avg Duration')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Equity' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Underwater' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Underwater' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Monthly Returns' })).toBeInTheDocument()
     expect(screen.getByText('No equity data for this run.')).toBeInTheDocument()
-    expect(screen.getByText('No drawdown data for this run.')).toBeInTheDocument()
+    expect(screen.queryByText('No drawdown data for this run.')).not.toBeInTheDocument()
   })
 
   it('performance tab renders price, then a dominant equity chart, then underwater', async () => {
