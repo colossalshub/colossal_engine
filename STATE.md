@@ -15,7 +15,7 @@ current_phase_status: COMPLETE
 current_task: null
 current_task_status: null
 next_task: null
-last_completed_task: 16.4
+last_completed_task: U.4
 last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -36,7 +36,7 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — PARTIAL; U.0–U.3.1 COMPLETE; U.3.2 and U.4 pending after Phase 14–16**
+- **Phase 12.5 — COMPLETE (U.0–U.4)**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
@@ -79,9 +79,11 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-None. Phase 16 is complete. Phase 17 is not started.
+None. Phase 16 is complete. Phase 12.5 is complete, including the deferred U.3.2 and U.4 tasks. Phase 17 is not started.
 
-The human must explicitly commit to Phase 17 or defer it. Do not invent a Phase 17 task split from the roadmap paragraph alone. U.3.2 and U.4 remain pending. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync was out of scope for 16.4.
+The human must explicitly commit to Phase 17 or defer it. Do not invent a Phase 17 task split from the roadmap paragraph alone. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync was out of scope for 16.4.
+
+Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
 
 ### 12.1 completion evidence
 
@@ -687,6 +689,81 @@ notes: |
   copied onto the tear-sheet payload, and shown on the Data tab. The new
   test asserts those literals only. No timestamp code changed. PROJECT.md
   §4.4 still omits execution_assumptions. Phase 17 is not started.
+```
+
+### U.3.2 completion evidence
+
+```yaml
+task_id: U.3.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/tabs/DataTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+  - frontend/src/pages/TearSheet/tearSheet.css
+tests_added:
+  - frontend/src/pages/TearSheet/index.test.tsx::data tab methodology header shows timeframe, benchmark, and dirty git
+  - frontend/src/pages/TearSheet/index.test.tsx::data tab methodology header appends dirty when a git sha is present
+  - frontend/src/pages/TearSheet/index.test.tsx::data tab stays up when the tear sheet omits execution assumptions
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "25 files, 187 passed"
+  build: "exit 0"
+git_commit_sha: f491dc96fc47072b4293ffb5d79651d6a0b42f0b
+follow_up_commit_sha: 77744a6f2fed86220d7c6e9cfe481d60ef689919
+next_task: U.4
+deviations:
+  - "Header shows Strategy, Git SHA, Timeframe, Fees, Benchmark, and Verification. It does not show Strategy version or Dataset identity. Phase 12.5 forbids API contract changes. data_snapshot is not on the tear sheet. There is no strategy-version field. Tests pin both labels as absent."
+  - "77744a6 is a second commit. It keeps the Data tab up when execution_assumptions is missing: fees render as an em dash and the assumptions section says the block is not on the response."
+notes: |
+  Reviewer read both diffs and re-ran tsc -b, vitest, and the production
+  build once, on HEAD 3573c85, which contains U.3.2, the follow-up, and
+  U.4. No Python files changed, so pytest, ruff, and mypy were not re-run.
+  A dirty flag with no git SHA renders as an em dash, not "(dirty)".
+  Fee rates on this header come from execution_assumptions, not from a
+  second reading of params.
+```
+
+### U.4 completion evidence
+
+```yaml
+task_id: U.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/components/ui/kpiCard.css
+  - frontend/src/pages/TearSheet/kpiCards.css
+  - frontend/src/pages/TearSheet/KpiCards.tsx
+  - frontend/src/pages/TearSheet/KpiCards.test.tsx
+  - frontend/src/pages/TearSheet/TradeLedger.tsx
+  - frontend/src/pages/TearSheet/TradeLedger.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/KpiCards.test.tsx::omits avg duration when the metric is null
+  - frontend/src/pages/TearSheet/TradeLedger.test.tsx::renders zero as 0
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "25 files, 187 passed"
+  build: "exit 0"
+git_commit_sha: 3573c85ab64ed86e89d672fa8f3af14c38f87c5e
+next_task: null
+deviations:
+  - "KPI number colors use --pos-text and --neg-text. PROJECT.md §9.2 requires those tokens for text. The previous CSS used the fill tokens."
+  - "A null average duration removes the card. The task allows a computed value or removal. A duration of 0 still renders as 0.0d."
+notes: |
+  Same acceptance run as U.3.2, on this commit. Quantity 0 renders as
+  "0"; a non-zero quantity still uses four decimal places. Hover is a
+  120ms border and background transition. KPI values are unchanged.
+  Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
