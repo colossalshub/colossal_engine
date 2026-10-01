@@ -241,6 +241,7 @@ interface RunSummary {
   sharpe: number | null;
   cagr: number | null;
   max_drawdown: number | null;   // canonical name; matches KpiBlock
+  experiment_id: string | null;
 }
 
 // POST /api/runs
@@ -251,6 +252,7 @@ interface RunCreate {
   universe: string[];
   start_ts: number;
   end_ts: number;
+  experiment_id?: string | null;
 }
 
 // GET /api/runs/{id}/tearsheet

@@ -55,17 +55,14 @@ Before planning or writing code:
 - Activate the venv before running Python: `.venv\Scripts\Activate.ps1`
 - Repo root: `E:\Documents\Projects\colossal_quant`
 
-## Future authorized work
+## Authorized planned work
 
-Not current execution state. `STATE.md` remains authoritative for what
-may be implemented. Do not modify `STATE.md` because this section exists.
-Do not start this work, open a phase, or commit it until a later human
-message explicitly authorizes the task.
+`STATE.md` remains authoritative for the specific task that may be
+implemented. Authorization here does not permit skipping the task split
+or advancing more than one task at a time.
 
 ### U.6 — Tear Sheet Research Workspace Redesign
 
-**Status: not authorized.** Full design contract is in `docs/specs/U6.md`.
-The planning gate still applies: the first pass after explicit
-authorization is planning only — report architecture, data, layout,
-files, tests, impact, acceptance, and scope risks, then stop. No code,
-no new files, no commit, until the human accepts that plan.
+**Status: authorized; plan accepted on 2026-10-01.** Full design contract
+is in `docs/specs/U6.md`. Implement only the task marked `READY` in
+`STATE.md`.

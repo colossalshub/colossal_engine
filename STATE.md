@@ -10,15 +10,15 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 16.5
-current_phase_status: COMPLETE
-current_task: null
-current_task_status: null
-next_task: null
+current_phase: U.6
+current_phase_status: IN_PROGRESS
+current_task: U.6.1
+current_task_status: READY
+next_task: U.6.2
 last_completed_task: 16.5.6
 last_completed_phase: 16.5
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: true
+human_transition_required: false
 ```
 
 ### Phase status
@@ -42,6 +42,7 @@ human_transition_required: true
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
+- **U.6 — IN PROGRESS (U.6.1 READY)** (tear-sheet research workspace redesign)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -51,10 +52,9 @@ human_transition_required: true
 
 ## 2. Current Objective
 
-Phase 16.5 is complete (see the 16.5.6 evidence block below).
-Phase 17 is not started and has no task split. There is no current
-objective. See §1 for state and `PROJECT.md` §6 Phase 17 for the
-next phase's goal once a human opens it.
+U.6 is authorized and its plan was accepted on 2026-10-01. Implement
+the presentation-only redesign in `docs/specs/U6.md`, one task at a
+time. Phase 17 remains unopened.
 
 Older per-task evidence blocks (12.1 through 16.5.5), the stray Phase
 12.1 notes, the Phase 12 non-goals list, and the Phase 0–11 audit's
@@ -65,7 +65,18 @@ work.
 
 ### Current task
 
-None. Phase 16.5 is complete. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 includes the `execution_assumptions` contract.
+**U.6.1 — Risk tab component — READY.** Add the Risk tab component and
+its direct test only. It renders supplied Sharpe, Sortino, volatility,
+maximum drawdown, and Calmar values plus the existing underwater chart.
+No route or navigation change belongs to U.6.1.
+
+### U.6 tasks
+
+- [ ] **U.6.1 — Risk tab component** — READY
+- [ ] **U.6.2 — Risk route and eight-item navigation** — NOT_STARTED
+- [ ] **U.6.3 — Overview KPI and chart cleanup** — NOT_STARTED
+- [ ] **U.6.4 — Performance cleanup and Risk chart ownership** — NOT_STARTED
+- [ ] **U.6.5 — Data experiment identity and UTC range** — NOT_STARTED
 
 ### Phase 16.5 tasks
 
