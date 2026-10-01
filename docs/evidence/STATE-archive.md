@@ -568,6 +568,13 @@ notes: |
   test still captures output. The denied-order test passed in isolation.
 ```
 
+### Human clock decision before 16.4
+
+The following decision was recorded in the former `STATE.md` Current
+Objective after 16.3.1 and before 16.4. It is preserved verbatim:
+
+The human confirmed the target clock on 2026-10-01. For daily bars, the close of one bar and the open of the next bar are the same timestamp. The equity series keeps the account start on the first open and a point on every bar close, including the first close. The same-bar fill and that first close share one timestamp, and the equity point at that timestamp includes the fill. Do not edit `PROJECT.md` for this note. 16.4 records that clock after 16.3.1 lands.
+
 ### 16.4 completion evidence
 
 ```yaml

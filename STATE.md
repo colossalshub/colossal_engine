@@ -65,7 +65,7 @@ work.
 
 ### Current task
 
-None. Phase 16.5 is complete. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
+None. Phase 16.5 is complete. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 includes the `execution_assumptions` contract.
 
 ### Phase 16.5 tasks
 
@@ -131,6 +131,14 @@ The Phase 0–11 audit's P0/critical and P1/high findings, and the full
 Last Audit Record (commit `5fffa3cbd618ca05e65620f2b26ddae260f122be`,
 2026-09-30, scope Phases 0–11), are historical and live in
 `docs/evidence/STATE-archive.md`.
+
+---
+
+## 4. Archived Historical State
+
+The former historical evidence and audit section now lives in
+`docs/evidence/STATE-archive.md`. It is reference material, not live
+execution state.
 
 ---
 

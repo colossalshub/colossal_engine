@@ -642,6 +642,13 @@ Align and test:
 
 No chart should imply that a fill occurred before the information that caused the order existed.
 
+**Target clock (human-confirmed 2026-10-01):** For daily bars, the close
+of one bar and the open of the next bar are the same timestamp. The
+equity series keeps the account start on the first open and a point on
+every bar close, including the first close. The same-bar fill and that
+first close share one timestamp, and the equity point at that timestamp
+includes the fill.
+
 **Acceptance:** synthetic clock tests prove the intended mapping; benchmark series are aligned to the same research clock; artifact timestamps are documented.
 
 ### Phase 16.5 — Tear Sheet Research Report UI
