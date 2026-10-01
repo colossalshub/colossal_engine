@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Trade, TradePage } from '../../api/types'
 import * as runsApi from '../../api/runs'
 import { renderWithProviders } from '../../test-utils'
-import { TradeLedger } from './TradeLedger'
+import { formatTradeQty, TradeLedger } from './TradeLedger'
 
 const sampleTrade: Trade = {
   trade_id: 't-1',
@@ -36,6 +36,14 @@ const sampleTrade2: Trade = {
   fees: 5,
   duration_s: 86400,
 }
+
+describe('formatTradeQty', () => {
+  it('renders zero as 0', () => {
+    expect(formatTradeQty(0)).toBe('0')
+    expect(formatTradeQty(0.5)).toBe('0.5000')
+    expect(formatTradeQty(null)).toBe('—')
+  })
+})
 
 describe('TradeLedger', () => {
   afterEach(() => {

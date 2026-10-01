@@ -99,4 +99,10 @@ describe('KpiCards', () => {
     expect(card).not.toBeNull()
     expect(within(card as HTMLElement).getByText('3.2d')).toBeInTheDocument()
   })
+
+  it('omits avg duration when the metric is null', () => {
+    render(<KpiCards kpis={fullKpis({ avg_duration_days: null })} />)
+    expect(screen.queryByText('Avg Duration')).not.toBeInTheDocument()
+    expect(screen.getByText('Trades')).toBeInTheDocument()
+  })
 })

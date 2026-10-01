@@ -41,7 +41,13 @@ export function KpiCards({ kpis }: KpiCardsProps) {
       <KpiCard label="Profit Factor" value={fmtNum(kpis.profit_factor)} tone="neutral" />
       <KpiCard label="Turnover" value={fmtNum(kpis.turnover)} tone="neutral" />
       <KpiCard label="Trades" value={fmtInt(kpis.total_trades)} tone="neutral" />
-      <KpiCard label="Avg Duration" value={kpis.avg_duration_days == null ? '—' : `${kpis.avg_duration_days.toFixed(1)}d`} tone="neutral" />
+      {kpis.avg_duration_days != null ? (
+        <KpiCard
+          label="Avg Duration"
+          value={`${kpis.avg_duration_days.toFixed(1)}d`}
+          tone="neutral"
+        />
+      ) : null}
     </div>
   )
 }

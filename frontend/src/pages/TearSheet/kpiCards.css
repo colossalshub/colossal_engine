@@ -1,7 +1,7 @@
 .kpi-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--s-3);
+  gap: var(--s-4);
 }
 
 @media (max-width: 1100px) {

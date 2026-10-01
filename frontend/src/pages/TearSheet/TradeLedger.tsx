@@ -27,6 +27,12 @@ function fmtNum(v: number | null, digits = 2): string {
   return v.toFixed(digits)
 }
 
+export function formatTradeQty(v: number | null): string {
+  if (v == null) return '—'
+  if (v === 0) return '0'
+  return v.toFixed(4)
+}
+
 function fmtPct(v: number | null): string {
   if (v == null) return '—'
   return `${(v * 100).toFixed(2)}%`
@@ -76,7 +82,7 @@ const colDefs: ColDef<Trade>[] = [
     type: 'numericColumn',
     flex: 1,
     minWidth: 80,
-    valueFormatter: (p) => fmtNum(p.value, 4),
+    valueFormatter: (p) => formatTradeQty(p.value),
   },
   {
     field: 'pnl',
