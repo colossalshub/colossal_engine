@@ -186,7 +186,7 @@ When the user asks "which model for this task":
 | Wire-contract files (`schemas.py`, `types.ts`) | Sonnet 5 | Medium |
 | Multi-file logic, joins, pagination | Sonnet 5 | Medium |
 | Complex UI (LWC, SVG, crosshair) | Sonnet 5 or Opus | High |
-| Hard debugging (2+ failures) | Opus | High |
+| Hard debugging | See the escalation ladder in `WORKFLOW.md` §8 (Composer → Grok Medium → Grok High → STOP) | — |
 | Deep API probing | Composer or Codex | Low |
 
 **Always Fast OFF.** 6× cost for latency only.

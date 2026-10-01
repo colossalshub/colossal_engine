@@ -100,10 +100,11 @@ report ships.
 flaky. It is broken. Stop accepting "rerun passed" as evidence. The
 failure mechanism must be named or the test must be rewritten.
 
-**Fix:** Replace the mechanism. For these tests, `capfd` captures
-Nautilus's Rust-bridge log output; the timing is unpredictable. A
-`caplog` on the Nautilus logger, or a `strategy.log` spy, would test
-the behavior deterministically.
+**Fix:** Replace the mechanism. `caplog` captures zero records from
+Nautilus's Rust-bridge log calls (see `WORKFLOW.md` §6) and must not be
+used here. Monkeypatch `strategy.log` with a spy and assert on the spy
+— this is deterministic. A test that has failed in three or more tasks
+gets rewritten, not rerun.
 
 ---
 

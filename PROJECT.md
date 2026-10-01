@@ -258,6 +258,7 @@ interface TearSheet {
   markers: TradeMarker[];
   monthly_returns: MonthlyReturns[];
   verification: Verification;
+  execution_assumptions: ExecutionAssumptions;
   artifacts: Record<string, string>;  // name -> URL served by /api/runs/{id}/artifacts/{name}
 }
 
@@ -281,6 +282,30 @@ interface Verification {
   verified: boolean;
   discrepancy_pct: number;   // percentage, e.g. 0.5 means 0.5%
   source: string;            // "account_report" | "self_consistent"
+}
+
+// Pinned execution assumptions (Phase 15.2/16.4). Structural fields are
+// copied verbatim from `quant.engine.assumptions.CURRENT_ASSUMPTIONS`;
+// maker_fee/taker_fee are the effective rates for the specific run.
+interface ExecutionAssumptions {
+  bar_ts: string;
+  nautilus_bar_ts_event: string;
+  signal_and_order: string;
+  order_type: string;
+  sizing_price_when_deploy_pct_positive: string;
+  maker_fee_default: string;
+  taker_fee_default: string;
+  maker_fee: string;
+  taker_fee: string;
+  fill_model: string;
+  latency: string;
+  spread: string;
+  queue_model: string;
+  partial_fills: string;
+  equity_ts: string;
+  fill_ts: string;
+  marker_ts: string;
+  fill_included_in_equity: string;
 }
 
 // GET /api/runs/{id}/trades?page=1&page_size=100
@@ -547,6 +572,10 @@ the KPI change.
   spacing, hover transitions. Also fix: Qty column renders `0.0000`
   instead of `0`; Avg Duration renders `—` when it should show a
   computed value or be removed.
+- **U.5 — Grouped KPI cards** — the cards render one group at a time,
+  defaulting to Returns. Tear-sheet Overview later moved to
+  `OverviewSummary` (16.5.2); the one-group `KpiCards` behavior remains
+  for Compare.
 
 **Acceptance:** light theme renders on all three screens; dark theme
 renders on all three screens; page scroll is not hijacked by charts;
@@ -554,7 +583,7 @@ theme persists across reload without flash; tear sheet fits 1440×900
 with one tab visible at a time; all existing frontend tests pass; new
 theme-provider test passes.
 
-**Phase 12.5 completion:** all five tasks implemented, tested, whole-tree
+**Phase 12.5 completion:** all tasks implemented, tested, whole-tree
 acceptance green, and `STATE.md` updated with evidence.
 
 ### Phase 13 — Closed-Trade Statistics
@@ -614,6 +643,21 @@ Align and test:
 No chart should imply that a fill occurred before the information that caused the order existed.
 
 **Acceptance:** synthetic clock tests prove the intended mapping; benchmark series are aligned to the same research clock; artifact timestamps are documented.
+
+### Phase 16.5 — Tear Sheet Research Report UI
+
+**Goal:** Redesign the Tear Sheet research report UI around the data
+the API already provides, without changing KPI values, chart data, or
+API contracts.
+
+### Phase 16.5 tasks
+
+- [x] **16.5.1 — Experiment identity header** — COMPLETE
+- [x] **16.5.2 — Overview executive summary** — COMPLETE. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
+- [x] **16.5.3 — Performance investigation layout** — COMPLETE. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
+- [x] **16.5.4 — Trades summary** — COMPLETE. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
+- [x] **16.5.5 — Data methodology layout** — COMPLETE. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
+- [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 ### Phase 17 — Research Experiment Foundation
 

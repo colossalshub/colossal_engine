@@ -42,7 +42,7 @@ The right model depends on the task, not the phase. Use this table.
 | Contract files (schemas, types) | Claude Sonnet 5 | Medium | `schemas.py`, `types.ts` |
 | Multi-file routers, DB wiring | Claude Sonnet 5 | Medium | `get_tearsheet`, pagination |
 | Complex UI (LWC crosshair, SVG) | Claude Sonnet 5 or Opus | High | `BaseChart.tsx`, `MonthlyHeatmap.tsx` |
-| Hard debugging (2 failures) | Claude Opus | High | Escalate only after Sonnet fails |
+| Hard debugging | — | — | See the escalation ladder in §8 (Composer → Grok Medium → Grok High → STOP) |
 | API probing (Stage 1) | Composer or Codex CLI | Low | Read-only, no judgment needed |
 
 **Always turn Fast OFF.** Fast costs ~6× for lower latency only — never worth it unless you're actively watching the response stream.
@@ -101,6 +101,7 @@ This pattern saved Phase 2.2 (Nautilus engine construction), Phase 2.2.2 (`portf
 - Never run on a subset of files.
 - If a check fails, report the failure verbatim — **do not silently fix and report green**.
 - This rule exists because Phase 1.1 reported `ruff check .` green when the file used `datetime.timezone.utc` (UP017 violation). Phase 1.2's full-tree run caught it. If the rule had been in place earlier, the fix would have been in the original commit.
+- **Path-scoped acceptance.** When a task's diff touches no files under `backend/` or `scripts/`, the Python acceptance commands (`pytest`, `ruff`, `mypy`) may be skipped. The report must say so in one line, e.g. "No Python files changed; pytest/ruff/mypy were not re-run." This does not relax whole-tree discipline for any acceptance command whose scope the diff *does* touch — frontend diffs still require `tsc -b`, `vitest run`, and `npm run build` on the whole tree.
 
 **Frontend TypeScript (from `frontend/`):**
 
@@ -216,9 +217,13 @@ Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautil
 - `caplog` captures zero records from Nautilus log calls.
 - `capsys` misses them synchronously too — they may only appear during
   pytest teardown.
-- To assert on Nautilus log output, use `capfd` with a bounded poll
-  (see `backend/tests/strategies/test_buy_hold.py` for the pattern), or
-  monkeypatch `strategy.log` with a spy and assert on the spy.
+- To assert on Nautilus log output, monkeypatch `strategy.log` with a
+  spy and assert on the spy. This is the first-choice approach —
+  deterministic, unlike `capfd`.
+- `capfd` with a bounded poll (see
+  `backend/tests/strategies/test_buy_hold.py` for the pattern) is
+  discouraged: its timing is unpredictable and it caused repeated flakes
+  (see `INCIDENTS.md` I-005).
 - Discovered during Phase 12.3.1.
 
 ---
