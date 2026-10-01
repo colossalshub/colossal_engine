@@ -185,7 +185,7 @@ describe('TearSheet page', () => {
     expect(screen.queryByText('No drawdown data for this run.')).not.toBeInTheDocument()
   })
 
-  it('performance tab renders price, then a dominant equity chart, then underwater', async () => {
+  it('performance tab renders price then a dominant equity chart without underwater', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
       ...sampleTearsheet,
       price: [{ ts: 1704067200000, open: 1, high: 2, low: 1, close: 1.5, volume: 1 }],
@@ -198,16 +198,13 @@ describe('TearSheet page', () => {
     })
     const price = screen.getByRole('heading', { name: 'Price + Fills' })
     const equity = screen.getByRole('heading', { name: 'Equity' })
-    const underwater = screen.getByRole('heading', { name: 'Underwater' })
     expect(price.compareDocumentPosition(equity) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(equity.compareDocumentPosition(underwater) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(equity.closest('section')?.parentElement).not.toHaveClass('tear-sheet-tab__grid-2')
-    expect(underwater.closest('section')?.parentElement).not.toHaveClass('tear-sheet-tab__grid-2')
     const charts = document.querySelectorAll('.base-chart')
-    expect(charts).toHaveLength(3)
+    expect(charts).toHaveLength(2)
     expect(charts[0]).toHaveStyle({ height: '420px' })
     expect(charts[1]).toHaveStyle({ height: '420px' })
-    expect(charts[2]).toHaveStyle({ height: '280px' })
+    expect(screen.queryByRole('heading', { name: 'Underwater' })).not.toBeInTheDocument()
     expect(screen.queryByText(/rolling/i)).not.toBeInTheDocument()
   })
 
