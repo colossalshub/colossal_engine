@@ -301,6 +301,33 @@
   gap: var(--s-4);
 }
 
+.tear-sheet-tab__facts {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  column-gap: var(--s-4);
+  row-gap: var(--s-2);
+  margin: 0;
+}
+
+.tear-sheet-tab__facts dt {
+  margin: 0;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  line-height: 20px;
+}
+
+.tear-sheet-tab__facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
 .tear-sheet-tab__placeholder {
   padding: var(--s-6);
   text-align: center;

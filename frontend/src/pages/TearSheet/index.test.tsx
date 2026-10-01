@@ -193,10 +193,18 @@ describe('TearSheet page', () => {
     })
     renderWithProviders(<App />, { route: '/runs/r-1/data' })
     await waitFor(() => {
-      expect(
-        screen.getByText('Full methodology header arrives in Phase U.3.2'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('buy_hold')).toBeInTheDocument()
     })
+    expect(
+      screen.queryByText('Full methodology header arrives in Phase U.3.2'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Strategy version')).not.toBeInTheDocument()
+    expect(screen.queryByText('Dataset identity')).not.toBeInTheDocument()
+    expect(screen.getByText('abcdef1234567890')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.getByText('maker 0.009 · taker 0.008')).toBeInTheDocument()
+    expect(screen.getByText('none')).toBeInTheDocument()
+    expect(screen.getAllByText(/Equity verified \(self-consistent\)/)).toHaveLength(2)
     expect(screen.getByText('0.009')).toBeInTheDocument()
     expect(screen.getByText('0.008')).toBeInTheDocument()
     expect(screen.getByText('open')).toBeInTheDocument()
@@ -208,6 +216,40 @@ describe('TearSheet page', () => {
     expect(screen.getByText('bar_close')).toBeInTheDocument()
     expect(screen.getByText('fill')).toBeInTheDocument()
     expect(screen.getByText('same_timestamp')).toBeInTheDocument()
+  })
+
+  it('data tab methodology header shows timeframe, benchmark, and dirty git', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      run: {
+        ...sampleTearsheet.run,
+        git_sha: null,
+        git_dirty: true,
+      },
+      params: { timeframe: '1d', benchmark_symbol: '  ETH/USDT  ' },
+    })
+    renderWithProviders(<App />, { route: '/runs/r-1/data' })
+    await waitFor(() => {
+      expect(screen.getByText('1d')).toBeInTheDocument()
+    })
+    expect(screen.getByText('ETH/USDT')).toBeInTheDocument()
+    expect(screen.getByText('Git SHA').nextElementSibling).toHaveTextContent('—')
+    expect(screen.queryByText(/\(dirty\)/)).not.toBeInTheDocument()
+  })
+
+  it('data tab methodology header appends dirty when a git sha is present', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      run: {
+        ...sampleTearsheet.run,
+        git_sha: 'deadbeef',
+        git_dirty: true,
+      },
+    })
+    renderWithProviders(<App />, { route: '/runs/r-1/data' })
+    await waitFor(() => {
+      expect(screen.getByText('deadbeef (dirty)')).toBeInTheDocument()
+    })
   })
 
   it('regimes tab renders the placeholder with its phase label', async () => {

@@ -1,18 +1,47 @@
 import { useOutletContext } from 'react-router-dom'
 
+import { VerificationBadge } from '../../../components/ui/VerificationBadge'
 import type { TearSheetContext } from '../index'
+
+function stringParam(params: Record<string, unknown>, key: string): string | null {
+  const value = params[key]
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function gitLabel(sha: string | null, dirty: boolean): string {
+  if (sha == null || sha.length === 0) return '—'
+  return dirty ? `${sha} (dirty)` : sha
+}
 
 export default function DataTab() {
   const { data } = useOutletContext<TearSheetContext>()
+  const { run, params, verification } = data
   const assumptions = data.execution_assumptions
+  const timeframe = stringParam(params, 'timeframe')
+  const benchmark = stringParam(params, 'benchmark_symbol')
 
   return (
     <div className="tear-sheet-tab">
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Data & Methodology</h2>
-        <div className="tear-sheet-tab__placeholder">
-          Full methodology header arrives in Phase U.3.2
-        </div>
+        <dl className="tear-sheet-tab__facts">
+          <dt>Strategy</dt>
+          <dd>{run.strategy}</dd>
+          <dt>Git SHA</dt>
+          <dd>{gitLabel(run.git_sha, run.git_dirty)}</dd>
+          <dt>Timeframe</dt>
+          <dd>{timeframe ?? '—'}</dd>
+          <dt>Fees</dt>
+          <dd>{`maker ${assumptions.maker_fee} · taker ${assumptions.taker_fee}`}</dd>
+          <dt>Benchmark</dt>
+          <dd>{benchmark ?? 'none'}</dd>
+          <dt>Verification</dt>
+          <dd>
+            <VerificationBadge verification={verification} />
+          </dd>
+        </dl>
       </section>
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Execution assumptions</h2>
