@@ -145,14 +145,38 @@ describe('TearSheet page', () => {
     })
   })
 
-  it('overview tab renders KPI cards and monthly heatmap', async () => {
+  it('overview tab renders the executive summary', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
-      expect(screen.getByRole('tab', { name: 'Returns', selected: true })).toBeInTheDocument()
-      expect(screen.getByText('CAGR')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Headline' })).toBeInTheDocument()
     })
+    expect(screen.getByRole('heading', { name: 'Secondary' })).toBeInTheDocument()
+    const headline = screen.getByRole('heading', { name: 'Headline' }).closest('section')
+    const secondary = screen.getByRole('heading', { name: 'Secondary' }).closest('section')
+    expect(headline).not.toBeNull()
+    expect(secondary).not.toBeNull()
+    for (const label of ['CAGR', 'Sharpe', 'Max DD']) {
+      expect(within(headline as HTMLElement).getByText(label)).toBeInTheDocument()
+    }
+    for (const label of [
+      'Sortino',
+      'Volatility',
+      'Calmar',
+      'Win Rate',
+      'Profit Factor',
+      'Trades',
+      'Avg Duration',
+      'Turnover',
+    ]) {
+      expect(within(secondary as HTMLElement).getByText(label)).toBeInTheDocument()
+    }
+    expect(screen.queryByRole('tab', { name: 'Returns' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Equity' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Underwater' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Monthly Returns' })).toBeInTheDocument()
+    expect(screen.getByText('No equity data for this run.')).toBeInTheDocument()
+    expect(screen.getByText('No drawdown data for this run.')).toBeInTheDocument()
   })
 
   it('performance tab renders price, equity and underwater sections', async () => {
