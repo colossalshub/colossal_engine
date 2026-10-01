@@ -12,10 +12,10 @@
 ```yaml
 current_phase: U.6
 current_phase_status: IN_PROGRESS
-current_task: U.6.4
+current_task: U.6.5
 current_task_status: READY
-next_task: U.6.5
-last_completed_task: U.6.3
+next_task: null
+last_completed_task: U.6.4
 last_completed_phase: 16.5
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -42,7 +42,7 @@ human_transition_required: false
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
-- **U.6 — IN PROGRESS (U.6.1–U.6.3 complete; U.6.4 READY)** (tear-sheet research workspace redesign)
+- **U.6 — IN PROGRESS (U.6.1–U.6.4 complete; U.6.5 READY)** (tear-sheet research workspace redesign)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -65,17 +65,17 @@ work.
 
 ### Current task
 
-**U.6.4 — Performance cleanup and Risk chart ownership — READY.** Remove
-Underwater from Performance. Preserve Price + Fills followed by the
-dominant equity chart; Risk becomes the sole home of Underwater.
+**U.6.5 — Data experiment identity and UTC range — READY.** Render a
+non-null experiment id and the UTC run date range. Omit the experiment
+row when null; preserve all existing methodology and assumption fields.
 
 ### U.6 tasks
 
 - [x] **U.6.1 — Risk tab component** — COMPLETE
 - [x] **U.6.2 — Risk route and eight-item navigation** — COMPLETE
 - [x] **U.6.3 — Overview KPI and chart cleanup** — COMPLETE
-- [ ] **U.6.4 — Performance cleanup and Risk chart ownership** — READY
-- [ ] **U.6.5 — Data experiment identity and UTC range** — NOT_STARTED
+- [x] **U.6.4 — Performance cleanup and Risk chart ownership** — COMPLETE
+- [ ] **U.6.5 — Data experiment identity and UTC range** — READY
 
 ### Phase 16.5 tasks
 
@@ -178,6 +178,35 @@ notes: |
   Reviewer re-ran all frontend acceptance commands after the test fix.
   No backend or scripts files changed, so pytest, ruff, and mypy were
   not re-run.
+```
+
+### U.6.4 completion evidence
+
+```yaml
+task_id: U.6.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/tabs/PerformanceTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_updated:
+  - Performance keeps Price + Fills followed by dominant equity
+  - Performance omits Underwater, whose route remains Risk
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "30 files, 205 passed"
+  build: "exit 0"
+git_commit_sha: 97cd298
+next_task: U.6.5
+deviations: []
+notes: |
+  Reviewer re-ran all frontend acceptance commands. No backend or
+  scripts files changed, so pytest, ruff, and mypy were not re-run.
 ```
 
 ### 16.5.6 completion evidence
