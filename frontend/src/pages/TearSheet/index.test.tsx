@@ -365,30 +365,34 @@ describe('TearSheet page', () => {
     expect(screen.queryByText(/gross P&L/i)).not.toBeInTheDocument()
   })
 
-  it('nav rail renders all seven items', async () => {
+  it('nav rail renders all eight items in research-review order', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     const nav = await screen.findByRole('navigation', { name: 'Tear sheet sections' })
     const links = within(nav).getAllByRole('link')
-    expect(links).toHaveLength(7)
-    for (const label of [
+    expect(links).toHaveLength(8)
+    const labels = [
       'Overview',
       'Performance',
       'Trades',
-      'Data',
+      'Risk',
       'Regimes',
-      'Robustness',
       'Execution',
-    ]) {
-      expect(within(nav).getByRole('link', { name: new RegExp('^' + label) })).toBeInTheDocument()
-    }
+      'Robustness',
+      'Data',
+    ]
+    expect(links.map((link) => link.textContent?.split('Phase')[0])).toEqual(labels)
+    expect(within(nav).getByRole('link', { name: 'Execution' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /^Regimes.*Phase 21/ })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /^Robustness.*Phase 18–20/ })).toBeInTheDocument()
   })
 
-  it('marks the active nav item', async () => {
+  it('routes to Risk and marks it as the active nav item', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
-    renderWithProviders(<App />, { route: '/runs/r-1/performance' })
+    renderWithProviders(<App />, { route: '/runs/r-1/risk' })
     const nav = await screen.findByRole('navigation', { name: 'Tear sheet sections' })
-    expect(within(nav).getByRole('link', { name: /^Performance/ })).toHaveClass(
+    expect(screen.getByRole('heading', { name: 'Risk metrics' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Risk' })).toHaveClass(
       'tear-sheet-nav__item--active',
     )
     expect(within(nav).getByRole('link', { name: /^Overview/ })).not.toHaveClass(

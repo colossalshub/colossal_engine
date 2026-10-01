@@ -11,10 +11,11 @@ const ITEMS: NavItem[] = [
   { to: 'overview', label: 'Overview' },
   { to: 'performance', label: 'Performance' },
   { to: 'trades', label: 'Trades' },
-  { to: 'data', label: 'Data' },
+  { to: 'risk', label: 'Risk' },
   { to: 'regimes', label: 'Regimes', planned: 'Phase 21' },
+  { to: 'execution', label: 'Execution' },
   { to: 'robustness', label: 'Robustness', planned: 'Phase 18–20' },
-  { to: 'execution', label: 'Execution', planned: 'Phase 15, 24' },
+  { to: 'data', label: 'Data' },
 ]
 
 export function TearSheetNav() {

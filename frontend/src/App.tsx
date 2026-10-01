@@ -10,6 +10,7 @@ import ExecutionTab from './pages/TearSheet/tabs/ExecutionTab'
 import OverviewTab from './pages/TearSheet/tabs/OverviewTab'
 import PerformanceTab from './pages/TearSheet/tabs/PerformanceTab'
 import PlaceholderTab from './pages/TearSheet/tabs/PlaceholderTab'
+import RiskTab from './pages/TearSheet/tabs/RiskTab'
 import TradesTab from './pages/TearSheet/tabs/TradesTab'
 
 export default function App() {
@@ -23,7 +24,7 @@ export default function App() {
           <Route path="overview" element={<OverviewTab />} />
           <Route path="performance" element={<PerformanceTab />} />
           <Route path="trades" element={<TradesTab />} />
-          <Route path="data" element={<DataTab />} />
+          <Route path="risk" element={<RiskTab />} />
           <Route
             path="regimes"
             element={
@@ -33,6 +34,7 @@ export default function App() {
               />
             }
           />
+          <Route path="execution" element={<ExecutionTab />} />
           <Route
             path="robustness"
             element={
@@ -42,7 +44,7 @@ export default function App() {
               />
             }
           />
-          <Route path="execution" element={<ExecutionTab />} />
+          <Route path="data" element={<DataTab />} />
         </Route>
         <Route path="/data" element={<DataManager />} />
       </Route>
