@@ -1,3 +1,38 @@
+.kpi-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.kpi-groups__tabs {
+  display: flex;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--border);
+}
+
+.kpi-groups__tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: var(--s-2) var(--s-3);
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.kpi-groups__tab:hover {
+  color: var(--text);
+}
+
+.kpi-groups__tab--active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
 .kpi-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

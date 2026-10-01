@@ -149,7 +149,8 @@ describe('TearSheet page', () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<App />, { route: '/runs/r-1/overview' })
     await waitFor(() => {
-      expect(screen.getByText('Sharpe')).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'Returns', selected: true })).toBeInTheDocument()
+      expect(screen.getByText('CAGR')).toBeInTheDocument()
     })
     expect(screen.getByRole('heading', { name: 'Monthly Returns' })).toBeInTheDocument()
   })
