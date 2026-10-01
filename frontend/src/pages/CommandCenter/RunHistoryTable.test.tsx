@@ -1,6 +1,6 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '../../App'
 import type { RunList, RunSummary, TearSheet } from '../../api/types'
@@ -77,6 +77,12 @@ const sampleTearsheet: TearSheet = {
 }
 
 describe('RunHistoryTable', () => {
+  beforeEach(() => {
+    // jsdom has no layout: give the real grid enough viewport width to render
+    // all columns without substituting a grid mock or captured definitions.
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(5000)
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -90,6 +96,96 @@ describe('RunHistoryTable', () => {
     await waitFor(() => {
       expect(screen.getByText('buy_hold BTC/USDT 1d')).toBeInTheDocument()
     })
+  })
+
+  it('renders metadata verbatim, nulls, mixed stages and experiments in API order', async () => {
+    const runs: RunSummary[] = [
+      {
+        ...sampleRun, run_id: 'explore', name: 'Exploratory trial',
+        experiment_id: '  exp-A  ', research_stage: 'exploration',
+        hypothesis_id: ' H/alpha ', strategy_version: ' v1+dirty ',
+        in_sample_start_ts: 1704067200123, in_sample_end_ts: 1704153600456,
+        validation_start_ts: 1704153600456, validation_end_ts: 1704240000789,
+        oos_start_ts: 1704240000789, oos_end_ts: 1704326400000,
+        trial_index: 7, trial_count: 3,
+      },
+      { ...sampleRun, run_id: 'validate', name: 'Validation trial', experiment_id: 'exp-B', research_stage: 'validation' },
+      { ...sampleRun, run_id: 'holdout', name: 'Holdout trial', experiment_id: '  exp-A  ', research_stage: 'oos' },
+      { ...sampleRun, run_id: 'legacy', name: 'Legacy run' },
+    ]
+    vi.spyOn(runsApi, 'listRuns').mockResolvedValue({ items: runs, total: 4, page: 1, page_size: 50 })
+    const { container } = renderWithProviders(<RunHistoryTable />)
+    await screen.findByText('Exploratory trial')
+    const rows = () => within(container).getAllByRole('row').filter((row) => row.hasAttribute('row-index'))
+    const cell = (row: Element, id: string) => row.querySelector(`[col-id="${id}"]`)
+    await waitFor(() => expect(rows()).toHaveLength(4))
+    expect(rows().map((row) => cell(row, 'name')?.textContent)).toEqual(runs.map((run) => run.name))
+    expect(Array.from(container.querySelectorAll('.ag-header-cell-text')).map((el) => el.textContent)).toEqual([
+      '', // Existing checkbox-selection column has no header text.
+      'Name', 'Experiment', 'Research Stage', 'Hypothesis', 'Strategy Version',
+      'In-sample UTC', 'Validation UTC', 'OOS UTC', 'Trial Index', 'Trial Count',
+      'Strategy', 'Created', 'Sharpe', 'CAGR', 'Max DD', 'Status',
+    ])
+    const populated = rows()[0]
+    for (const [id, value] of Object.entries({
+      experiment_id: '  exp-A  ', research_stage: 'Exploration', hypothesis_id: ' H/alpha ', strategy_version: ' v1+dirty ',
+      in_sample: '2024-01-01T00:00:00.123Z → 2024-01-02T00:00:00.456Z',
+      validation: '2024-01-02T00:00:00.456Z → 2024-01-03T00:00:00.789Z',
+      oos: '2024-01-03T00:00:00.789Z → 2024-01-04T00:00:00.000Z', trial_index: '7', trial_count: '3',
+      sharpe: '1.23', cagr: '15.0%', max_drawdown: '-8.0%', status: 'done', strategy: 'buy_hold', created_at: '2024-01-01',
+    })) expect(cell(populated, id)?.textContent).toBe(value)
+    expect(rows().map((row) => cell(row, 'research_stage')?.textContent)).toEqual(['Exploration', 'Validation', 'OOS', '—'])
+    expect(cell(rows()[1], 'experiment_id')?.textContent).toBe('exp-B')
+    expect(cell(rows()[2], 'experiment_id')?.textContent).toBe('  exp-A  ')
+    for (const id of ['experiment_id', 'research_stage', 'hypothesis_id', 'strategy_version', 'in_sample', 'validation', 'oos', 'trial_index', 'trial_count']) {
+      expect(cell(rows()[3], id)?.textContent).toBe('—')
+    }
+  })
+
+  it('preserves partial epoch endpoints, reversed and overlapping ranges and signed trial numbers', async () => {
+    const runs: RunSummary[] = [
+      { ...sampleRun, name: 'Partial ranges', in_sample_start_ts: 0, validation_end_ts: 0, oos_start_ts: -1, trial_index: 0, trial_count: -2 },
+      { ...sampleRun, run_id: 'reversed', name: 'Reversed ranges', research_stage: 'oos', in_sample_start_ts: 1000, in_sample_end_ts: 0, validation_start_ts: 0, validation_end_ts: 1000, oos_start_ts: 0, oos_end_ts: 1000, trial_index: -5, trial_count: 0 },
+    ]
+    vi.spyOn(runsApi, 'listRuns').mockResolvedValue({ items: runs, total: 2, page: 1, page_size: 50 })
+    const { container } = renderWithProviders(<RunHistoryTable />)
+    await screen.findByText('Partial ranges')
+    const rows = within(container).getAllByRole('row').filter((row) => row.hasAttribute('row-index'))
+    for (const [index, expected] of [
+      { in_sample: '1970-01-01T00:00:00.000Z → —', validation: '— → 1970-01-01T00:00:00.000Z', oos: '1969-12-31T23:59:59.999Z → —', trial_index: '0', trial_count: '-2' },
+      { in_sample: '1970-01-01T00:00:01.000Z → 1970-01-01T00:00:00.000Z', validation: '1970-01-01T00:00:00.000Z → 1970-01-01T00:00:01.000Z', oos: '1970-01-01T00:00:00.000Z → 1970-01-01T00:00:01.000Z', trial_index: '-5', trial_count: '0' },
+    ].entries()) {
+      for (const [id, value] of Object.entries(expected)) expect(rows[index].querySelector(`[col-id="${id}"]`)?.textContent).toBe(value)
+    }
+  })
+
+  it.each(['experiment_id', 'research_stage', 'hypothesis_id', 'strategy_version', 'in_sample', 'validation', 'oos', 'trial_index', 'trial_count'])('sorts the real grid by %s', async (id) => {
+    const user = userEvent.setup()
+    const runs: RunSummary[] = [
+      { ...sampleRun, name: 'Last', experiment_id: 'z', research_stage: 'validation', hypothesis_id: 'z', strategy_version: 'z', in_sample_start_ts: 1000, validation_start_ts: 1000, oos_start_ts: 1000, trial_index: 2, trial_count: 2 },
+      { ...sampleRun, run_id: 'first', name: 'First', experiment_id: 'a', research_stage: 'exploration', hypothesis_id: 'a', strategy_version: 'a', in_sample_start_ts: 0, validation_start_ts: 0, oos_start_ts: 0, trial_index: -1, trial_count: -1 },
+    ]
+    vi.spyOn(runsApi, 'listRuns').mockResolvedValue({ items: runs, total: 2, page: 1, page_size: 50 })
+    const { container } = renderWithProviders(<RunHistoryTable />)
+    await screen.findByText('Last')
+    const header = container.querySelector(`.ag-header-cell[col-id="${id}"]`)!
+    await user.click(within(header as HTMLElement).getByText(/.+/))
+    await waitFor(() => expect(container.querySelector('[role="row"][row-index="0"] [col-id="name"]')?.textContent).toBe('First'))
+    expect(header).toHaveAttribute('aria-sort', 'ascending')
+  })
+
+  it('selects distinct run IDs even for a shared experiment and stage', async () => {
+    const user = userEvent.setup()
+    const onSelectionChange = vi.fn()
+    const runs = [sampleRun, { ...sampleRun, run_id: 'r-2', name: 'Second run' }].map((run) => ({ ...run, experiment_id: 'same', research_stage: 'exploration' as const }))
+    vi.spyOn(runsApi, 'listRuns').mockResolvedValue({ items: runs, total: 2, page: 1, page_size: 50 })
+    const { container } = renderWithProviders(<RunHistoryTable onSelectionChange={onSelectionChange} />)
+    await screen.findByText('Second run')
+    for (const index of [0, 1]) {
+      const row = container.querySelector(`[role="row"][row-index="${index}"]`)!
+      await user.click(within(row as HTMLElement).getByRole('checkbox'))
+    }
+    await waitFor(() => expect(onSelectionChange).toHaveBeenLastCalledWith(['r-1', 'r-2']))
   })
 
   it('shows loading state initially', () => {

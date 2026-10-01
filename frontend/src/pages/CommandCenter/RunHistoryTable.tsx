@@ -10,6 +10,12 @@ import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
 import { useTheme } from '../../lib/theme'
 import '../../components/grid/agGridTheme.css'
 
+function formatResearchRange(start: number | null, end: number | null): string {
+  if (start === null && end === null) return '—'
+  const utc = (ts: number | null) => ts === null ? '—' : new Date(ts).toISOString()
+  return `${utc(start)} → ${utc(end)}`
+}
+
 const colDefs: ColDef<RunSummary>[] = [
   {
     checkboxSelection: true,
@@ -18,6 +24,43 @@ const colDefs: ColDef<RunSummary>[] = [
     pinned: 'left',
   },
   { field: 'name', headerName: 'Name', flex: 2, minWidth: 200 },
+  {
+    field: 'experiment_id', headerName: 'Experiment', minWidth: 160,
+    valueFormatter: (p) => p.value ?? '—',
+  },
+  {
+    field: 'research_stage', headerName: 'Research Stage', minWidth: 150,
+    valueFormatter: (p) => p.value === null ? '—' :
+      ({ exploration: 'Exploration', validation: 'Validation', oos: 'OOS' }[p.value as NonNullable<RunSummary['research_stage']>]),
+  },
+  {
+    field: 'hypothesis_id', headerName: 'Hypothesis', minWidth: 160,
+    valueFormatter: (p) => p.value ?? '—',
+  },
+  {
+    field: 'strategy_version', headerName: 'Strategy Version', minWidth: 160,
+    valueFormatter: (p) => p.value ?? '—',
+  },
+  {
+    colId: 'in_sample', headerName: 'In-sample UTC', minWidth: 430,
+    valueGetter: (p) => p.data ? formatResearchRange(p.data.in_sample_start_ts, p.data.in_sample_end_ts) : '—',
+  },
+  {
+    colId: 'validation', headerName: 'Validation UTC', minWidth: 430,
+    valueGetter: (p) => p.data ? formatResearchRange(p.data.validation_start_ts, p.data.validation_end_ts) : '—',
+  },
+  {
+    colId: 'oos', headerName: 'OOS UTC', minWidth: 430,
+    valueGetter: (p) => p.data ? formatResearchRange(p.data.oos_start_ts, p.data.oos_end_ts) : '—',
+  },
+  {
+    field: 'trial_index', headerName: 'Trial Index', type: 'numericColumn', minWidth: 120,
+    valueFormatter: (p) => p.value === null ? '—' : String(p.value),
+  },
+  {
+    field: 'trial_count', headerName: 'Trial Count', type: 'numericColumn', minWidth: 120,
+    valueFormatter: (p) => p.value === null ? '—' : String(p.value),
+  },
   { field: 'strategy', headerName: 'Strategy', flex: 1, minWidth: 120 },
   {
     field: 'created_at',
