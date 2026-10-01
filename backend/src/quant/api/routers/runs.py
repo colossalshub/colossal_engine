@@ -143,6 +143,17 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
         cagr=cagr,
         max_drawdown=max_drawdown,
         experiment_id=row["experiment_id"],
+        research_stage=row["research_stage"],
+        hypothesis_id=row["hypothesis_id"],
+        strategy_version=row["strategy_version"],
+        in_sample_start_ts=row["in_sample_start_ts"],
+        in_sample_end_ts=row["in_sample_end_ts"],
+        validation_start_ts=row["validation_start_ts"],
+        validation_end_ts=row["validation_end_ts"],
+        oos_start_ts=row["oos_start_ts"],
+        oos_end_ts=row["oos_end_ts"],
+        trial_index=row["trial_index"],
+        trial_count=row["trial_count"],
     )
 
 
@@ -185,7 +196,11 @@ def list_runs(
         rows = db.execute(
             f"""
             SELECT run_id, name, strategy, universe, start_ts, end_ts, created_at,
-                   git_sha, git_dirty, status, metrics, experiment_id
+                   git_sha, git_dirty, status, metrics, experiment_id,
+                   research_stage, hypothesis_id, strategy_version,
+                   in_sample_start_ts, in_sample_end_ts,
+                   validation_start_ts, validation_end_ts,
+                   oos_start_ts, oos_end_ts, trial_index, trial_count
             FROM meta_runs{where_sql}
             ORDER BY created_at DESC, run_id ASC
             LIMIT ? OFFSET ?
@@ -442,7 +457,10 @@ def get_tearsheet(
         """
         SELECT run_id, name, strategy, universe, start_ts, end_ts, created_at,
                git_sha, git_dirty, status, params, metrics, artifacts,
-               experiment_id
+               experiment_id, research_stage, hypothesis_id, strategy_version,
+               in_sample_start_ts, in_sample_end_ts,
+               validation_start_ts, validation_end_ts,
+               oos_start_ts, oos_end_ts, trial_index, trial_count
         FROM meta_runs
         WHERE run_id = ?
         """,
@@ -721,6 +739,17 @@ def create_run(
         metrics={},
         artifacts={},
         experiment_id=payload.experiment_id,
+        research_stage=payload.research_stage,
+        hypothesis_id=payload.hypothesis_id,
+        strategy_version=payload.strategy_version,
+        in_sample_start_ts=payload.in_sample_start_ts,
+        in_sample_end_ts=payload.in_sample_end_ts,
+        validation_start_ts=payload.validation_start_ts,
+        validation_end_ts=payload.validation_end_ts,
+        oos_start_ts=payload.oos_start_ts,
+        oos_end_ts=payload.oos_end_ts,
+        trial_index=payload.trial_index,
+        trial_count=payload.trial_count,
     )
 
     insert_run_with_connection(db, record)
@@ -740,4 +769,15 @@ def create_run(
         cagr=None,
         max_drawdown=None,
         experiment_id=payload.experiment_id,
+        research_stage=payload.research_stage,
+        hypothesis_id=payload.hypothesis_id,
+        strategy_version=payload.strategy_version,
+        in_sample_start_ts=payload.in_sample_start_ts,
+        in_sample_end_ts=payload.in_sample_end_ts,
+        validation_start_ts=payload.validation_start_ts,
+        validation_end_ts=payload.validation_end_ts,
+        oos_start_ts=payload.oos_start_ts,
+        oos_end_ts=payload.oos_end_ts,
+        trial_index=payload.trial_index,
+        trial_count=payload.trial_count,
     )

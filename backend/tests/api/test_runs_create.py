@@ -16,6 +16,20 @@ from fastapi.testclient import TestClient
 from quant.api.routers.runs import router
 from quant.data.runs_store import init_runs_schema
 
+_RESEARCH_METADATA: dict[str, str | int] = {
+    "research_stage": "oos",
+    "hypothesis_id": "hyp-017",
+    "strategy_version": "buy-hold-v2",
+    "in_sample_start_ts": 1_577_836_800_000,
+    "in_sample_end_ts": 1_609_459_200_000,
+    "validation_start_ts": 1_609_459_200_001,
+    "validation_end_ts": 1_640_995_200_000,
+    "oos_start_ts": 1_640_995_200_001,
+    "oos_end_ts": 1_672_531_200_000,
+    "trial_index": 3,
+    "trial_count": 12,
+}
+
 
 @pytest.fixture
 def db_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
@@ -272,6 +286,38 @@ def test_list_runs_includes_experiment_id(client: TestClient) -> None:
     assert len(items) == 2
     assert all("experiment_id" in item for item in items)
     assert {item["experiment_id"] for item in items} == {"exp-001", None}
+
+
+def test_research_metadata_round_trips_through_create_list_and_tearsheet(
+    client: TestClient, db_path: Path
+) -> None:
+    response = client.post(
+        "/api/runs",
+        json=_valid_payload(experiment_id="exp-research", **_RESEARCH_METADATA),
+    )
+    assert response.status_code == 201
+    created = response.json()
+    assert created["experiment_id"] == "exp-research"
+    assert {field: created[field] for field in _RESEARCH_METADATA} == (
+        _RESEARCH_METADATA
+    )
+
+    row = _fetch_run(db_path, created["run_id"])
+    assert {field: row[field] for field in _RESEARCH_METADATA} == _RESEARCH_METADATA
+
+    list_response = client.get("/api/runs")
+    assert list_response.status_code == 200
+    listed = list_response.json()["items"][0]
+    assert {field: listed[field] for field in _RESEARCH_METADATA} == (
+        _RESEARCH_METADATA
+    )
+
+    tearsheet_response = client.get(f"/api/runs/{created['run_id']}/tearsheet")
+    assert tearsheet_response.status_code == 200
+    tearsheet_run = tearsheet_response.json()["run"]
+    assert {field: tearsheet_run[field] for field in _RESEARCH_METADATA} == (
+        _RESEARCH_METADATA
+    )
 
 
 def test_create_run_deterministic_strategy_seed_is_null(
