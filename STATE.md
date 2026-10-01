@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.3
+current_task: 17.4
 current_task_status: READY
-next_task: 17.4
-last_completed_task: 17.2
+next_task: 17.5
+last_completed_task: 17.3
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,16 +66,16 @@ work.
 
 ### Current task
 
-**17.3 — Research metadata API transport** — READY. Wire the persisted
-research metadata through the API creation and response paths without adding
-CLI or frontend behavior.
+**17.4 — Backtest CLI research metadata inputs** — READY. Add explicit
+research metadata inputs to the backtest CLI path without adding frontend or
+later display behavior.
 
 ### Phase 17 tasks
 
 - [x] **17.1 — Research metadata persistence contract** — COMPLETE
 - [x] **17.2 — Research metadata API schemas** — COMPLETE
-- [ ] **17.3 — Research metadata API transport** — READY
-- [ ] **17.4 — Backtest CLI research metadata inputs** — NOT_STARTED
+- [x] **17.3 — Research metadata API transport** — COMPLETE
+- [ ] **17.4 — Backtest CLI research metadata inputs** — READY
 - [ ] **17.5 — Frontend research metadata wire types** — NOT_STARTED
 - [ ] **17.6 — Research metadata creation controls** — NOT_STARTED
 - [ ] **17.7 — Research-aware run history** — NOT_STARTED
@@ -175,6 +175,42 @@ notes: |
   The implementation changes only API schema contracts and their direct
   tests. No API transport wiring, frontend, optimizer, or Phase 18
   validation behavior is included.
+```
+
+### 17.3 completion evidence
+
+```yaml
+task_id: 17.3
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - backend/src/quant/api/routers/runs.py
+  - backend/tests/api/test_runs_create.py
+tests_added_or_updated:
+  - research metadata round-trips through run creation and persistence
+  - run-list responses preserve all research metadata
+  - tear-sheet run summaries preserve all research metadata
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "436 passed, 81 warnings"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+  diff_check: "exit 0"
+  status: "clean"
+git_commit_sha: fa311a4
+next_task: 17.4
+deviations: []
+notes: |
+  Reviewer independently re-ran every whole-tree acceptance command
+  without retries. All eleven research metadata fields flow through the
+  API create, list, and tear-sheet paths. No CLI, frontend, optimizer, or
+  Phase 18 validation behavior is included.
 ```
 
 ### U.6.1 completion evidence
