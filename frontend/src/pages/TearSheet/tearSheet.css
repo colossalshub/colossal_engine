@@ -91,6 +91,7 @@
 .tear-sheet__meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--s-2);
   font-size: var(--fs-sm);
   color: var(--text-dim);

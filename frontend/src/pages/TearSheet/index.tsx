@@ -3,20 +3,15 @@ import { Link, Outlet, useParams } from 'react-router-dom'
 
 import { getTearsheet } from '../../api/runs'
 import type { RunStatus, TearSheet as TearSheetData } from '../../api/types'
-import { Badge } from '../../components/ui/Badge'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorDisplay } from '../../components/ui/ErrorDisplay'
-import { VerificationBadge } from '../../components/ui/VerificationBadge'
+import { ExperimentHeader } from './ExperimentHeader'
 import { TearSheetNav } from './TearSheetNav'
 import './tearSheet.css'
 
 export interface TearSheetContext {
   data: TearSheetData
   runId: string
-}
-
-function formatDate(tsMs: number): string {
-  return new Date(tsMs).toISOString().slice(0, 10)
 }
 
 function emptyStateForStatus(status: RunStatus): { icon: string; message: string } {
@@ -85,55 +80,11 @@ export default function TearSheetLayout() {
 
   return (
     <div className="tear-sheet">
-      <header className="tear-sheet__header">
-        <div className="tear-sheet__header-row">
-          <Link to="/" className="tear-sheet__back">← Back</Link>
-          <h1 className="tear-sheet__name">{run.name}</h1>
-          <Badge status={run.status} />
-          <VerificationBadge verification={data.verification} />
-        </div>
-        <div className="tear-sheet__meta">
-          <span>{run.universe[0]}</span>
-          {run.universe.length > 1 ? (
-            <>
-              <span className="tear-sheet__meta-sep">·</span>
-              <span className="tear-sheet__meta-mono">
-                only first symbol executed
-              </span>
-            </>
-          ) : null}
-          <span className="tear-sheet__meta-sep">·</span>
-          <span>
-            {formatDate(run.start_ts)} → {formatDate(run.end_ts)}
-          </span>
-          {typeof data.params.maker_fee === 'string' ? (
-            <>
-              <span className="tear-sheet__meta-sep">·</span>
-              <span className="tear-sheet__meta-mono">
-                fees {((parseFloat(data.params.maker_fee) || 0) * 100).toFixed(2)}%
-              </span>
-            </>
-          ) : null}
-          {typeof data.params.benchmark_symbol === 'string' &&
-          data.params.benchmark_symbol ? (
-            <>
-              <span className="tear-sheet__meta-sep">·</span>
-              <span className="tear-sheet__meta-mono">
-                benchmark {data.params.benchmark_symbol}
-              </span>
-            </>
-          ) : null}
-          {run.git_sha ? (
-            <>
-              <span className="tear-sheet__meta-sep">·</span>
-              <span className="tear-sheet__meta-mono">
-                git {run.git_sha.slice(0, 7)}
-                {run.git_dirty ? ' (dirty)' : ''}
-              </span>
-            </>
-          ) : null}
-        </div>
-      </header>
+      <ExperimentHeader
+        run={run}
+        params={data.params}
+        verification={data.verification}
+      />
 
       {showWorkspace ? (
         <div className="tear-sheet__body">
