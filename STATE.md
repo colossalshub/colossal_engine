@@ -10,15 +10,15 @@
 ## 1. Current State
 
 ```yaml
-current_phase: U.6
-current_phase_status: COMPLETE
-current_task: null
-current_task_status: null
-next_task: null
+current_phase: 17
+current_phase_status: IN_PROGRESS
+current_task: 17.1
+current_task_status: READY
+next_task: 17.2
 last_completed_task: U.6.5
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: true
+human_transition_required: false
 ```
 
 ### Phase status
@@ -43,8 +43,8 @@ human_transition_required: true
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
 - **U.6 — COMPLETE (U.6.1–U.6.5)** (tear-sheet research workspace redesign)
-- Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
-  explicitly committed or deferred after Phase 16)
+- **Phase 17 — IN PROGRESS** (research experiment foundation)
+- Phase 18–29 — BACKLOG (research-platform ambitions)
 
 > Phase 0–11 status above is the recorded project state from the latest research-integrity audit context. If repository evidence contradicts this state, STOP and report the conflict rather than silently changing this file.
 
@@ -52,9 +52,10 @@ human_transition_required: true
 
 ## 2. Current Objective
 
-U.6 is complete. The presentation-only redesign in `docs/specs/U6.md`
-shipped without API or backend changes. Phase 17 remains unopened and
-there is no current objective.
+Build the Phase 17 research experiment foundation so exploratory trials
+and designated validation/OOS runs carry explicit, durable identity.
+This phase records research metadata without adding an optimizer or the
+temporal enforcement rules reserved for Phase 18.
 
 Older per-task evidence blocks (12.1 through 16.5.5), the stray Phase
 12.1 notes, the Phase 12 non-goals list, and the Phase 0–11 audit's
@@ -65,8 +66,23 @@ work.
 
 ### Current task
 
-None. U.6 is complete and Phase 17 is not started. Do not invent a
-Phase 17 task split.
+**17.1 — Research metadata persistence contract** — READY. Extend
+`meta_runs` and `RunRecord` with nullable research stage, hypothesis,
+strategy-version, IS/validation/OOS range, and trial index/count fields.
+Preserve the existing `params`, `data_snapshot`, `git_sha`, and
+`experiment_id` identities. Migrate legacy databases in place and prove
+fresh-schema, migration, insert, and worker-claim round trips.
+
+### Phase 17 tasks
+
+- [ ] **17.1 — Research metadata persistence contract** — READY
+- [ ] **17.2 — Research metadata API schemas** — NOT_STARTED
+- [ ] **17.3 — Research metadata API transport** — NOT_STARTED
+- [ ] **17.4 — Backtest CLI research metadata inputs** — NOT_STARTED
+- [ ] **17.5 — Frontend research metadata wire types** — NOT_STARTED
+- [ ] **17.6 — Research metadata creation controls** — NOT_STARTED
+- [ ] **17.7 — Research-aware run history** — NOT_STARTED
+- [ ] **17.8 — Tear-sheet research identity display** — NOT_STARTED
 
 ### U.6 tasks
 
