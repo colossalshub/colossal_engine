@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.5
+current_task: 17.6
 current_task_status: READY
-next_task: 17.6
-last_completed_task: 17.4
+next_task: 17.7
+last_completed_task: 17.5
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,9 +66,10 @@ work.
 
 ### Current task
 
-**17.5 — Frontend research metadata wire types** — READY. Add the persisted
-research metadata fields to the frontend wire contracts without adding
-creation controls, history presentation, or tear-sheet display behavior.
+**17.6 — Research metadata creation controls** — READY. Add creation
+controls for the persisted research metadata using the accepted frontend
+wire contracts. History presentation and tear-sheet research identity
+display remain separate tasks.
 
 ### Phase 17 tasks
 
@@ -76,8 +77,8 @@ creation controls, history presentation, or tear-sheet display behavior.
 - [x] **17.2 — Research metadata API schemas** — COMPLETE
 - [x] **17.3 — Research metadata API transport** — COMPLETE
 - [x] **17.4 — Backtest CLI research metadata inputs** — COMPLETE
-- [ ] **17.5 — Frontend research metadata wire types** — READY
-- [ ] **17.6 — Research metadata creation controls** — NOT_STARTED
+- [x] **17.5 — Frontend research metadata wire types** — COMPLETE
+- [ ] **17.6 — Research metadata creation controls** — READY
 - [ ] **17.7 — Research-aware run history** — NOT_STARTED
 - [ ] **17.8 — Tear-sheet research identity display** — NOT_STARTED
 
@@ -248,6 +249,56 @@ notes: |
   re-ran every whole-tree backend acceptance command. Research metadata
   remains separate from strategy params. The task adds metadata inputs only;
   it does not add frontend behavior or Phase 18 temporal enforcement.
+```
+
+### 17.5 completion evidence
+
+```yaml
+task_id: 17.5
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - frontend/src/api/types.ts
+  - frontend/src/api/runs.test.ts
+  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
+  - frontend/src/pages/CommandCenter/StrategyForm.test.tsx
+  - frontend/src/pages/Compare/index.test.tsx
+  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added_or_updated:
+  - populated and explicit-null metadata remains top-level in create requests
+  - omitted request metadata is supported and response metadata is explicitly null
+  - run-list and tear-sheet responses preserve populated and null research metadata
+  - incomplete RunSummary metadata is rejected at compile time
+  - exploration, validation, and oos typecheck while unsupported stage literals fail
+  - five existing RunSummary fixtures explicitly provide all eleven nullable fields
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+  - git diff --check
+  - git status --short
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "Test Files  30 passed (30); Tests  215 passed (215)"
+  build: "142 modules transformed; built in 387ms; exit 0"
+  diff_check: "exit 0"
+  status: "clean"
+git_commit_sha: e2ea48089cd63bd7a1115e49542b584bfe13d679
+next_task: 17.6
+deviations:
+  - "Human approved amendment and expansion to five existing response fixture files so RunSummary fields remain required nullable."
+notes: |
+  Fresh independent reviewer inspected the full seven-file committed diff
+  and re-ran every whole-tree frontend acceptance command from the repo
+  root using PowerShell Push-Location/Pop-Location and preserved exit codes.
+  The eleven new RunSummary fields are required nullable; RunCreate metadata
+  is optional nullable. Existing API helpers are unchanged. No runtime
+  component, dependency, optimizer, or Phase 18 temporal enforcement changed.
+  The production build reported the existing large-chunk advisory. No backend
+  or scripts files changed; pytest, ruff, and mypy were not re-run under
+  WORKFLOW.md section 5 path-scoped acceptance.
 ```
 
 ### U.6.1 completion evidence
