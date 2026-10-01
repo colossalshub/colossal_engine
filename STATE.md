@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.7
+current_task: 17.8
 current_task_status: READY
-next_task: 17.8
-last_completed_task: 17.6
+next_task: null
+last_completed_task: 17.7
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,9 +66,9 @@ work.
 
 ### Current task
 
-**17.7 — Research-aware run history** — READY. Present persisted research
-metadata in run history using the accepted frontend wire contracts.
-Tear-sheet research identity display remains a separate task.
+**17.8 — Tear-sheet research identity display** — READY. Present persisted
+research metadata on the tear sheet using the accepted frontend wire
+contracts. Research-aware run history is accepted.
 
 ### Phase 17 tasks
 
@@ -78,8 +78,8 @@ Tear-sheet research identity display remains a separate task.
 - [x] **17.4 — Backtest CLI research metadata inputs** — COMPLETE
 - [x] **17.5 — Frontend research metadata wire types** — COMPLETE
 - [x] **17.6 — Research metadata creation controls** — COMPLETE
-- [ ] **17.7 — Research-aware run history** — READY
-- [ ] **17.8 — Tear-sheet research identity display** — NOT_STARTED
+- [x] **17.7 — Research-aware run history** — COMPLETE
+- [ ] **17.8 — Tear-sheet research identity display** — READY
 
 ### U.6 tasks
 
@@ -346,6 +346,66 @@ notes: |
   No backend or scripts files changed; pytest, ruff, and mypy were not
   rerun under WORKFLOW.md section 5 path-scoped acceptance. Phase 17
   remains IN_PROGRESS; task 17.7 is opened but not implemented.
+```
+
+### 17.7 completion evidence
+
+```yaml
+task_id: 17.7
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - frontend/src/pages/CommandCenter/RunHistoryTable.tsx
+  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
+tests_added_or_updated:
+  - real grid renders exact column order and populated and null metadata
+  - mixed experiments and all three stages remain in API order
+  - strings preserve whitespace and UTC ranges preserve full milliseconds
+  - partial endpoints, epoch zero, reversed and overlapping ranges remain visible
+  - trial zero, negative values and index greater than count remain exact
+  - all nine research columns sort through real grid header interactions
+  - shared experiment and stage retain distinct selected run IDs
+  - existing loading, empty, error, polling and double-click navigation tests remain
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+  - git diff --check
+  - git status --short
+acceptance_output:
+  tsc: "npm notice run frontend@0.0.0 npx; npm notice run tsc -b; exit 0"
+  vitest: "Test Files  30 passed (30); Tests  254 passed (254); Duration  14.08s; exit 0"
+  build: "142 modules transformed; built in 379ms; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean"
+git_commit_sha: a7dff301b1c008168ef29398bde4524109fc786c
+next_task: 17.8
+deviations:
+  - "Supplementary whole-tree npx vitest run --retry=0 probe: 2 failed files, 28 passed; 2 failed tests, 252 passed; duration 13.46s; exit 1. This was not a required acceptance command."
+notes: |
+  Fresh independent reviewer inspected the full two-file committed diff
+  against the task prompt, accepted wire types and backend schemas, then
+  reran every required frontend acceptance command from the repository root
+  using PowerShell Push-Location/Pop-Location with preserved exit codes.
+  Required acceptance passed on its first invocation. No inferred research
+  validity, filtering, grouping, Phase 18 enforcement or tear-sheet work was
+  added. Existing query, navigation, theme and KPI behavior is unchanged.
+  Earlier debugging attempts corrected grid header selectors and the blank
+  selection-column header expectation; final assertions verify exact DOM
+  values and real sorting rather than weakening the behavior checks.
+  To audit I-013, the reviewer additionally disabled retries for one full
+  suite probe. RunHistoryTable > renders rows when data loads and
+  TradeLedger > renders rows when data loads timed out finding their row
+  text; failure DOM showed hidden grid containers and empty headers. Both
+  assertions predate this task and are unchanged. All metadata-specific
+  tests passed. frontend-tooling.md and original commit dfaafcb explicitly
+  authorize retry: 2 for parallel AG Grid jsdom layout timing; this task
+  does not change that setting. The supplemental failures are retained here,
+  not reported as green or hidden behind a rerun. Production build reported
+  the existing large-chunk advisory. No backend or scripts files changed;
+  pytest, ruff and mypy were not rerun under WORKFLOW.md section 5.
+  Phase 17 remains IN_PROGRESS; task 17.8 is opened but not implemented.
 ```
 
 ### U.6.1 completion evidence
