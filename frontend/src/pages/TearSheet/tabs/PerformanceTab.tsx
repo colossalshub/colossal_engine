@@ -13,16 +13,14 @@ export default function PerformanceTab() {
         <h2 className="tear-sheet-tab__heading">Price + Fills</h2>
         <PriceChart data={data.price} markers={data.markers} />
       </section>
-      <div className="tear-sheet-tab__grid-2">
-        <section className="tear-sheet-tab__section">
-          <h2 className="tear-sheet-tab__heading">Equity</h2>
-          <EquityCurve data={data.equity} />
-        </section>
-        <section className="tear-sheet-tab__section">
-          <h2 className="tear-sheet-tab__heading">Underwater</h2>
-          <DrawdownChart data={data.drawdown} />
-        </section>
-      </div>
+      <section className="tear-sheet-tab__section">
+        <h2 className="tear-sheet-tab__heading">Equity</h2>
+        <EquityCurve data={data.equity} height={420} />
+      </section>
+      <section className="tear-sheet-tab__section">
+        <h2 className="tear-sheet-tab__heading">Underwater</h2>
+        <DrawdownChart data={data.drawdown} height={280} />
+      </section>
     </div>
   )
 }

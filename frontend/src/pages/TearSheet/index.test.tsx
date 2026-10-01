@@ -6,6 +6,12 @@ import type { TearSheet } from '../../api/types'
 import { renderWithProviders } from '../../test-utils'
 import App from '../../App'
 
+vi.mock('../../components/charts/BaseChart', () => ({
+  BaseChart: ({ height }: { height: number }) => (
+    <div className="base-chart" style={{ height }} />
+  ),
+}))
+
 class ResizeObserverStub implements ResizeObserver {
   observe(): void {}
   unobserve(): void {}
@@ -179,14 +185,30 @@ describe('TearSheet page', () => {
     expect(screen.getByText('No drawdown data for this run.')).toBeInTheDocument()
   })
 
-  it('performance tab renders price, equity and underwater sections', async () => {
-    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+  it('performance tab renders price, then a dominant equity chart, then underwater', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      price: [{ ts: 1704067200000, open: 1, high: 2, low: 1, close: 1.5, volume: 1 }],
+      equity: [{ ts: 1704067200000, equity: 100, benchmark: null }],
+      drawdown: [{ ts: 1704067200000, dd: -0.1 }],
+    })
     renderWithProviders(<App />, { route: '/runs/r-1/performance' })
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Price + Fills' })).toBeInTheDocument()
     })
-    expect(screen.getByRole('heading', { name: 'Equity' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Underwater' })).toBeInTheDocument()
+    const price = screen.getByRole('heading', { name: 'Price + Fills' })
+    const equity = screen.getByRole('heading', { name: 'Equity' })
+    const underwater = screen.getByRole('heading', { name: 'Underwater' })
+    expect(price.compareDocumentPosition(equity) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(equity.compareDocumentPosition(underwater) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(equity.closest('section')?.parentElement).not.toHaveClass('tear-sheet-tab__grid-2')
+    expect(underwater.closest('section')?.parentElement).not.toHaveClass('tear-sheet-tab__grid-2')
+    const charts = document.querySelectorAll('.base-chart')
+    expect(charts).toHaveLength(3)
+    expect(charts[0]).toHaveStyle({ height: '420px' })
+    expect(charts[1]).toHaveStyle({ height: '420px' })
+    expect(charts[2]).toHaveStyle({ height: '280px' })
+    expect(screen.queryByText(/rolling/i)).not.toBeInTheDocument()
   })
 
   it('trades tab renders the trade ledger', async () => {
