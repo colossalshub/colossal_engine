@@ -11,14 +11,14 @@
 
 ```yaml
 current_phase: 16.5
-current_phase_status: IN_PROGRESS
-current_task: 16.5.6
-current_task_status: READY
+current_phase_status: COMPLETE
+current_task: null
+current_task_status: null
 next_task: null
-last_completed_task: 16.5.5
-last_completed_phase: 16
+last_completed_task: 16.5.6
+last_completed_phase: 16.5
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: false
+human_transition_required: true
 ```
 
 ### Phase status
@@ -41,7 +41,7 @@ human_transition_required: false
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
-- **Phase 16.5 — IN_PROGRESS (16.5.6 READY)** (tear-sheet research report UI; not Phase 17)
+- **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -80,50 +80,7 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-**16.5.6 — Honest unavailable sections** — READY
-
-The human authorized Phase 16.5 on 2026-10-01 instead of opening Phase 17. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
-
-Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.6 only. On 2026-10-01 the human authorized the same agent to review a task after re-running its acceptance commands, then continue.
-
-**16.5.6 goal.** Regimes and Robustness stay empty of fabricated analysis. The Execution tab shows the assumption strings already on the tear sheet, not a cost breakdown.
-
-Regimes copy: "Not available for this run. No regime classification is attached to this result."
-
-Robustness copy: "No robustness analysis is attached to this run."
-
-Do not add a classifier, sensitivity run, walk-forward, bootstrap, Monte Carlo, or a score.
-
-Execution renders every string on `execution_assumptions`, verbatim, with these labels:
-
-- Bar time, Nautilus bar event, Signal and order, Order type, Sizing price
-- Maker fee, Taker fee, Default maker fee, Default taker fee
-- Fill model, Latency, Spread, Queue, Partial fills
-- Equity time, Fill time, Marker time, Fill included in equity
-
-Do not sum fees. Do not invent gross P&L, net P&L, funding, or a slippage amount. When `execution_assumptions` is missing, show "Execution assumptions are not on this response." once. Leave the Data tab as it is.
-
-**Deliverables**
-
-- `frontend/src/pages/TearSheet/tabs/ExecutionTab.tsx`
-- `frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx`
-- `frontend/src/App.tsx`
-- `frontend/src/pages/TearSheet/tabs/PlaceholderTab.tsx` only if the regimes and robustness copy cannot be passed in as it stands
-- `frontend/src/pages/TearSheet/index.test.tsx` (the regimes test currently expects the Phase 21 label)
-
-**Acceptance**
-
-- `cd frontend && npx tsc -b`
-- `cd frontend && npx vitest run`
-- `cd frontend && npm run build`
-
-**Commit**
-
-`git add frontend/src/pages/TearSheet/tabs/ExecutionTab.tsx frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx frontend/src/App.tsx frontend/src/pages/TearSheet/tabs/PlaceholderTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
-
-Omit `PlaceholderTab.tsx` from that line if this task does not change it.
-
-`feat(ui): show honest unavailable tear sheet sections (Phase 16.5.6)`
+None. Phase 16.5 is complete. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
 
 ### Phase 16.5 tasks
 
@@ -132,7 +89,7 @@ Omit `PlaceholderTab.tsx` from that line if this task does not change it.
 - [x] **16.5.3 — Performance investigation layout** — COMPLETE. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
 - [x] **16.5.4 — Trades summary** — COMPLETE. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
 - [x] **16.5.5 — Data methodology layout** — COMPLETE. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
-- [ ] **16.5.6 — Honest unavailable sections** — READY. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
+- [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
 
@@ -1040,6 +997,48 @@ notes: |
   one missing sentence. No venue, strategy version, or dataset identity
   was added. Vite still prints the existing chunk-size warning. The
   build exits 0. Phase 17 is not started.
+```
+
+### 16.5.6 completion evidence
+
+```yaml
+task_id: 16.5.6
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/tabs/ExecutionTab.tsx
+  - frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx
+  - frontend/src/App.tsx
+  - frontend/src/pages/TearSheet/tabs/PlaceholderTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx (2)
+  - frontend/src/pages/TearSheet/index.test.tsx::robustness tab says no analysis is attached
+  - frontend/src/pages/TearSheet/index.test.tsx::execution tab shows assumption strings from the tear sheet
+tests_updated:
+  - frontend/src/pages/TearSheet/index.test.tsx::regimes tab says classification is not attached
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "29 files, 203 passed"
+  build: "exit 0"
+git_commit_sha: aa0aaff7c21011f3301d97c467f8e7f91dc2007f
+next_task: null
+deviations:
+  - "PlaceholderTab now takes the unavailable sentence directly. The old phase template could not show the required copy."
+  - "A non-object assumptions value, or one whose maker_fee is not a string, uses the same missing sentence as the Data tab."
+  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build on aa0aaff.
+  Regimes and Robustness show the unavailable sentences and no
+  fabricated analysis. Execution lists every assumption string
+  verbatim. Fees are not summed. A missing assumptions object shows
+  the missing sentence once. The Data tab was not changed. Phase 17
+  is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
