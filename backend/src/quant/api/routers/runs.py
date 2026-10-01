@@ -395,6 +395,10 @@ def _execution_assumptions_for_params(params: dict[str, Any]) -> ExecutionAssump
         spread=pins.spread,
         queue_model=pins.queue_model,
         partial_fills=pins.partial_fills,
+        equity_ts=pins.equity_ts,
+        fill_ts=pins.fill_ts,
+        marker_ts=pins.marker_ts,
+        fill_included_in_equity=pins.fill_included_in_equity,
     )
 
 

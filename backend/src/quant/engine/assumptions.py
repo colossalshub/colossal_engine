@@ -19,6 +19,10 @@ class ExecutionAssumptions:
     spread: str
     queue_model: str
     partial_fills: str
+    equity_ts: str
+    fill_ts: str
+    marker_ts: str
+    fill_included_in_equity: str
 
 
 CURRENT_ASSUMPTIONS = ExecutionAssumptions(
@@ -34,4 +38,8 @@ CURRENT_ASSUMPTIONS = ExecutionAssumptions(
     spread="not_passed",
     queue_model="not_passed",
     partial_fills="not_passed",
+    equity_ts="open_then_each_close",
+    fill_ts="bar_close",
+    marker_ts="fill",
+    fill_included_in_equity="same_timestamp",
 )

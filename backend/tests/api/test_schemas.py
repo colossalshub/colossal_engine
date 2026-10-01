@@ -143,6 +143,10 @@ def _execution_assumptions_dict() -> dict[str, Any]:
         "spread": "not_passed",
         "queue_model": "not_passed",
         "partial_fills": "not_passed",
+        "equity_ts": "open_then_each_close",
+        "fill_ts": "bar_close",
+        "marker_ts": "fill",
+        "fill_included_in_equity": "same_timestamp",
     }
 
 
@@ -287,6 +291,10 @@ def test_tear_sheet_constructs() -> None:
     assert len(sheet.monthly_returns[0].months) == 12
     assert sheet.execution_assumptions.maker_fee == "0.001"
     assert sheet.execution_assumptions.bar_ts == "open"
+    assert sheet.execution_assumptions.equity_ts == "open_then_each_close"
+    assert sheet.execution_assumptions.fill_ts == "bar_close"
+    assert sheet.execution_assumptions.marker_ts == "fill"
+    assert sheet.execution_assumptions.fill_included_in_equity == "same_timestamp"
 
 
 def test_execution_assumptions_extra_field_forbidden_raises() -> None:

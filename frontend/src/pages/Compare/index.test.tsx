@@ -63,6 +63,10 @@ function makeTearsheet(id: string, name: string): TearSheet {
       spread: 'not_passed',
       queue_model: 'not_passed',
       partial_fills: 'not_passed',
+      equity_ts: 'open_then_each_close',
+      fill_ts: 'bar_close',
+      marker_ts: 'fill',
+      fill_included_in_equity: 'same_timestamp',
     },
     artifacts: {},
   }

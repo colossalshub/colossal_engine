@@ -218,6 +218,10 @@ class ExecutionAssumptions(BaseModel):
     spread: str
     queue_model: str
     partial_fills: str
+    equity_ts: str
+    fill_ts: str
+    marker_ts: str
+    fill_included_in_equity: str
 
 
 class TearSheet(BaseModel):

@@ -27,6 +27,14 @@ export default function DataTab() {
           <dd>{assumptions.order_type}</dd>
           <dt>Fill model</dt>
           <dd>{assumptions.fill_model}</dd>
+          <dt>Equity time</dt>
+          <dd>{assumptions.equity_ts}</dd>
+          <dt>Fill time</dt>
+          <dd>{assumptions.fill_ts}</dd>
+          <dt>Marker time</dt>
+          <dd>{assumptions.marker_ts}</dd>
+          <dt>Fill included in equity</dt>
+          <dd>{assumptions.fill_included_in_equity}</dd>
         </dl>
       </section>
     </div>

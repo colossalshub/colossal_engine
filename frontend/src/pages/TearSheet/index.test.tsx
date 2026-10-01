@@ -29,6 +29,10 @@ const defaultExecutionAssumptions = {
   spread: 'not_passed',
   queue_model: 'not_passed',
   partial_fills: 'not_passed',
+  equity_ts: 'open_then_each_close',
+  fill_ts: 'bar_close',
+  marker_ts: 'fill',
+  fill_included_in_equity: 'same_timestamp',
 }
 
 const sampleTearsheet: TearSheet = {
@@ -200,6 +204,10 @@ describe('TearSheet page', () => {
     expect(screen.getByText('not_passed')).toBeInTheDocument()
     expect(screen.queryByText('on_bar')).not.toBeInTheDocument()
     expect(screen.getByText('fees 0.20%')).toBeInTheDocument()
+    expect(screen.getByText('open_then_each_close')).toBeInTheDocument()
+    expect(screen.getByText('bar_close')).toBeInTheDocument()
+    expect(screen.getByText('fill')).toBeInTheDocument()
+    expect(screen.getByText('same_timestamp')).toBeInTheDocument()
   })
 
   it('regimes tab renders the placeholder with its phase label', async () => {

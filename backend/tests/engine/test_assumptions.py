@@ -168,3 +168,10 @@ def test_current_assumptions_match_runner_behavior(
     order = submitted_during_on_bar[0]
     assert isinstance(order, MarketOrder)
     assert order.order_type == OrderType.MARKET
+
+
+def test_current_assumptions_record_the_confirmed_daily_clock() -> None:
+    assert CURRENT_ASSUMPTIONS.equity_ts == "open_then_each_close"
+    assert CURRENT_ASSUMPTIONS.fill_ts == "bar_close"
+    assert CURRENT_ASSUMPTIONS.marker_ts == "fill"
+    assert CURRENT_ASSUMPTIONS.fill_included_in_equity == "same_timestamp"

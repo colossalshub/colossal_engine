@@ -350,6 +350,14 @@ def test_done_run_reports_custom_fees_in_execution_assumptions(
     assert ea["bar_ts"] == "open"
     assert ea["order_type"] == "market"
     assert ea["fill_model"] == "not_passed"
+    assert ea["equity_ts"] == CURRENT_ASSUMPTIONS.equity_ts
+    assert ea["fill_ts"] == CURRENT_ASSUMPTIONS.fill_ts
+    assert ea["marker_ts"] == CURRENT_ASSUMPTIONS.marker_ts
+    assert ea["fill_included_in_equity"] == CURRENT_ASSUMPTIONS.fill_included_in_equity
+    assert ea["equity_ts"] == "open_then_each_close"
+    assert ea["fill_ts"] == "bar_close"
+    assert ea["marker_ts"] == "fill"
+    assert ea["fill_included_in_equity"] == "same_timestamp"
 
 
 def test_queued_run_with_no_fee_params_defaults_and_does_not_500(

@@ -129,6 +129,10 @@ export interface ExecutionAssumptions {
   spread: string;
   queue_model: string;
   partial_fills: string;
+  equity_ts: string;
+  fill_ts: string;
+  marker_ts: string;
+  fill_included_in_equity: string;
 }
 
 // ---------------------------------------------------------------------
