@@ -55,6 +55,21 @@ export default function DataTab() {
           </dd>
         </dl>
       </section>
+      {assumptions != null ? (
+        <section className="tear-sheet-tab__section">
+          <h2 className="tear-sheet-tab__heading">Clock</h2>
+          <dl className="tear-sheet-tab__facts">
+            <dt>Equity time</dt>
+            <dd>{assumptions.equity_ts}</dd>
+            <dt>Fill time</dt>
+            <dd>{assumptions.fill_ts}</dd>
+            <dt>Marker time</dt>
+            <dd>{assumptions.marker_ts}</dd>
+            <dt>Fill included in equity</dt>
+            <dd>{assumptions.fill_included_in_equity}</dd>
+          </dl>
+        </section>
+      ) : null}
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Execution assumptions</h2>
         {assumptions == null ? (
@@ -62,7 +77,7 @@ export default function DataTab() {
             Execution assumptions are not on this response.
           </p>
         ) : (
-          <dl>
+          <dl className="tear-sheet-tab__facts">
             <dt>Maker fee</dt>
             <dd>{assumptions.maker_fee}</dd>
             <dt>Taker fee</dt>
@@ -73,14 +88,6 @@ export default function DataTab() {
             <dd>{assumptions.order_type}</dd>
             <dt>Fill model</dt>
             <dd>{assumptions.fill_model}</dd>
-            <dt>Equity time</dt>
-            <dd>{assumptions.equity_ts}</dd>
-            <dt>Fill time</dt>
-            <dd>{assumptions.fill_ts}</dd>
-            <dt>Marker time</dt>
-            <dd>{assumptions.marker_ts}</dd>
-            <dt>Fill included in equity</dt>
-            <dd>{assumptions.fill_included_in_equity}</dd>
           </dl>
         )}
       </section>

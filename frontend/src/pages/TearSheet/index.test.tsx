@@ -266,10 +266,16 @@ describe('TearSheet page', () => {
     expect(screen.getByText('not_passed')).toBeInTheDocument()
     expect(screen.queryByText('on_bar')).not.toBeInTheDocument()
     expect(screen.getByText('fees 0.20%')).toBeInTheDocument()
-    expect(screen.getByText('open_then_each_close')).toBeInTheDocument()
-    expect(screen.getByText('bar_close')).toBeInTheDocument()
-    expect(screen.getByText('fill')).toBeInTheDocument()
-    expect(screen.getByText('same_timestamp')).toBeInTheDocument()
+    const clock = screen.getByRole('heading', { name: 'Clock' }).closest('section')
+    expect(clock).not.toBeNull()
+    expect(within(clock as HTMLElement).getByText('open_then_each_close')).toBeInTheDocument()
+    expect(within(clock as HTMLElement).getByText('bar_close')).toBeInTheDocument()
+    expect(within(clock as HTMLElement).getByText('fill')).toBeInTheDocument()
+    expect(within(clock as HTMLElement).getByText('same_timestamp')).toBeInTheDocument()
+    const execution = screen.getByRole('heading', { name: 'Execution assumptions' }).closest('section')
+    expect(execution).not.toBeNull()
+    expect(within(execution as HTMLElement).getByText('Maker fee')).toBeInTheDocument()
+    expect(within(execution as HTMLElement).queryByText('Equity time')).not.toBeInTheDocument()
   })
 
   it('data tab methodology header shows timeframe, benchmark, and dirty git', async () => {
@@ -304,6 +310,7 @@ describe('TearSheet page', () => {
     expect(
       screen.getByText('Execution assumptions are not on this response.'),
     ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Clock' })).not.toBeInTheDocument()
     expect(
       screen.queryByText('Something went wrong rendering this page.'),
     ).not.toBeInTheDocument()
