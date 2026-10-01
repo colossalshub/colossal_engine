@@ -28,6 +28,17 @@ CREATE TABLE IF NOT EXISTS meta_runs (
     data_snapshot TEXT,
     seed          INTEGER DEFAULT 0,
     experiment_id TEXT,                   -- optional run grouping; NULL if standalone
+    research_stage TEXT,                  -- exploration, validation, or oos
+    hypothesis_id TEXT,
+    strategy_version TEXT,
+    in_sample_start_ts INTEGER,
+    in_sample_end_ts INTEGER,
+    validation_start_ts INTEGER,
+    validation_end_ts INTEGER,
+    oos_start_ts INTEGER,
+    oos_end_ts INTEGER,
+    trial_index INTEGER,
+    trial_count INTEGER,
     metrics       TEXT DEFAULT '{}',
     artifacts     TEXT DEFAULT '{}'
 )
@@ -52,10 +63,40 @@ INSERT INTO meta_runs (
     data_snapshot,
     seed,
     experiment_id,
+    research_stage,
+    hypothesis_id,
+    strategy_version,
+    in_sample_start_ts,
+    in_sample_end_ts,
+    validation_start_ts,
+    validation_end_ts,
+    oos_start_ts,
+    oos_end_ts,
+    trial_index,
+    trial_count,
     metrics,
     artifacts
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+)
 """
+
+_OPTIONAL_COLUMN_MIGRATIONS: tuple[tuple[str, str], ...] = (
+    ("experiment_id", "TEXT"),
+    ("research_stage", "TEXT"),
+    ("hypothesis_id", "TEXT"),
+    ("strategy_version", "TEXT"),
+    ("in_sample_start_ts", "INTEGER"),
+    ("in_sample_end_ts", "INTEGER"),
+    ("validation_start_ts", "INTEGER"),
+    ("validation_end_ts", "INTEGER"),
+    ("oos_start_ts", "INTEGER"),
+    ("oos_end_ts", "INTEGER"),
+    ("trial_index", "INTEGER"),
+    ("trial_count", "INTEGER"),
+)
 
 
 @dataclass
@@ -79,6 +120,17 @@ class RunRecord:
     metrics: dict[str, Any] = field(default_factory=dict)
     artifacts: dict[str, str] = field(default_factory=dict)
     experiment_id: str | None = None
+    research_stage: str | None = None
+    hypothesis_id: str | None = None
+    strategy_version: str | None = None
+    in_sample_start_ts: int | None = None
+    in_sample_end_ts: int | None = None
+    validation_start_ts: int | None = None
+    validation_end_ts: int | None = None
+    oos_start_ts: int | None = None
+    oos_end_ts: int | None = None
+    trial_index: int | None = None
+    trial_count: int | None = None
 
 
 def _now_ms() -> int:
@@ -94,8 +146,11 @@ def init_runs_schema(db_path: Path) -> None:
         conn.execute("PRAGMA busy_timeout=5000")
         conn.execute(_CREATE_META_RUNS_SQL)
         cols = {row[1] for row in conn.execute("PRAGMA table_info('meta_runs')")}
-        if "experiment_id" not in cols:
-            conn.execute("ALTER TABLE meta_runs ADD COLUMN experiment_id TEXT")
+        for column_name, column_type in _OPTIONAL_COLUMN_MIGRATIONS:
+            if column_name not in cols:
+                conn.execute(  # noqa: S608 - fixed internal migration allowlist
+                    f"ALTER TABLE meta_runs ADD COLUMN {column_name} {column_type}"
+                )
         conn.commit()
     finally:
         conn.close()
@@ -126,6 +181,17 @@ def insert_run(db_path: Path, record: RunRecord) -> None:
                 record.data_snapshot,
                 record.seed,
                 record.experiment_id,
+                record.research_stage,
+                record.hypothesis_id,
+                record.strategy_version,
+                record.in_sample_start_ts,
+                record.in_sample_end_ts,
+                record.validation_start_ts,
+                record.validation_end_ts,
+                record.oos_start_ts,
+                record.oos_end_ts,
+                record.trial_index,
+                record.trial_count,
                 json.dumps(record.metrics, separators=(",", ":")),
                 json.dumps(record.artifacts, separators=(",", ":")),
             ),
@@ -162,6 +228,17 @@ def insert_run_with_connection(conn: sqlite3.Connection, record: RunRecord) -> N
             record.data_snapshot,
             record.seed,
             record.experiment_id,
+            record.research_stage,
+            record.hypothesis_id,
+            record.strategy_version,
+            record.in_sample_start_ts,
+            record.in_sample_end_ts,
+            record.validation_start_ts,
+            record.validation_end_ts,
+            record.oos_start_ts,
+            record.oos_end_ts,
+            record.trial_index,
+            record.trial_count,
             json.dumps(record.metrics, separators=(",", ":")),
             json.dumps(record.artifacts, separators=(",", ":")),
         ),
@@ -172,7 +249,10 @@ def insert_run_with_connection(conn: sqlite3.Connection, record: RunRecord) -> N
 _CLAIM_NEXT_QUEUED_SELECT_SQL = """
 SELECT run_id, name, strategy, params, universe, start_ts, end_ts,
        created_at, finished_at, heartbeat_ts, status, error, git_sha,
-       git_dirty, data_snapshot, seed, metrics, artifacts
+       git_dirty, data_snapshot, seed, experiment_id, research_stage,
+       hypothesis_id, strategy_version, in_sample_start_ts, in_sample_end_ts,
+       validation_start_ts, validation_end_ts, oos_start_ts, oos_end_ts,
+       trial_index, trial_count, metrics, artifacts
 FROM meta_runs
 WHERE status = 'queued'
 ORDER BY created_at ASC, run_id ASC
@@ -220,8 +300,20 @@ def claim_next_queued(conn: sqlite3.Connection) -> RunRecord | None:
         git_dirty=bool(row[13]),
         data_snapshot=row[14],
         seed=row[15],
-        metrics=json.loads(row[16]),
-        artifacts=json.loads(row[17]),
+        experiment_id=row[16],
+        research_stage=row[17],
+        hypothesis_id=row[18],
+        strategy_version=row[19],
+        in_sample_start_ts=row[20],
+        in_sample_end_ts=row[21],
+        validation_start_ts=row[22],
+        validation_end_ts=row[23],
+        oos_start_ts=row[24],
+        oos_end_ts=row[25],
+        trial_index=row[26],
+        trial_count=row[27],
+        metrics=json.loads(row[28]),
+        artifacts=json.loads(row[29]),
     )
 
 

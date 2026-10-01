@@ -32,6 +32,23 @@ from quant.data.runs_store import (
     update_run_status,
 )
 
+RESEARCH_METADATA_COLUMNS: frozenset[str] = frozenset(
+    {
+        "experiment_id",
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    }
+)
+
 META_RUNS_COLUMNS: frozenset[str] = frozenset(
     {
         "run_id",
@@ -50,11 +67,10 @@ META_RUNS_COLUMNS: frozenset[str] = frozenset(
         "git_dirty",
         "data_snapshot",
         "seed",
-        "experiment_id",
         "metrics",
         "artifacts",
     }
-)
+) | RESEARCH_METADATA_COLUMNS
 
 
 def _column_names(db_path: Path) -> set[str]:
@@ -196,6 +212,18 @@ def test_insert_run_round_trip(tmp_path: Path) -> None:
     assert row["git_dirty"] == 1
     assert row["data_snapshot"] == record.data_snapshot
     assert row["seed"] == record.seed
+    assert row["experiment_id"] == record.experiment_id
+    assert row["research_stage"] == record.research_stage
+    assert row["hypothesis_id"] == record.hypothesis_id
+    assert row["strategy_version"] == record.strategy_version
+    assert row["in_sample_start_ts"] == record.in_sample_start_ts
+    assert row["in_sample_end_ts"] == record.in_sample_end_ts
+    assert row["validation_start_ts"] == record.validation_start_ts
+    assert row["validation_end_ts"] == record.validation_end_ts
+    assert row["oos_start_ts"] == record.oos_start_ts
+    assert row["oos_end_ts"] == record.oos_end_ts
+    assert row["trial_index"] == record.trial_index
+    assert row["trial_count"] == record.trial_count
     assert json.loads(row["metrics"]) == record.metrics
     assert json.loads(row["artifacts"]) == record.artifacts
 
@@ -584,19 +612,72 @@ def test_insert_run_experiment_id_round_trips(tmp_path: Path) -> None:
     assert _fetch_run(db_path, "exp-set")["experiment_id"] == "exp-001"
 
 
-def test_insert_run_with_connection_experiment_id_round_trips(
+def test_insert_run_research_metadata_round_trips(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(
+        run_id="research-set",
+        experiment_id="exp-001",
+        research_stage="oos",
+        hypothesis_id="hyp-007",
+        strategy_version="ema-cross-v2",
+        in_sample_start_ts=1_577_836_800_000,
+        in_sample_end_ts=1_609_459_200_000,
+        validation_start_ts=1_609_459_200_001,
+        validation_end_ts=1_640_995_200_000,
+        oos_start_ts=1_640_995_200_001,
+        oos_end_ts=1_672_531_200_000,
+        trial_index=3,
+        trial_count=12,
+    )
+
+    insert_run(db_path, record)
+
+    row = _fetch_run(db_path, "research-set")
+    for field in (
+        "experiment_id",
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    ):
+        assert row[field] == getattr(record, field)
+
+
+def test_insert_run_with_connection_research_metadata_round_trips(
     tmp_path: Path,
 ) -> None:
     db_path = _init(tmp_path)
+    record = _record(
+        run_id="exp-conn",
+        experiment_id="exp-002",
+        research_stage="validation",
+        hypothesis_id="hyp-002",
+        strategy_version="buy-hold-v2",
+        in_sample_start_ts=100,
+        in_sample_end_ts=200,
+        validation_start_ts=201,
+        validation_end_ts=300,
+        oos_start_ts=301,
+        oos_end_ts=400,
+        trial_index=1,
+        trial_count=4,
+    )
     conn = sqlite3.connect(db_path)
     try:
-        insert_run_with_connection(
-            conn, _record(run_id="exp-conn", experiment_id="exp-002")
-        )
+        insert_run_with_connection(conn, record)
     finally:
         conn.close()
 
-    assert _fetch_run(db_path, "exp-conn")["experiment_id"] == "exp-002"
+    row = _fetch_run(db_path, "exp-conn")
+    for field in RESEARCH_METADATA_COLUMNS:
+        assert row[field] == getattr(record, field)
 
 
 def test_insert_run_seed_none_stores_null(tmp_path: Path) -> None:
@@ -606,7 +687,7 @@ def test_insert_run_seed_none_stores_null(tmp_path: Path) -> None:
     assert _fetch_run(db_path, "seed-none")["seed"] is None
 
 
-def test_init_runs_schema_adds_experiment_id_to_legacy_db(tmp_path: Path) -> None:
+def test_init_runs_schema_adds_research_columns_to_legacy_db(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy.sqlite"
     conn = sqlite3.connect(db_path)
     try:
@@ -641,13 +722,71 @@ def test_init_runs_schema_adds_experiment_id_to_legacy_db(tmp_path: Path) -> Non
         conn.commit()
     finally:
         conn.close()
-    assert "experiment_id" not in _column_names(db_path)
+    assert RESEARCH_METADATA_COLUMNS.isdisjoint(_column_names(db_path))
 
     init_runs_schema(db_path)
 
-    assert "experiment_id" in _column_names(db_path)
+    assert _column_names(db_path) == META_RUNS_COLUMNS
     legacy_row = _fetch_run(db_path, "old")
-    assert legacy_row["experiment_id"] is None
+    for field in (
+        "experiment_id",
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    ):
+        assert legacy_row[field] is None
     assert legacy_row["seed"] == 0
     insert_run(db_path, _record(run_id="new", experiment_id="exp-003"))
     assert _fetch_run(db_path, "new")["experiment_id"] == "exp-003"
+
+
+def test_claim_next_queued_preserves_research_metadata(tmp_path: Path) -> None:
+    db_path = _init(tmp_path)
+    record = _record(
+        run_id="research-queued",
+        status="queued",
+        experiment_id="exp-queued",
+        research_stage="exploration",
+        hypothesis_id="hyp-queued",
+        strategy_version="buy-hold-v1",
+        in_sample_start_ts=100,
+        in_sample_end_ts=200,
+        validation_start_ts=201,
+        validation_end_ts=300,
+        oos_start_ts=301,
+        oos_end_ts=400,
+        trial_index=2,
+        trial_count=5,
+    )
+    insert_run(db_path, record)
+
+    conn = sqlite3.connect(db_path)
+    try:
+        claimed = claim_next_queued(conn)
+    finally:
+        conn.close()
+
+    assert claimed is not None
+    for field in (
+        "experiment_id",
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    ):
+        assert getattr(claimed, field) == getattr(record, field)
