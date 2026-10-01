@@ -119,6 +119,27 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help=f"Parquet base directory (default: {config.artifacts_dir()})",
     )
+    parser.add_argument("--experiment-id", help="Research experiment/group identifier")
+    parser.add_argument(
+        "--research-stage",
+        choices=("exploration", "validation", "oos"),
+        help="Designated research stage (metadata only)",
+    )
+    parser.add_argument("--hypothesis-id", help="Research hypothesis identifier")
+    parser.add_argument("--strategy-version", help="Strategy version identity")
+    for flag in (
+        "in-sample-start-ts",
+        "in-sample-end-ts",
+        "validation-start-ts",
+        "validation-end-ts",
+        "oos-start-ts",
+        "oos-end-ts",
+    ):
+        parser.add_argument(
+            f"--{flag}", type=int, help="Research range epoch milliseconds"
+        )
+    parser.add_argument("--trial-index", type=int, help="Research trial index")
+    parser.add_argument("--trial-count", type=int, help="Research trial count")
     return parser
 
 
@@ -188,6 +209,18 @@ def main() -> None:
         git_dirty=git_dirty,
         data_snapshot=None,
         seed=0,
+        experiment_id=args.experiment_id,
+        research_stage=args.research_stage,
+        hypothesis_id=args.hypothesis_id,
+        strategy_version=args.strategy_version,
+        in_sample_start_ts=args.in_sample_start_ts,
+        in_sample_end_ts=args.in_sample_end_ts,
+        validation_start_ts=args.validation_start_ts,
+        validation_end_ts=args.validation_end_ts,
+        oos_start_ts=args.oos_start_ts,
+        oos_end_ts=args.oos_end_ts,
+        trial_index=args.trial_index,
+        trial_count=args.trial_count,
     )
 
     record = execute_run(
