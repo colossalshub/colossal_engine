@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16.5
 current_phase_status: IN_PROGRESS
-current_task: 16.5.1
+current_task: 16.5.2
 current_task_status: READY
-next_task: 16.5.2
-last_completed_task: U.5
+next_task: 16.5.3
+last_completed_task: 16.5.1
 last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -41,7 +41,7 @@ human_transition_required: false
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
-- **Phase 16.5 — IN_PROGRESS (16.5.1 READY)** (tear-sheet research report UI; not Phase 17)
+- **Phase 16.5 — IN_PROGRESS (16.5.2 READY)** (tear-sheet research report UI; not Phase 17)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -80,36 +80,32 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-**16.5.1 — Experiment identity header** — READY
+**16.5.2 — Overview executive summary** — READY
 
 The human authorized Phase 16.5 on 2026-10-01 instead of opening Phase 17. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
 
-Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.1 only.
+Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.2 only.
 
-**16.5.1 goal.** Replace the inline tear-sheet header with one experiment-identity header so the researcher can read the run before any metric. Reuse `Badge` and `VerificationBadge`. Keep the back link.
+**16.5.2 goal.** On the Overview tab, show the existing KPIs together and add the existing equity curve, underwater chart, and monthly heatmap. The researcher should see the result before opening another tab. Reuse `KpiCard`, `EquityCurve`, `DrawdownChart`, and `MonthlyHeatmap`. Do not rewrite those components.
 
-Show only values already on the tear sheet:
+Show every KPI `KpiCards` already renders, in two bands, all at once:
 
-- run name
-- strategy
-- first universe symbol, plus the existing "only first symbol executed" note when `universe.length > 1`
-- date range from `start_ts` / `end_ts` (UTC dates, same formatting as today)
-- timeframe from `params.timeframe` when it is a non-empty string; otherwise omit
-- fees from `params.maker_fee` when it is a string, using the current percent formatting; otherwise omit
-- benchmark from `params.benchmark_symbol` when it is a non-empty string; otherwise omit
-- git SHA, first 7 characters, with ` (dirty)` when `git_dirty` is true; omit when `git_sha` is null or empty
-- run status
-- verification badge
+- Headline: CAGR, Sharpe, Max DD
+- Secondary: Sortino, Volatility, Calmar, Win Rate, Profit Factor, Trades, Avg Duration when it is non-null, Turnover
 
-Do not add venue, strategy version, dataset identity, fee currency, or any label the API does not provide. Do not change `DataTab`. Do not change KPI grouping, charts, the nav rail, or tab contents.
+Use the same formatters and null em dashes `KpiCards` already uses. A null average duration omits that card. Do not calculate a replacement. Do not add a cumulative-return card, rolling Sharpe, or rolling volatility.
+
+Below the KPIs, render `EquityCurve` from `data.equity`, `DrawdownChart` from `data.drawdown`, and the existing monthly heatmap. Leave the Performance tab as it is. Charts may appear on both tabs after this task.
+
+`KpiCards` keeps the U.5 one-group default. Compare must keep that behavior, and its tests must still pass. Do not change `DataTab`, the nav rail, `ExperimentHeader`, or any backend file.
 
 **Deliverables**
 
-- `frontend/src/pages/TearSheet/ExperimentHeader.tsx`
-- `frontend/src/pages/TearSheet/ExperimentHeader.test.tsx`
-- `frontend/src/pages/TearSheet/index.tsx` (render the header; no other behavior change)
-- `frontend/src/pages/TearSheet/tearSheet.css` (header layout only)
-- `frontend/src/pages/TearSheet/index.test.tsx` only if an existing header assertion must follow the move
+- `frontend/src/pages/TearSheet/OverviewSummary.tsx`
+- `frontend/src/pages/TearSheet/OverviewSummary.test.tsx`
+- `frontend/src/pages/TearSheet/tabs/OverviewTab.tsx`
+- `frontend/src/pages/TearSheet/index.test.tsx` (the overview assertion currently expects the Returns group tab)
+- a CSS file only if the two bands need layout, and only under `frontend/src/pages/TearSheet/`
 
 **Acceptance**
 
@@ -119,14 +115,16 @@ Do not add venue, strategy version, dataset identity, fee currency, or any label
 
 **Commit**
 
-`git add frontend/src/pages/TearSheet/ExperimentHeader.tsx frontend/src/pages/TearSheet/ExperimentHeader.test.tsx frontend/src/pages/TearSheet/index.tsx frontend/src/pages/TearSheet/tearSheet.css frontend/src/pages/TearSheet/index.test.tsx`
+`git add frontend/src/pages/TearSheet/OverviewSummary.tsx frontend/src/pages/TearSheet/OverviewSummary.test.tsx frontend/src/pages/TearSheet/tabs/OverviewTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
 
-`feat(ui): show experiment identity on the tear sheet header (Phase 16.5.1)`
+Add the CSS file to that line only if this task creates one.
+
+`feat(ui): show the overview executive summary (Phase 16.5.2)`
 
 ### Phase 16.5 tasks
 
-- [ ] **16.5.1 — Experiment identity header** — READY
-- [ ] **16.5.2 — Overview executive summary** — NOT_STARTED. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
+- [x] **16.5.1 — Experiment identity header** — COMPLETE
+- [ ] **16.5.2 — Overview executive summary** — READY. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
 - [ ] **16.5.3 — Performance investigation layout** — NOT_STARTED. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
 - [ ] **16.5.4 — Trades summary** — NOT_STARTED. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
 - [ ] **16.5.5 — Data methodology layout** — NOT_STARTED. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
@@ -846,6 +844,46 @@ notes: |
   Reviewer re-ran tsc -b, vitest, and the production build on 6808426.
   KPI formatters and values are unchanged. The cards render one group
   at a time, defaulting to Returns. Phase 17 is not started.
+```
+
+### 16.5.1 completion evidence
+
+```yaml
+task_id: 16.5.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/ExperimentHeader.tsx
+  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx
+  - frontend/src/pages/TearSheet/index.tsx
+  - frontend/src/pages/TearSheet/tearSheet.css
+tests_added:
+  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx (5)
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "26 files, 192 passed"
+  build: "exit 0"
+git_commit_sha: d0dfd7ed6928d0e46f9be34d6000be11f8ca0536
+next_task: 16.5.2
+deviations:
+  - "A whitespace-only timeframe is omitted. The task says omit anything that is not a non-empty string. The component trims before that check, and the test pins the omit."
+  - "tearSheet.css adds flex-wrap on the meta row so the added identity fields can wrap. Header layout only."
+  - "index.test.tsx was not modified. Existing header assertions still match the extracted header."
+  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build on d0dfd7e.
+  The header shows name, strategy, first symbol, the multi-symbol note,
+  UTC dates, optional timeframe, fees from params.maker_fee, optional
+  benchmark, a 7-character git SHA, status, and the verification badge.
+  A null or empty git SHA is omitted, including when git_dirty is true.
+  Data tab, KPI grouping, charts, and the nav rail are unchanged.
+  Vite still prints the existing chunk-size warning. The build exits 0.
+  Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
