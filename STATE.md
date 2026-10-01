@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.4
+current_task: 17.5
 current_task_status: READY
-next_task: 17.5
-last_completed_task: 17.3
+next_task: 17.6
+last_completed_task: 17.4
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,17 +66,17 @@ work.
 
 ### Current task
 
-**17.4 — Backtest CLI research metadata inputs** — READY. Add explicit
-research metadata inputs to the backtest CLI path without adding frontend or
-later display behavior.
+**17.5 — Frontend research metadata wire types** — READY. Add the persisted
+research metadata fields to the frontend wire contracts without adding
+creation controls, history presentation, or tear-sheet display behavior.
 
 ### Phase 17 tasks
 
 - [x] **17.1 — Research metadata persistence contract** — COMPLETE
 - [x] **17.2 — Research metadata API schemas** — COMPLETE
 - [x] **17.3 — Research metadata API transport** — COMPLETE
-- [ ] **17.4 — Backtest CLI research metadata inputs** — READY
-- [ ] **17.5 — Frontend research metadata wire types** — NOT_STARTED
+- [x] **17.4 — Backtest CLI research metadata inputs** — COMPLETE
+- [ ] **17.5 — Frontend research metadata wire types** — READY
 - [ ] **17.6 — Research metadata creation controls** — NOT_STARTED
 - [ ] **17.7 — Research-aware run history** — NOT_STARTED
 - [ ] **17.8 — Tear-sheet research identity display** — NOT_STARTED
@@ -211,6 +211,43 @@ notes: |
   without retries. All eleven research metadata fields flow through the
   API create, list, and tear-sheet paths. No CLI, frontend, optimizer, or
   Phase 18 validation behavior is included.
+```
+
+### 17.4 completion evidence
+
+```yaml
+task_id: 17.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - scripts/run_backtest.py
+  - backend/tests/test_run_backtest.py
+tests_added_or_updated:
+  - omitted CLI research metadata persists as NULL and remains outside params
+  - all CLI research metadata inputs persist with their established names and types
+  - exploration, validation, and oos research stages are accepted
+  - invalid research stages and integer metadata inputs are rejected
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "444 passed, 81 warnings"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+  diff_check: "exit 0"
+  status: "clean"
+git_commit_sha: 9b3fe3909116fe1eaf52d745b891489d8a6188e9
+next_task: 17.5
+deviations: []
+notes: |
+  Reviewer independently inspected the committed CLI and test diff and
+  re-ran every whole-tree backend acceptance command. Research metadata
+  remains separate from strategy params. The task adds metadata inputs only;
+  it does not add frontend behavior or Phase 18 temporal enforcement.
 ```
 
 ### U.6.1 completion evidence
