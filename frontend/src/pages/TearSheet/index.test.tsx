@@ -221,8 +221,15 @@ describe('TearSheet page', () => {
     })
     renderWithProviders(<App />, { route: '/runs/r-1/trades' })
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Trade Ledger' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Closed trades' })).toBeInTheDocument()
     })
+    const summary = screen.getByRole('heading', { name: 'Closed trades' })
+    const ledger = screen.getByRole('heading', { name: 'Trade Ledger' })
+    expect(summary.compareDocumentPosition(ledger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(summary.closest('section') as HTMLElement).getByText('Win Rate')).toBeInTheDocument()
+    expect(within(summary.closest('section') as HTMLElement).getByText('60.0%')).toBeInTheDocument()
+    expect(screen.queryByText(/MAE/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/MFE/)).not.toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getByText('No trades generated for this period.')).toBeInTheDocument()
     })
