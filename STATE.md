@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.6
+current_task: 17.7
 current_task_status: READY
-next_task: 17.7
-last_completed_task: 17.5
+next_task: 17.8
+last_completed_task: 17.6
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,10 +66,9 @@ work.
 
 ### Current task
 
-**17.6 — Research metadata creation controls** — READY. Add creation
-controls for the persisted research metadata using the accepted frontend
-wire contracts. History presentation and tear-sheet research identity
-display remain separate tasks.
+**17.7 — Research-aware run history** — READY. Present persisted research
+metadata in run history using the accepted frontend wire contracts.
+Tear-sheet research identity display remains a separate task.
 
 ### Phase 17 tasks
 
@@ -78,8 +77,8 @@ display remain separate tasks.
 - [x] **17.3 — Research metadata API transport** — COMPLETE
 - [x] **17.4 — Backtest CLI research metadata inputs** — COMPLETE
 - [x] **17.5 — Frontend research metadata wire types** — COMPLETE
-- [ ] **17.6 — Research metadata creation controls** — READY
-- [ ] **17.7 — Research-aware run history** — NOT_STARTED
+- [x] **17.6 — Research metadata creation controls** — COMPLETE
+- [ ] **17.7 — Research-aware run history** — READY
 - [ ] **17.8 — Tear-sheet research identity display** — NOT_STARTED
 
 ### U.6 tasks
@@ -299,6 +298,54 @@ notes: |
   The production build reported the existing large-chunk advisory. No backend
   or scripts files changed; pytest, ruff, and mypy were not re-run under
   WORKFLOW.md section 5 path-scoped acceptance.
+```
+
+### 17.6 completion evidence
+
+```yaml
+task_id: 17.6
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - frontend/src/pages/CommandCenter/StrategyForm.tsx
+  - frontend/src/pages/CommandCenter/StrategyForm.test.tsx
+tests_added_or_updated:
+  - all twelve optional research controls are accessible and initially blank
+  - all metadata submits at top level with trimmed strings and UTC epoch-ms dates
+  - exploration, validation, and oos stages submit with their exact wire values
+  - whitespace, cleared fields, and unset stage are omitted
+  - each single date endpoint is accepted without requiring its paired endpoint
+  - reversed and overlapping ranges and trial index greater than count are accepted
+  - zero, signed integers, and safe-integer boundaries are accepted
+  - invalid calendar dates and malformed, fractional, nonfinite, or unsafe integers block submission
+  - existing strategy, timeframe, universe, fees, deployment, benchmark, navigation, error, and pending behavior remains covered
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+  - git diff --check
+  - git status --short
+acceptance_output:
+  tsc: "npm notice run frontend@0.0.0 npx; npm notice run tsc -b; exit 0"
+  vitest: "Test Files  30 passed (30); Tests  242 passed (242); Duration  7.97s; exit 0"
+  build: "142 modules transformed; built in 713ms; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean"
+git_commit_sha: 60aee99f550fcbf8139eb43dc0c0c910c5623833
+next_task: 17.7
+deviations: []
+notes: |
+  Fresh independent reviewer read the actual two-file committed diff,
+  checked backend schemas and accepted frontend wire types, and reran all
+  whole-tree frontend acceptance commands from the repository root using
+  PowerShell Push-Location/Pop-Location with preserved exit codes. Tests
+  exercise real form inputs and payload construction at the createRun
+  boundary. No Phase 18 temporal or trial-relationship enforcement was
+  added. The production build reported the existing large-chunk advisory.
+  No backend or scripts files changed; pytest, ruff, and mypy were not
+  rerun under WORKFLOW.md section 5 path-scoped acceptance. Phase 17
+  remains IN_PROGRESS; task 17.7 is opened but not implemented.
 ```
 
 ### U.6.1 completion evidence
