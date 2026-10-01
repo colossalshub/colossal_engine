@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16.5
 current_phase_status: IN_PROGRESS
-current_task: 16.5.4
+current_task: 16.5.5
 current_task_status: READY
-next_task: 16.5.5
-last_completed_task: 16.5.3
+next_task: 16.5.6
+last_completed_task: 16.5.4
 last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -41,7 +41,7 @@ human_transition_required: false
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
-- **Phase 16.5 — IN_PROGRESS (16.5.4 READY)** (tear-sheet research report UI; not Phase 17)
+- **Phase 16.5 — IN_PROGRESS (16.5.5 READY)** (tear-sheet research report UI; not Phase 17)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -80,22 +80,26 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-**16.5.4 — Trades summary** — READY
+**16.5.5 — Data methodology layout** — READY
 
 The human authorized Phase 16.5 on 2026-10-01 instead of opening Phase 17. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
 
-Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.4 only. On 2026-10-01 the human authorized the same agent to review a task after re-running its acceptance commands, then continue.
+Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.5 only. On 2026-10-01 the human authorized the same agent to review a task after re-running its acceptance commands, then continue.
 
-**16.5.4 goal.** On the Trades tab, show the existing closed-trade KPIs above the current ledger: Trades, Win Rate, Profit Factor, and Avg Duration when it is non-null. Use the same formatters and null em dashes `KpiCards` already uses. A null average duration omits that card.
+**16.5.5 goal.** Reorganize the fields the Data tab already renders so the recorded clock is its own group. Do not add identity fields. Do not change any value, label, or missing-state sentence.
 
-Do not add MAE, MFE, R-multiple, expectancy, or a holding-time distribution. Do not aggregate paginated trade rows. Do not change `TradeLedger` pagination, sorting, null handling, or columns. Leave Overview and Performance as they are.
+When `execution_assumptions` is present, render three groups:
+
+- Data & Methodology: Strategy, Git SHA, Timeframe, Fees, Benchmark, Verification. Same values as today.
+- Clock: Equity time, Fill time, Marker time, Fill included in equity. Same strings as today, shown verbatim.
+- Execution assumptions: Maker fee, Taker fee, Bar time, Order type, Fill model. Same strings as today.
+
+When `execution_assumptions` is missing, Fees stays an em dash and the existing sentence "Execution assumptions are not on this response." appears once. Do not invent clock strings. Do not add venue, strategy version, dataset identity, or experiment id.
 
 **Deliverables**
 
-- `frontend/src/pages/TearSheet/TradesSummary.tsx`
-- `frontend/src/pages/TearSheet/TradesSummary.test.tsx`
-- `frontend/src/pages/TearSheet/tabs/TradesTab.tsx`
-- `frontend/src/pages/TearSheet/index.test.tsx` only if the trades-tab assertion must see the new KPIs
+- `frontend/src/pages/TearSheet/tabs/DataTab.tsx`
+- `frontend/src/pages/TearSheet/index.test.tsx` only if an existing data-tab assertion must follow the regrouping
 
 **Acceptance**
 
@@ -105,17 +109,17 @@ Do not add MAE, MFE, R-multiple, expectancy, or a holding-time distribution. Do 
 
 **Commit**
 
-`git add frontend/src/pages/TearSheet/TradesSummary.tsx frontend/src/pages/TearSheet/TradesSummary.test.tsx frontend/src/pages/TearSheet/tabs/TradesTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
+`git add frontend/src/pages/TearSheet/tabs/DataTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
 
-`feat(ui): show closed-trade kpis above the ledger (Phase 16.5.4)`
+`feat(ui): group the recorded clock on the data tab (Phase 16.5.5)`
 
 ### Phase 16.5 tasks
 
 - [x] **16.5.1 — Experiment identity header** — COMPLETE
 - [x] **16.5.2 — Overview executive summary** — COMPLETE. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
 - [x] **16.5.3 — Performance investigation layout** — COMPLETE. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
-- [ ] **16.5.4 — Trades summary** — READY. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
-- [ ] **16.5.5 — Data methodology layout** — NOT_STARTED. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
+- [x] **16.5.4 — Trades summary** — COMPLETE. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
+- [ ] **16.5.5 — Data methodology layout** — READY. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
 - [ ] **16.5.6 — Honest unavailable sections** — NOT_STARTED. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
@@ -949,6 +953,43 @@ notes: |
   280px. No rolling series was added. Overview was not changed.
   Vite still prints the existing chunk-size warning. The build exits 0.
   Phase 17 is not started.
+```
+
+### 16.5.4 completion evidence
+
+```yaml
+task_id: 16.5.4
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/TradesSummary.tsx
+  - frontend/src/pages/TearSheet/TradesSummary.test.tsx
+  - frontend/src/pages/TearSheet/tabs/TradesTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/TradesSummary.test.tsx (4)
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "28 files, 199 passed"
+  build: "exit 0"
+git_commit_sha: cac63f82366016979ecd04771fe172597ade69ca
+next_task: 16.5.5
+deviations:
+  - "The summary has a Closed trades heading so it matches the other tear-sheet sections. The task did not name that heading."
+  - "Formatters are copied from KpiCards. Trading tones stay neutral. A duration of 0 still renders as 0.0d."
+  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build on cac63f8.
+  The Trades tab shows Trades, Win Rate, Profit Factor, and Avg Duration
+  above the existing ledger. A null duration omits that card. Null KPIs
+  are em dashes. The ledger still uses server pagination. No MAE, MFE,
+  or R-multiple was added. Vite still prints the existing chunk-size
+  warning. The build exits 0. Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
