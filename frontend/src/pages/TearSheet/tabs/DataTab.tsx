@@ -23,6 +23,10 @@ function gitLabel(sha: string | null, dirty: boolean): string {
   return dirty ? `${sha} (dirty)` : sha
 }
 
+function formatDate(tsMs: number): string {
+  return new Date(tsMs).toISOString().slice(0, 10)
+}
+
 export default function DataTab() {
   const { data } = useOutletContext<TearSheetContext>()
   const { run, params, verification } = data
@@ -43,12 +47,20 @@ export default function DataTab() {
           <dd>{run.strategy}</dd>
           <dt>Git SHA</dt>
           <dd>{gitLabel(run.git_sha, run.git_dirty)}</dd>
+          {run.experiment_id != null ? (
+            <>
+              <dt>Experiment ID</dt>
+              <dd>{run.experiment_id}</dd>
+            </>
+          ) : null}
           <dt>Timeframe</dt>
           <dd>{timeframe ?? '—'}</dd>
-          <dt>Fees</dt>
-          <dd>{fees}</dd>
           <dt>Benchmark</dt>
           <dd>{benchmark ?? 'none'}</dd>
+          <dt>Date range</dt>
+          <dd>{formatDate(run.start_ts)} → {formatDate(run.end_ts)}</dd>
+          <dt>Fees</dt>
+          <dd>{fees}</dd>
           <dt>Verification</dt>
           <dd>
             <VerificationBadge verification={verification} />

@@ -251,6 +251,12 @@ describe('TearSheet page', () => {
     ).not.toBeInTheDocument()
     expect(screen.queryByText('Strategy version')).not.toBeInTheDocument()
     expect(screen.queryByText('Dataset identity')).not.toBeInTheDocument()
+    const methodology = screen.getByRole('heading', { name: 'Data & Methodology' }).closest('section')
+    expect(methodology).not.toBeNull()
+    expect(within(methodology as HTMLElement).queryByText('Experiment ID')).not.toBeInTheDocument()
+    expect(within(methodology as HTMLElement).getByText('Date range').nextElementSibling).toHaveTextContent(
+      '2024-01-01 → 2024-01-31',
+    )
     expect(screen.getByText('abcdef1234567890')).toBeInTheDocument()
     expect(screen.getByText('—')).toBeInTheDocument()
     expect(screen.getByText('maker 0.009 · taker 0.008')).toBeInTheDocument()
@@ -292,6 +298,22 @@ describe('TearSheet page', () => {
     expect(screen.getByText('ETH/USDT')).toBeInTheDocument()
     expect(screen.getByText('Git SHA').nextElementSibling).toHaveTextContent('—')
     expect(screen.queryByText(/\(dirty\)/)).not.toBeInTheDocument()
+  })
+
+  it('data tab renders a non-null experiment id', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
+      ...sampleTearsheet,
+      run: {
+        ...sampleTearsheet.run,
+        experiment_id: 'experiment-42',
+      },
+    })
+    renderWithProviders(<App />, { route: '/runs/r-1/data' })
+    await waitFor(() => {
+      expect(screen.getByText('Experiment ID').nextElementSibling).toHaveTextContent(
+        'experiment-42',
+      )
+    })
   })
 
   it('data tab stays up when the tear sheet omits execution assumptions', async () => {
