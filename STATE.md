@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 17
 current_phase_status: IN_PROGRESS
-current_task: 17.1
+current_task: 17.2
 current_task_status: READY
-next_task: 17.2
-last_completed_task: U.6.5
+next_task: 17.3
+last_completed_task: 17.1
 last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -66,17 +66,14 @@ work.
 
 ### Current task
 
-**17.1 — Research metadata persistence contract** — READY. Extend
-`meta_runs` and `RunRecord` with nullable research stage, hypothesis,
-strategy-version, IS/validation/OOS range, and trial index/count fields.
-Preserve the existing `params`, `data_snapshot`, `git_sha`, and
-`experiment_id` identities. Migrate legacy databases in place and prove
-fresh-schema, migration, insert, and worker-claim round trips.
+**17.2 — Research metadata API schemas** — READY. Add the persisted
+research metadata fields to the API schema contracts without adding the
+transport wiring reserved for 17.3.
 
 ### Phase 17 tasks
 
-- [ ] **17.1 — Research metadata persistence contract** — READY
-- [ ] **17.2 — Research metadata API schemas** — NOT_STARTED
+- [x] **17.1 — Research metadata persistence contract** — COMPLETE
+- [ ] **17.2 — Research metadata API schemas** — READY
 - [ ] **17.3 — Research metadata API transport** — NOT_STARTED
 - [ ] **17.4 — Backtest CLI research metadata inputs** — NOT_STARTED
 - [ ] **17.5 — Frontend research metadata wire types** — NOT_STARTED
@@ -102,6 +99,46 @@ fresh-schema, migration, insert, and worker-claim round trips.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 17.1 completion evidence
+
+```yaml
+task_id: 17.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - backend/src/quant/data/runs_store.py
+  - backend/tests/data/test_runs_store.py
+tests_added_or_updated:
+  - fresh meta_runs schemas contain all nullable research metadata columns
+  - legacy schemas migrate in place with NULL research metadata
+  - insert_run preserves every research metadata field
+  - insert_run_with_connection preserves every research metadata field
+  - claim_next_queued preserves every research metadata field
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "431 passed, 81 warnings"
+  ruff: "All checks passed!"
+  mypy: "Success: no issues found in 30 source files"
+  diff_check: "exit 0"
+  status: "clean"
+git_commit_sha: b0ad975
+next_task: 17.2
+deviations: []
+notes: |
+  Commit b0ad975 was cherry-picked into the primary checkout as
+  1a925cc. Before final acceptance, separate commit 0c5d842 replaced
+  the known I-005 Rust-bridge capfd polling tests with deterministic
+  warning spies. The reviewer then re-ran every whole-tree acceptance
+  command without retries. No API, frontend, optimizer, or Phase 18
+  validation behavior is included.
+```
 
 ### U.6.1 completion evidence
 
