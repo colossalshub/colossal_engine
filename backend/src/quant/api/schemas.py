@@ -81,6 +81,17 @@ class RunSummary(BaseModel):
     cagr: float | None
     max_drawdown: float | None
     experiment_id: str | None
+    research_stage: Literal["exploration", "validation", "oos"] | None = None
+    hypothesis_id: str | None = None
+    strategy_version: str | None = None
+    in_sample_start_ts: int | None = None
+    in_sample_end_ts: int | None = None
+    validation_start_ts: int | None = None
+    validation_end_ts: int | None = None
+    oos_start_ts: int | None = None
+    oos_end_ts: int | None = None
+    trial_index: int | None = None
+    trial_count: int | None = None
 
 
 class RunList(BaseModel):
@@ -106,6 +117,17 @@ class RunCreate(BaseModel):
     start_ts: int
     end_ts: int
     experiment_id: str | None = None
+    research_stage: Literal["exploration", "validation", "oos"] | None = None
+    hypothesis_id: str | None = None
+    strategy_version: str | None = None
+    in_sample_start_ts: int | None = None
+    in_sample_end_ts: int | None = None
+    validation_start_ts: int | None = None
+    validation_end_ts: int | None = None
+    oos_start_ts: int | None = None
+    oos_end_ts: int | None = None
+    trial_index: int | None = None
+    trial_count: int | None = None
 
 
 class KpiBlock(BaseModel):

@@ -45,7 +45,18 @@ def _run_summary_dict() -> dict[str, Any]:
         "sharpe": 1.42,
         "cagr": 0.214,
         "max_drawdown": -0.183,
-        "experiment_id": None,
+        "experiment_id": "exp-001",
+        "research_stage": "oos",
+        "hypothesis_id": "hyp-007",
+        "strategy_version": "momentum-v2",
+        "in_sample_start_ts": 1_577_836_800_000,
+        "in_sample_end_ts": 1_609_459_200_000,
+        "validation_start_ts": 1_609_459_200_001,
+        "validation_end_ts": 1_640_995_200_000,
+        "oos_start_ts": 1_640_995_200_001,
+        "oos_end_ts": 1_672_531_200_000,
+        "trial_index": 3,
+        "trial_count": 12,
     }
 
 
@@ -176,14 +187,62 @@ def test_run_summary_constructs() -> None:
     run = RunSummary(**_run_summary_dict())
     assert run.status == "done"
     assert run.git_sha == "7a3f9c1"
+    assert run.research_stage == "oos"
+    assert run.hypothesis_id == "hyp-007"
+    assert run.strategy_version == "momentum-v2"
+    assert run.in_sample_start_ts == 1_577_836_800_000
+    assert run.validation_start_ts == 1_609_459_200_001
+    assert run.oos_start_ts == 1_640_995_200_001
+    assert run.trial_index == 3
+    assert run.trial_count == 12
 
 
 def test_run_summary_nullable_fields_accept_none() -> None:
     data = _run_summary_dict()
-    data.update(git_sha=None, sharpe=None, cagr=None, max_drawdown=None)
+    nullable_fields = (
+        "git_sha",
+        "sharpe",
+        "cagr",
+        "max_drawdown",
+        "experiment_id",
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    )
+    data.update({field: None for field in nullable_fields})
     run = RunSummary(**data)
-    assert run.git_sha is None
-    assert run.sharpe is None
+    assert all(getattr(run, field) is None for field in nullable_fields)
+
+
+def test_run_summary_research_metadata_defaults_to_none() -> None:
+    data = _run_summary_dict()
+    research_fields = (
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "in_sample_start_ts",
+        "in_sample_end_ts",
+        "validation_start_ts",
+        "validation_end_ts",
+        "oos_start_ts",
+        "oos_end_ts",
+        "trial_index",
+        "trial_count",
+    )
+    for field in research_fields:
+        del data[field]
+
+    run = RunSummary(**data)
+
+    assert all(getattr(run, field) is None for field in research_fields)
 
 
 def test_run_list_constructs() -> None:
@@ -206,6 +265,17 @@ def test_run_create_constructs_without_name() -> None:
         end_ts=1_735_689_600_000,
     )
     assert run_create.name is None
+    assert run_create.research_stage is None
+    assert run_create.hypothesis_id is None
+    assert run_create.strategy_version is None
+    assert run_create.in_sample_start_ts is None
+    assert run_create.in_sample_end_ts is None
+    assert run_create.validation_start_ts is None
+    assert run_create.validation_end_ts is None
+    assert run_create.oos_start_ts is None
+    assert run_create.oos_end_ts is None
+    assert run_create.trial_index is None
+    assert run_create.trial_count is None
 
 
 def test_run_create_constructs_with_name() -> None:
@@ -218,6 +288,37 @@ def test_run_create_constructs_with_name() -> None:
         end_ts=1,
     )
     assert run_create.name == "mom-12-1"
+
+
+def test_run_create_constructs_with_research_metadata() -> None:
+    run_create = RunCreate(
+        strategy="momentum",
+        params={"lookback": 12},
+        universe=["BTC/USDT"],
+        start_ts=1_577_836_800_000,
+        end_ts=1_672_531_200_000,
+        experiment_id="exp-001",
+        research_stage="validation",
+        hypothesis_id="hyp-007",
+        strategy_version="momentum-v2",
+        in_sample_start_ts=1_577_836_800_000,
+        in_sample_end_ts=1_609_459_200_000,
+        validation_start_ts=1_609_459_200_001,
+        validation_end_ts=1_640_995_200_000,
+        oos_start_ts=1_640_995_200_001,
+        oos_end_ts=1_672_531_200_000,
+        trial_index=3,
+        trial_count=12,
+    )
+
+    assert run_create.research_stage == "validation"
+    assert run_create.hypothesis_id == "hyp-007"
+    assert run_create.strategy_version == "momentum-v2"
+    assert run_create.in_sample_start_ts == 1_577_836_800_000
+    assert run_create.validation_start_ts == 1_609_459_200_001
+    assert run_create.oos_start_ts == 1_640_995_200_001
+    assert run_create.trial_index == 3
+    assert run_create.trial_count == 12
 
 
 def test_kpi_block_constructs_all_present() -> None:
@@ -326,6 +427,24 @@ def test_run_summary_invalid_status_raises() -> None:
     data["status"] = "paused"
     with pytest.raises(ValidationError):
         RunSummary(**data)
+
+
+@pytest.mark.parametrize("model_cls", [RunSummary, RunCreate])
+def test_run_models_invalid_research_stage_raises(model_cls: type) -> None:
+    if model_cls is RunSummary:
+        data = _run_summary_dict()
+    else:
+        data = {
+            "strategy": "momentum",
+            "params": {},
+            "universe": [],
+            "start_ts": 0,
+            "end_ts": 1,
+        }
+    data["research_stage"] = "holdout"
+
+    with pytest.raises(ValidationError):
+        model_cls(**data)
 
 
 @pytest.mark.parametrize("bad_side", ["long", "short", "BUY", "", "hold"])
