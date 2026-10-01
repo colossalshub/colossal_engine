@@ -331,12 +331,38 @@ describe('TearSheet page', () => {
     })
   })
 
-  it('regimes tab renders the placeholder with its phase label', async () => {
+  it('regimes tab says classification is not attached', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
     renderWithProviders(<App />, { route: '/runs/r-1/regimes' })
     await waitFor(() => {
-      expect(screen.getByText(/Phase 21\./)).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Not available for this run. No regime classification is attached to this result.',
+        ),
+      ).toBeInTheDocument()
     })
+    expect(screen.queryByText(/Monte Carlo/i)).not.toBeInTheDocument()
+  })
+
+  it('robustness tab says no analysis is attached', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/robustness' })
+    await waitFor(() => {
+      expect(
+        screen.getByText('No robustness analysis is attached to this run.'),
+      ).toBeInTheDocument()
+    })
+    expect(screen.queryByText(/walk-forward/i)).not.toBeInTheDocument()
+  })
+
+  it('execution tab shows assumption strings from the tear sheet', async () => {
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sampleTearsheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/execution' })
+    await waitFor(() => {
+      expect(screen.getByText('Signal and order').nextElementSibling).toHaveTextContent('on_bar')
+    })
+    expect(screen.getByText('Latency').nextElementSibling).toHaveTextContent('not_passed')
+    expect(screen.queryByText(/gross P&L/i)).not.toBeInTheDocument()
   })
 
   it('nav rail renders all seven items', async () => {
