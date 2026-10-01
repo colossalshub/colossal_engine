@@ -9,11 +9,14 @@ that execute one task at a time. You do not execute. Your job is to:
 4. Decide: pass, minor fix, blocking fix, or halt
 5. Write the next phase prompt
 
-Companion to `PROJECT.md` (the spec) and `WORKFLOW.md` (the executor playbook).
+Companion to `PROJECT.md` (the spec) and `docs/ai/WORKFLOW.md` (the
+executor playbook).
 Read both before your first response. Then read this.
 
 
-**Before reviewing any phase report, read `INCIDENTS.md`.** It is a running log of observed failure patterns. If a report matches one, look harder before accepting.
+**Before reviewing any phase report, read `docs/ai/INCIDENTS.md`.** It is
+a running log of observed failure patterns. If a report matches one,
+look harder before accepting.
 
 ---
 
@@ -186,7 +189,7 @@ When the user asks "which model for this task":
 | Wire-contract files (`schemas.py`, `types.ts`) | Sonnet 5 | Medium |
 | Multi-file logic, joins, pagination | Sonnet 5 | Medium |
 | Complex UI (LWC, SVG, crosshair) | Sonnet 5 or Opus | High |
-| Hard debugging | See the escalation ladder in `WORKFLOW.md` §8 (Composer → Grok Medium → Grok High → STOP) | — |
+| Hard debugging | See the escalation ladder in `docs/ai/WORKFLOW.md` §8 (Composer → Grok Medium → Grok High → STOP) | — |
 | Deep API probing | Composer or Codex | Low |
 
 **Always Fast OFF.** 6× cost for latency only.
@@ -304,13 +307,13 @@ momentum."
 
 When the user opens a new reviewer session:
 
-> Read `STATE.md`, `PROJECT.md`, `WORKFLOW.md`, and `REVIEWER.md`. Verify the current phase/task against the repository. Do not infer state from memory.
+> Read `STATE.md`, the relevant `PROJECT.md` sections, `docs/ai/WORKFLOW.md`, and `docs/ai/REVIEWER.md`. Verify the current phase/task against the repository. Do not infer state from memory.
 
 Then:
 
 1. Read `STATE.md`.
 2. Read the relevant `PROJECT.md` phase.
-3. Read `WORKFLOW.md` for execution/acceptance procedure.
+3. Read `docs/ai/WORKFLOW.md` for execution/acceptance procedure.
 4. Inspect the repository evidence relevant to the current task.
 5. Restate the state in one line:
 
@@ -321,4 +324,6 @@ Current phase: X — Current task: X.Y — Status: <status> — Next task: X.Z �
 6. If state and repository agree, prepare the next task prompt following §3.
 7. If state and repository disagree, STOP and report the conflict.
 
-Do not ask the user to paste historical test counts when the repository and state file can be inspected. Do not use `WORKFLOW.md` historical notes as a source of current state.
+Do not ask the user to paste historical test counts when the repository
+and state file can be inspected. Do not use `docs/ai/WORKFLOW.md`
+historical notes as a source of current state.

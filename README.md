@@ -108,9 +108,7 @@ configs/        Universe and strategy YAML (future)
 AGENTS.md       Entry point and startup protocol for AI agents
 PROJECT.md      Permanent specification, contracts, and complete phase roadmap
 STATE.md        Authoritative live execution state
-WORKFLOW.md     Execution playbook for AI collaborators
-REVIEWER.md     Acceptance and adversarial review playbook
-INCIDENTS.md    Observed failure patterns, read when reviewing a report
+docs/ai/        AI workflow, review playbook, incidents, and routed guides
 ```
 
 ## Documentation authority
@@ -120,9 +118,10 @@ For AI-assisted development, the Markdown files have distinct responsibilities:
 - `AGENTS.md` is the entry point for AI agents and defines the startup protocol and reading order.
 - `PROJECT.md` is the permanent specification and complete phase roadmap.
 - `STATE.md` is the authoritative current phase/task state and must be read before work begins.
-- `WORKFLOW.md` defines how an agent executes one task at a time.
-- `REVIEWER.md` defines how completed work is checked and accepted.
-- `INCIDENTS.md` records observed failure patterns and must be read before reviewing any report.
+- `docs/ai/WORKFLOW.md` defines how an agent executes one task at a time.
+- `docs/ai/REVIEWER.md` defines how completed work is checked and accepted.
+- `docs/ai/INCIDENTS.md` records observed failure patterns and must be read before reviewing any report.
+- `docs/ai/guides/` contains subsystem notes loaded only when relevant.
 - `README.md` is descriptive/user-facing documentation and must not be used to infer current execution state.
 
 If these files conflict with repository evidence, stop and resolve the conflict rather than guessing.

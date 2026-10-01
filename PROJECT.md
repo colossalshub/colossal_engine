@@ -51,6 +51,9 @@ Adding a library outside §2 (or these extras) requires explicit approval per §
 ## 3. Folder layout
 ```text
 repo/
+├── README.md
+├── AGENTS.md
+├── STATE.md
 ├── PROJECT.md
 ├── pyproject.toml
 ├── .gitignore
@@ -58,6 +61,10 @@ repo/
 │   ├── project.mdc
 │   ├── backend.mdc
 │   └── frontend.mdc
+├── docs/
+│   ├── ai/                       # workflow, review, incidents, routed guides
+│   ├── evidence/                 # historical execution evidence
+│   └── specs/                    # gated design specifications
 ├── backend/
 │   ├── src/quant/
 │   │   ├── __init__.py           # package root
@@ -368,7 +375,7 @@ Only one worker runs at a time. Parallelism is out of scope until §2 is amended
 
 ## 6. Roadmap — authoritative phase definitions
 
-This section defines **WHAT** the project must become. `STATE.md` defines **WHERE the project currently is**. `WORKFLOW.md` defines **HOW an agent executes work**. `REVIEWER.md` defines **HOW completed work is accepted**.
+This section defines **WHAT** the project must become. `STATE.md` defines **WHERE the project currently is**. `docs/ai/WORKFLOW.md` defines **HOW an agent executes work**. `docs/ai/REVIEWER.md` defines **HOW completed work is accepted**.
 
 ### 6.0 Authority and anti-hallucination rules
 
@@ -382,7 +389,7 @@ This section defines **WHAT** the project must become. `STATE.md` defines **WHER
 8. Every phase has an explicit goal, non-goals, tasks, acceptance requirements, and completion evidence.
 9. Historical notes must be labeled historical. They never override `STATE.md`.
 10. When a phase is completed, update `STATE.md` with the evidence before advancing.
-11. Commits follow Conventional Commits with the roadmap phase as a parenthetical suffix: `type(scope): description (Phase X.Y)`. See WORKFLOW.md §3.
+11. Commits follow Conventional Commits with the roadmap phase as a parenthetical suffix: `type(scope): description (Phase X.Y)`. See `docs/ai/WORKFLOW.md` §3.
 
 ### Phase 0 — Bootstrap
 
@@ -866,9 +873,9 @@ A phase may move from `READY`/`IN_PROGRESS` to `COMPLETE` only when:
 2. Required tests exist and test the actual behavior.
 3. Whole-tree acceptance commands pass.
 4. No undeclared scope changes remain.
-5. Any third-party API use was probed according to `WORKFLOW.md`.
+5. Any third-party API use was probed according to `docs/ai/WORKFLOW.md`.
 6. The agent reports exact changed files and exact acceptance output.
-7. `REVIEWER.md` accepts the work.
+7. `docs/ai/REVIEWER.md` accepts the work.
 8. `STATE.md` is updated with the completion evidence.
 9. A human-approved transition moves execution to the next phase.
 
@@ -887,7 +894,9 @@ A fresh adversarial research-integrity audit may also be requested at any time. 
 
 ## 7. AI rules
 
-1. Read `STATE.md`, `PROJECT.md`, `WORKFLOW.md`, and `REVIEWER.md` before implementation.
+1. Read `STATE.md`, the relevant `PROJECT.md` sections, and
+   `docs/ai/WORKFLOW.md` before implementation. Read
+   `docs/ai/REVIEWER.md` when reviewing or preparing acceptance evidence.
 2. Never infer the current phase from memory.
 3. Never silently resolve contradictions between documentation and code.
 4. Stop when a specification is ambiguous or technically disproven.

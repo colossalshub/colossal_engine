@@ -922,7 +922,7 @@ notes: |
 
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
-Conventional Commits format defined in `WORKFLOW.md` §3.
+Conventional Commits format defined in `docs/ai/WORKFLOW.md` §3.
 
 Deviations accepted with the task: a non-BTC symbol can still be queued by the API. `run_backtest` rejects it before `BacktestEngine` is constructed. The worker records `failed` and does not write a successful run, artifacts, or verification. Universe length remains 12.4.
 

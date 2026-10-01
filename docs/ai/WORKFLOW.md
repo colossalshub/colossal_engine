@@ -9,7 +9,7 @@ Before planning, editing, coding, testing, or committing anything:
 1. Read `STATE.md`.
 2. Read the relevant sections of `PROJECT.md`.
 3. Read this file.
-4. Read `REVIEWER.md` when preparing acceptance evidence or a completion report.
+4. Read `docs/ai/REVIEWER.md` when preparing acceptance evidence or a completion report.
 5. Read applicable `.cursor/rules/*.mdc` files.
 6. Determine `current_phase`, `current_task`, and status from `STATE.md`.
 7. Verify the repository is consistent with that state before changing anything.
@@ -23,8 +23,8 @@ If documentation and repository evidence disagree, STOP and use the conflict pro
 1. Explicit human decision in the current task
 2. `STATE.md` for current execution state
 3. `PROJECT.md` for permanent specification and phase requirements
-4. `WORKFLOW.md` for execution procedure
-5. `REVIEWER.md` for acceptance/review procedure
+4. `docs/ai/WORKFLOW.md` for execution procedure
+5. `docs/ai/REVIEWER.md` for acceptance/review procedure
 6. `.cursor/rules/*.mdc` for local code-style rules
 7. README/old reports for descriptive context only
 8. Agent memory/inference — **never authoritative**
@@ -113,118 +113,14 @@ Note: the root `tsconfig.json` uses project references with `"files": []`. Plain
 
 ---
 
-## 6. Nautilus 1.231.0 gotchas
+## 6. Task-specific guides
 
-Discovered through Phase 2's probes. Do not re-discover these.
+Load these only when the task touches the named subsystem:
 
-### Imports
-- `from nautilus_trader.backtest.config import BacktestEngineConfig, BacktestVenueConfig`
-- `from nautilus_trader.backtest.engine import BacktestEngine`
-- `from nautilus_trader.model.data import Bar, BarType`
-- `from nautilus_trader.model.objects import Money, Price, Quantity`
-
-### `BacktestEngine.add_venue` (NOT `add_venue(config)`)
-Requires positional args, not a config object:
-```python
-engine.add_venue(
-    venue=Venue("BINANCE"),
-    oms_type=oms_type_from_str("NETTING"),
-    account_type=account_type_from_str("CASH"),
-    starting_balances=[Money.from_str("100000 USDT")],
-)
-```
-
-### `BacktestVenueConfig` required kwargs
-`name, oms_type, account_type, starting_balances`. `starting_balances` accepts strings like `"100000 USDT"` — no explicit `Money()` needed.
-
-### `CurrencyPair` requires 10 positional args
-`instrument_id, raw_symbol, base_currency, quote_currency, price_precision, size_precision, price_increment, size_increment, ts_event, ts_init`. `ts_event`/`ts_init` in **nanoseconds** (multiply ms by 1,000,000).
-
-### `Bar` constructor
-Keyword args work: `Bar(bar_type=bt, open=Price, high=Price, low=Price, close=Price, volume=Quantity, ts_event=ns, ts_init=ns)`.
-
-### `Portfolio.equity(Venue)` returns `dict[Currency, Money]`
-NOT `equity(Currency)`. Get total equity in USDT:
-```python
-venue_obj = InstrumentId.from_str(self._instrument_id_str).venue
-money = self.portfolio.equity(venue_obj)[USDT]
-equity = float(money.as_double())
-```
-
-### `portfolio.analyzer.portfolio_returns()` returns empty for open positions
-For buy-and-hold with an open position in a CASH account, this returns an empty Series and the account report has only 3 rows (all with the same timestamp — start snapshot, end snapshot, BTC snapshot). This is why Phase 2.2.2 moved to per-bar equity snapshots taken inside `BuyHold.on_bar`.
-
-### Retrieve a strategy instance
-`engine.trader.strategies()[0]` — `engine.cache.strategies` does not exist.
-
-### Reports have Money-shaped strings
-- `realized_pnl` is a string like `"-4.41795500 USDT"` — parse with `float(value.split()[0])`.
-- `commissions` is a list of strings — sum after parsing each.
-- `commission` (fills) is a string — same parsing.
-
-### Reports have `Timestamp` (UTC-aware, ns precision) and int (ns) columns mixed
-- `ts_opened`, `ts_event`, `ts_init` (fills): `pd.Timestamp` → `int(ts.value // 1_000_000)`
-- `ts_init`, `ts_last` (positions): raw `int64` nanoseconds → `/ 1_000_000`
-- Do not assume consistency between columns or between reports.
-
-### DataFrame index drops on `to_dict(orient="records")`
-`generate_positions_report().to_dict(orient="records")` loses `position_id` (the index). **Call `reset_index()` first** — Phase 2.2.3 does this.
-
-### `pandas.Timestamp.utcnow` deprecation warning
-Emitted from inside Nautilus's `engine.run()`. Not our code. Ignore until Nautilus updates.
-
-### LWC v5.2.1 specifics
-
-- **Series marker API:** use `createSeriesMarkers(series, markers)` from
-  `'lightweight-charts'`. The series object does **not** have a
-  `setMarkers` method in v5 — that moved to a plugin API. It returns
-  `ISeriesMarkersPluginApi` with `.setMarkers()`, `.markers()`, `.detach()`.
-  Chart disposal (`chart.remove()`) handles plugin cleanup; no manual
-  `detach()` call is needed for a chart that lives for the component's
-  lifetime. Discovered in Phase 6.1 — the original task spec assumed the
-  v4 API (`series.setMarkers(...)`), which doesn't exist in v5.
-
-### AG Grid v33+ module registration
-
-- **AG Grid v33+ requires `ModuleRegistry.registerModules([AllCommunityModule])`
-  at app initialization (`main.tsx`).** Without it, `AgGridReact` still
-  renders rows/columns/sorting/`valueFormatter`/theme CSS variables, but
-  features backed by an unregistered module — e.g. `cellStyle` (needs
-  `CellStyleModule`, bundled inside `AllCommunityModule`) — **silently
-  no-op with no console warning or error**. Discovered in Phase 6.3:
-  `TradeLedger.tsx`'s conditional PnL coloring rendered gray instead of
-  red/green because this registration call was missing since Phase 4.5
-  first wired up AG Grid. Fixed in Phase 6.3.1.
-
-- AG Grid modules must be registered in `frontend/src/setupTests.ts`,
-  not just `main.tsx`. Vitest runs each test file in an isolated worker
-  process; only `setupTests.ts` runs in every worker.
-
-- vitest.config.ts has retry: 2 to absorb AG Grid's jsdom layout
-  flakiness under parallel workers. Do not remove without verifying all
-  AG Grid tests pass 10 consecutive full-suite runs in parallel.
-
-### Tear sheet for non-done runs
-
-- `GET /api/runs/{id}/tearsheet` must return a 200 empty shell for any
-  non-done status (queued, running, failed, archived). Never read parquet
-  files for a non-done run — they may not exist.
-
-### Nautilus logging does not go through Python logging
-
-- `self.log.warning(...)` inside a Nautilus strategy emits to stdout via
-  the Rust bridge, NOT through Python's `logging` module.
-- `caplog` captures zero records from Nautilus log calls.
-- `capsys` misses them synchronously too — they may only appear during
-  pytest teardown.
-- To assert on Nautilus log output, monkeypatch `strategy.log` with a
-  spy and assert on the spy. This is the first-choice approach —
-  deterministic, unlike `capfd`.
-- `capfd` with a bounded poll (see
-  `backend/tests/strategies/test_buy_hold.py` for the pattern) is
-  discouraged: its timing is unpredictable and it caused repeated flakes
-  (see `INCIDENTS.md` I-005).
-- Discovered during Phase 12.3.1.
+- [`guides/nautilus.md`](guides/nautilus.md) — Nautilus construction,
+  reports, timestamps, tear-sheet lifecycle, and Rust-bridge logging.
+- [`guides/frontend-tooling.md`](guides/frontend-tooling.md) —
+  Lightweight Charts and AG Grid version-specific behavior.
 
 ---
 

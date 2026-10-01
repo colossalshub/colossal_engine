@@ -57,7 +57,7 @@ export function PriceChart({ data, markers = [], height = 420 }: PriceChartProps
         ),
       )
       // NOTE: LWC v5 moved series markers to a plugin API. `ISeriesApi` no
-      // longer has `setMarkers` — see WORKFLOW.md §6 "LWC v5.2.1 specifics".
+      // longer has `setMarkers` — see docs/ai/guides/frontend-tooling.md.
       if (markers.length > 0) {
         void createSeriesMarkers(series, toSeriesMarkers(markers))
       }

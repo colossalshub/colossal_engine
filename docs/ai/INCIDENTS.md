@@ -21,7 +21,7 @@ such rule exists. Real examples:
 - "Phase 12.1 evidence is already in STATE.md." (It wasn't; the SHA
   field said `null`.)
 
-**Catch:** Grep `WORKFLOW.md` and `PROJECT.md` for the claimed rule. If
+**Catch:** Grep `docs/ai/WORKFLOW.md` and `PROJECT.md` for the claimed rule. If
 it doesn't exist, the claim is fabricated.
 
 **Fix:** Correct the report. If the ambiguity is real, update the doc.
@@ -101,7 +101,8 @@ flaky. It is broken. Stop accepting "rerun passed" as evidence. The
 failure mechanism must be named or the test must be rewritten.
 
 **Fix:** Replace the mechanism. `caplog` captures zero records from
-Nautilus's Rust-bridge log calls (see `WORKFLOW.md` §6) and must not be
+Nautilus's Rust-bridge log calls (see
+[`guides/nautilus.md`](guides/nautilus.md)) and must not be
 used here. Monkeypatch `strategy.log` with a spy and assert on the spy
 — this is deterministic. A test that has failed in three or more tasks
 gets rewritten, not rerun.

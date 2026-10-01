@@ -225,8 +225,8 @@ If any of the following disagree:
 
 - `STATE.md`;
 - `PROJECT.md`;
-- `WORKFLOW.md`;
-- `REVIEWER.md`;
+- `docs/ai/WORKFLOW.md`;
+- `docs/ai/REVIEWER.md`;
 - repository code;
 - tests;
 - git history;

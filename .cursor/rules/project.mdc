@@ -1,25 +1,13 @@
 ---
-description: Bootloader — read PROJECT.md before every response
+description: Project instruction router
 alwaysApply: true
 ---
 
-At the start of every response, before doing anything else:
-1. Read `PROJECT.md` at the workspace root. If it has changed since your last read, re-read it fully.
-2. Restate, in one short line, the current Phase and the specific task being worked on (e.g., "Phase 2.3 — extract/equity.py").
-3. If the user's request does not map to the current task in §6, or conflicts with §2/§4/§7, STOP and flag it before writing any code.
-4. Do not build, refactor, or scaffold anything outside the current task. One task = one file + one test.
-5. Every deliverable includes its test. No test → not done.
-6. If the spec is ambiguous, ask. Do not guess.
-7. Never add a library outside §2 without explicit approval.
-8. Timestamps in API are epoch ms (int64). UTC always. Nulls are `null`, never `NaN`.
-9. All time-series responses MUST be `ORDER BY ts ASC` — no exceptions.
-10. Acceptance commands must be run from the repo root, on the whole tree, exactly as written in the task prompt. Do not run them on a subset of files. If a check fails, report the failure verbatim — do not silently fix and report green.
-11. Do not create scratch files at the repo root or anywhere outside the task's declared deliverables. If you need to explore behavior, use a test with tmp_path or a REPL. Delete any scratch file you create before reporting.
-12. Make exactly one commit per task, containing exactly the files the task lists. If a fix is discovered during acceptance (e.g. a ruff rule fired on a prior phase's file), do not fix it silently in a follow-up commit — STOP and report. The human will decide whether to amend, fold into the current commit, or create a new mini-phase.
-13. Do not use Cursor's built-in commit UI (the Source Control panel's commit button). Always commit via the terminal using `git commit -m "..."`. Cursor's git extension holds a stale lock on .git/index.lock that causes 500 errors and can corrupt its own state.
-14. Never use # type: ignore without a trailing reason comment explaining the specific error being suppressed. Blanket ignores on imports or class definitions are forbidden — configure mypy overrides in pyproject.toml instead.
-15. When the human pastes a multi-line block of PowerShell commands, run one command at a time. Do not chain with && or >> continuation. Send one command per line, wait for output, then send the next.
-16. Doc-only commits use distinct descriptive messages. Never reuse a message already in the log. Never leave a commit message that misdescribes its own diff.
-17. Before staging, verify that the git add line in the task prompt covers every file the task's changes actually touched. If the task modified a file whose test or source pair also needed updating (e.g. rebranding a string that a test asserts on), include that file in the same commit and note it in the report. Do not create a follow-up commit to fix a file the original task should have included.
-18. In frontend/ directories, run `npx tsc -b` for type-checking, NOT `npx tsc --noEmit`. The root tsconfig.json uses project references with "files": [], so plain tsc checks zero files.
-19. Before reporting, run `git status --short` and delete any untracked scratch files you created (screenshots, .b64, .tmp, .log, debug output) that are not part of the task's declared deliverables. The final report's git status must show only the files listed in the task's git add line.
+Read `AGENTS.md` at the repository root and follow its startup protocol
+and context-routing rules. `STATE.md` is authoritative for the current
+phase and task. Read only the `PROJECT.md` sections identified by the
+task prompt; do not automatically load the full project specification.
+
+If `AGENTS.md`, `STATE.md`, the relevant `PROJECT.md` sections,
+`docs/ai/WORKFLOW.md`, the code, or the tests disagree, stop and report
+the conflict before editing.

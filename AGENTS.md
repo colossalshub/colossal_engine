@@ -6,9 +6,9 @@ anything:
 1. `STATE.md` — current phase and task. Authoritative for state.
 2. `PROJECT.md` — permanent spec, data contracts, roadmap. Authoritative
    for what the project is.
-3. `WORKFLOW.md` — execution procedure, acceptance discipline, gotchas.
-4. `REVIEWER.md` — review checklist. Read only when reviewing a report.
-5. `INCIDENTS.md` — observed failure patterns. Read only when reviewing
+3. `docs/ai/WORKFLOW.md` — execution procedure and acceptance discipline.
+4. `docs/ai/REVIEWER.md` — review checklist. Read only when reviewing a report.
+5. `docs/ai/INCIDENTS.md` — observed failure patterns. Read only when reviewing
    a report; flag any report that matches a pattern.
 
 ## Startup protocol
@@ -17,16 +17,18 @@ Before planning or writing code:
 
 1. Read `STATE.md` in full.
 2. Read only the `PROJECT.md` sections the task prompt lists.
-3. Read `WORKFLOW.md` in full.
+3. Read `docs/ai/WORKFLOW.md` in full. Load a guide from
+   `docs/ai/guides/` only when the task touches that subsystem.
 4. Verify the repository matches `STATE.md`. Run `git log --oneline -3`
    and `git status --short`.
 5. Do not infer state from memory. If `STATE.md`, `PROJECT.md`,
-   `WORKFLOW.md`, the code, or the tests disagree, STOP and report the
+   `docs/ai/WORKFLOW.md`, the code, or the tests disagree, STOP and report the
    conflict. Do not proceed.
 
 ## Rules
 
-- Never modify `PROJECT.md`, `WORKFLOW.md`, `REVIEWER.md`, or `.cursor/`.
+- Never modify `PROJECT.md`, `docs/ai/WORKFLOW.md`,
+  `docs/ai/REVIEWER.md`, or `.cursor/`.
 - Never modify `STATE.md` while implementing a task. The implementing
   agent does not mark its own work complete.
 - After the reviewer accepts a task, the reviewer updates `STATE.md`
@@ -41,7 +43,7 @@ Before planning or writing code:
 - Do not add dependencies without approval.
 - Acceptance commands run from the repo root, on the whole tree, exactly
   as written in the task prompt (subject to the path-scoped rule in
-  `WORKFLOW.md` §5).
+  `docs/ai/WORKFLOW.md` §5).
 - When reviewing a report: re-run every acceptance command yourself. Do
   not trust pasted output.
 - "Future authorized work" below is a design contract. It does not change
