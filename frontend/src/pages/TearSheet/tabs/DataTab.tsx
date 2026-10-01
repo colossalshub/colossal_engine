@@ -1,7 +1,15 @@
 import { useOutletContext } from 'react-router-dom'
 
+import type { ExecutionAssumptions } from '../../../api/types'
 import { VerificationBadge } from '../../../components/ui/VerificationBadge'
 import type { TearSheetContext } from '../index'
+
+function readAssumptions(value: unknown): ExecutionAssumptions | null {
+  if (value == null || typeof value !== 'object') return null
+  const record = value as Record<string, unknown>
+  if (typeof record.maker_fee !== 'string') return null
+  return value as ExecutionAssumptions
+}
 
 function stringParam(params: Record<string, unknown>, key: string): string | null {
   const value = params[key]
@@ -18,9 +26,13 @@ function gitLabel(sha: string | null, dirty: boolean): string {
 export default function DataTab() {
   const { data } = useOutletContext<TearSheetContext>()
   const { run, params, verification } = data
-  const assumptions = data.execution_assumptions
+  const assumptions = readAssumptions(data.execution_assumptions)
   const timeframe = stringParam(params, 'timeframe')
   const benchmark = stringParam(params, 'benchmark_symbol')
+  const fees =
+    assumptions == null
+      ? '—'
+      : `maker ${assumptions.maker_fee} · taker ${assumptions.taker_fee}`
 
   return (
     <div className="tear-sheet-tab">
@@ -34,7 +46,7 @@ export default function DataTab() {
           <dt>Timeframe</dt>
           <dd>{timeframe ?? '—'}</dd>
           <dt>Fees</dt>
-          <dd>{`maker ${assumptions.maker_fee} · taker ${assumptions.taker_fee}`}</dd>
+          <dd>{fees}</dd>
           <dt>Benchmark</dt>
           <dd>{benchmark ?? 'none'}</dd>
           <dt>Verification</dt>
@@ -45,26 +57,32 @@ export default function DataTab() {
       </section>
       <section className="tear-sheet-tab__section">
         <h2 className="tear-sheet-tab__heading">Execution assumptions</h2>
-        <dl>
-          <dt>Maker fee</dt>
-          <dd>{assumptions.maker_fee}</dd>
-          <dt>Taker fee</dt>
-          <dd>{assumptions.taker_fee}</dd>
-          <dt>Bar time</dt>
-          <dd>{assumptions.bar_ts}</dd>
-          <dt>Order type</dt>
-          <dd>{assumptions.order_type}</dd>
-          <dt>Fill model</dt>
-          <dd>{assumptions.fill_model}</dd>
-          <dt>Equity time</dt>
-          <dd>{assumptions.equity_ts}</dd>
-          <dt>Fill time</dt>
-          <dd>{assumptions.fill_ts}</dd>
-          <dt>Marker time</dt>
-          <dd>{assumptions.marker_ts}</dd>
-          <dt>Fill included in equity</dt>
-          <dd>{assumptions.fill_included_in_equity}</dd>
-        </dl>
+        {assumptions == null ? (
+          <p className="tear-sheet-tab__note">
+            Execution assumptions are not on this response.
+          </p>
+        ) : (
+          <dl>
+            <dt>Maker fee</dt>
+            <dd>{assumptions.maker_fee}</dd>
+            <dt>Taker fee</dt>
+            <dd>{assumptions.taker_fee}</dd>
+            <dt>Bar time</dt>
+            <dd>{assumptions.bar_ts}</dd>
+            <dt>Order type</dt>
+            <dd>{assumptions.order_type}</dd>
+            <dt>Fill model</dt>
+            <dd>{assumptions.fill_model}</dd>
+            <dt>Equity time</dt>
+            <dd>{assumptions.equity_ts}</dd>
+            <dt>Fill time</dt>
+            <dd>{assumptions.fill_ts}</dd>
+            <dt>Marker time</dt>
+            <dd>{assumptions.marker_ts}</dd>
+            <dt>Fill included in equity</dt>
+            <dd>{assumptions.fill_included_in_equity}</dd>
+          </dl>
+        )}
       </section>
     </div>
   )

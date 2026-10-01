@@ -237,6 +237,24 @@ describe('TearSheet page', () => {
     expect(screen.queryByText(/\(dirty\)/)).not.toBeInTheDocument()
   })
 
+  it('data tab stays up when the tear sheet omits execution assumptions', async () => {
+    const sheet: TearSheet = { ...sampleTearsheet }
+    delete (sheet as { execution_assumptions?: TearSheet['execution_assumptions'] })
+      .execution_assumptions
+    vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue(sheet)
+    renderWithProviders(<App />, { route: '/runs/r-1/data' })
+    await waitFor(() => {
+      expect(screen.getByText('buy_hold')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Fees').nextElementSibling).toHaveTextContent('—')
+    expect(
+      screen.getByText('Execution assumptions are not on this response.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Something went wrong rendering this page.'),
+    ).not.toBeInTheDocument()
+  })
+
   it('data tab methodology header appends dirty when a git sha is present', async () => {
     vi.spyOn(runsApi, 'getTearsheet').mockResolvedValue({
       ...sampleTearsheet,

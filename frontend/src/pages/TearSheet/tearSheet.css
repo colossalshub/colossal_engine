@@ -309,6 +309,12 @@
   margin: 0;
 }
 
+.tear-sheet-tab__note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+}
+
 .tear-sheet-tab__facts dt {
   margin: 0;
   font-size: var(--fs-xs);
