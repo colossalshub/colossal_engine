@@ -1,5 +1,4 @@
-// Mirrors PROJECT.md §4.4. Any change here requires a matching change in
-// backend/src/quant/api/schemas.py and a project-version bump (§7).
+// Mirrors the wire contracts in backend/src/quant/api/schemas.py.
 
 // ---------------------------------------------------------------------
 // Errors and pagination
@@ -20,6 +19,7 @@ export interface ApiError {
 // ---------------------------------------------------------------------
 
 export type RunStatus = 'queued' | 'running' | 'done' | 'failed' | 'archived';
+export type ResearchStage = 'exploration' | 'validation' | 'oos';
 
 export interface RunSummary {
   run_id: string;
@@ -32,6 +32,17 @@ export interface RunSummary {
   git_sha: string | null;
   git_dirty: boolean;
   experiment_id: string | null;
+  research_stage: ResearchStage | null;
+  hypothesis_id: string | null;
+  strategy_version: string | null;
+  in_sample_start_ts: number | null;
+  in_sample_end_ts: number | null;
+  validation_start_ts: number | null;
+  validation_end_ts: number | null;
+  oos_start_ts: number | null;
+  oos_end_ts: number | null;
+  trial_index: number | null;
+  trial_count: number | null;
   status: RunStatus;
   sharpe: number | null;
   cagr: number | null;
@@ -52,6 +63,18 @@ export interface RunCreate {
   universe: string[];
   start_ts: number;
   end_ts: number;
+  experiment_id?: string | null;
+  research_stage?: ResearchStage | null;
+  hypothesis_id?: string | null;
+  strategy_version?: string | null;
+  in_sample_start_ts?: number | null;
+  in_sample_end_ts?: number | null;
+  validation_start_ts?: number | null;
+  validation_end_ts?: number | null;
+  oos_start_ts?: number | null;
+  oos_end_ts?: number | null;
+  trial_index?: number | null;
+  trial_count?: number | null;
 }
 
 // ---------------------------------------------------------------------
