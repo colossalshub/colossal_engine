@@ -11,14 +11,14 @@
 
 ```yaml
 current_phase: U.6
-current_phase_status: IN_PROGRESS
-current_task: U.6.5
-current_task_status: READY
+current_phase_status: COMPLETE
+current_task: null
+current_task_status: null
 next_task: null
-last_completed_task: U.6.4
-last_completed_phase: 16.5
+last_completed_task: U.6.5
+last_completed_phase: U.6
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: false
+human_transition_required: true
 ```
 
 ### Phase status
@@ -42,7 +42,7 @@ human_transition_required: false
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
-- **U.6 — IN PROGRESS (U.6.1–U.6.4 complete; U.6.5 READY)** (tear-sheet research workspace redesign)
+- **U.6 — COMPLETE (U.6.1–U.6.5)** (tear-sheet research workspace redesign)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -52,9 +52,9 @@ human_transition_required: false
 
 ## 2. Current Objective
 
-U.6 is authorized and its plan was accepted on 2026-10-01. Implement
-the presentation-only redesign in `docs/specs/U6.md`, one task at a
-time. Phase 17 remains unopened.
+U.6 is complete. The presentation-only redesign in `docs/specs/U6.md`
+shipped without API or backend changes. Phase 17 remains unopened and
+there is no current objective.
 
 Older per-task evidence blocks (12.1 through 16.5.5), the stray Phase
 12.1 notes, the Phase 12 non-goals list, and the Phase 0–11 audit's
@@ -65,9 +65,8 @@ work.
 
 ### Current task
 
-**U.6.5 — Data experiment identity and UTC range — READY.** Render a
-non-null experiment id and the UTC run date range. Omit the experiment
-row when null; preserve all existing methodology and assumption fields.
+None. U.6 is complete and Phase 17 is not started. Do not invent a
+Phase 17 task split.
 
 ### U.6 tasks
 
@@ -75,7 +74,7 @@ row when null; preserve all existing methodology and assumption fields.
 - [x] **U.6.2 — Risk route and eight-item navigation** — COMPLETE
 - [x] **U.6.3 — Overview KPI and chart cleanup** — COMPLETE
 - [x] **U.6.4 — Performance cleanup and Risk chart ownership** — COMPLETE
-- [ ] **U.6.5 — Data experiment identity and UTC range** — READY
+- [x] **U.6.5 — Data experiment identity and UTC range** — COMPLETE
 
 ### Phase 16.5 tasks
 
@@ -207,6 +206,37 @@ deviations: []
 notes: |
   Reviewer re-ran all frontend acceptance commands. No backend or
   scripts files changed, so pytest, ruff, and mypy were not re-run.
+```
+
+### U.6.5 completion evidence
+
+```yaml
+task_id: U.6.5
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/tabs/DataTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_updated:
+  - Data renders a non-null experiment id
+  - Data omits a null experiment id and shows the UTC date range
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "30 files, 206 passed"
+  build: "exit 0"
+git_commit_sha: 3928376
+next_task: null
+deviations: []
+notes: |
+  Reviewer re-ran all frontend acceptance commands. Compare and all
+  existing frontend tests passed. No backend or scripts files changed,
+  so pytest, ruff, and mypy were not re-run. U.6 is complete; Phase 17
+  remains unopened.
 ```
 
 ### 16.5.6 completion evidence

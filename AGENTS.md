@@ -46,23 +46,8 @@ Before planning or writing code:
   `docs/ai/WORKFLOW.md` §5).
 - When reviewing a report: re-run every acceptance command yourself. Do
   not trust pasted output.
-- "Future authorized work" below is a design contract. It does not change
-  `STATE.md` and does not authorize a task.
-
 ## Environment
 
 - Windows, PowerShell 5.x. `&&` doesn't work; use `;` or separate commands.
 - Activate the venv before running Python: `.venv\Scripts\Activate.ps1`
 - Repo root: `E:\Documents\Projects\colossal_quant`
-
-## Authorized planned work
-
-`STATE.md` remains authoritative for the specific task that may be
-implemented. Authorization here does not permit skipping the task split
-or advancing more than one task at a time.
-
-### U.6 — Tear Sheet Research Workspace Redesign
-
-**Status: authorized; plan accepted on 2026-10-01.** Full design contract
-is in `docs/specs/U6.md`. Implement only the task marked `READY` in
-`STATE.md`.
