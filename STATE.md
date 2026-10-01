@@ -10,15 +10,15 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 16
-current_phase_status: COMPLETE
-current_task: null
-current_task_status: null
-next_task: null
-last_completed_task: U.4
+current_phase: 16.5
+current_phase_status: IN_PROGRESS
+current_task: 16.5.1
+current_task_status: READY
+next_task: 16.5.2
+last_completed_task: U.5
 last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: true
+human_transition_required: false
 ```
 
 ### Phase status
@@ -36,11 +36,12 @@ human_transition_required: true
 - Phase 10 — COMPLETE
 - Phase 11 — COMPLETE
 - **Phase 12 — COMPLETE (all 4 tasks)**
-- **Phase 12.5 — COMPLETE (U.0–U.4)**
+- **Phase 12.5 — COMPLETE (U.0–U.5)**
 - **Phase 13 — COMPLETE**
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
+- **Phase 16.5 — IN_PROGRESS (16.5.1 READY)** (tear-sheet research report UI; not Phase 17)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -79,9 +80,57 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-None. Phase 16 is complete. Phase 12.5 is complete, including the deferred U.3.2 and U.4 tasks. Phase 17 is not started.
+**16.5.1 — Experiment identity header** — READY
 
-The human must explicitly commit to Phase 17 or defer it. Do not invent a Phase 17 task split from the roadmap paragraph alone. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync was out of scope for 16.4.
+The human authorized Phase 16.5 on 2026-10-01 instead of opening Phase 17. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
+
+Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.1 only.
+
+**16.5.1 goal.** Replace the inline tear-sheet header with one experiment-identity header so the researcher can read the run before any metric. Reuse `Badge` and `VerificationBadge`. Keep the back link.
+
+Show only values already on the tear sheet:
+
+- run name
+- strategy
+- first universe symbol, plus the existing "only first symbol executed" note when `universe.length > 1`
+- date range from `start_ts` / `end_ts` (UTC dates, same formatting as today)
+- timeframe from `params.timeframe` when it is a non-empty string; otherwise omit
+- fees from `params.maker_fee` when it is a string, using the current percent formatting; otherwise omit
+- benchmark from `params.benchmark_symbol` when it is a non-empty string; otherwise omit
+- git SHA, first 7 characters, with ` (dirty)` when `git_dirty` is true; omit when `git_sha` is null or empty
+- run status
+- verification badge
+
+Do not add venue, strategy version, dataset identity, fee currency, or any label the API does not provide. Do not change `DataTab`. Do not change KPI grouping, charts, the nav rail, or tab contents.
+
+**Deliverables**
+
+- `frontend/src/pages/TearSheet/ExperimentHeader.tsx`
+- `frontend/src/pages/TearSheet/ExperimentHeader.test.tsx`
+- `frontend/src/pages/TearSheet/index.tsx` (render the header; no other behavior change)
+- `frontend/src/pages/TearSheet/tearSheet.css` (header layout only)
+- `frontend/src/pages/TearSheet/index.test.tsx` only if an existing header assertion must follow the move
+
+**Acceptance**
+
+- `cd frontend && npx tsc -b`
+- `cd frontend && npx vitest run`
+- `cd frontend && npm run build`
+
+**Commit**
+
+`git add frontend/src/pages/TearSheet/ExperimentHeader.tsx frontend/src/pages/TearSheet/ExperimentHeader.test.tsx frontend/src/pages/TearSheet/index.tsx frontend/src/pages/TearSheet/tearSheet.css frontend/src/pages/TearSheet/index.test.tsx`
+
+`feat(ui): show experiment identity on the tear sheet header (Phase 16.5.1)`
+
+### Phase 16.5 tasks
+
+- [ ] **16.5.1 — Experiment identity header** — READY
+- [ ] **16.5.2 — Overview executive summary** — NOT_STARTED. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
+- [ ] **16.5.3 — Performance investigation layout** — NOT_STARTED. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
+- [ ] **16.5.4 — Trades summary** — NOT_STARTED. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
+- [ ] **16.5.5 — Data methodology layout** — NOT_STARTED. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
+- [ ] **16.5.6 — Honest unavailable sections** — NOT_STARTED. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
 
@@ -764,6 +813,39 @@ notes: |
   "0"; a non-zero quantity still uses four decimal places. Hover is a
   120ms border and background transition. KPI values are unchanged.
   Phase 17 is not started.
+```
+
+### U.5 completion evidence
+
+```yaml
+task_id: U.5
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/KpiCards.tsx
+  - frontend/src/pages/TearSheet/KpiCards.test.tsx
+  - frontend/src/pages/TearSheet/kpiCards.css
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/KpiCards.test.tsx::opens Returns and shows one group at a time
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "25 files, 187 passed"
+  build: "exit 0"
+git_commit_sha: 6808426f38012f5f40cae01c831bf97c9ae05cee
+next_task: 16.5.1
+deviations:
+  - "U.5 was committed before STATE.md had a task for it. This block is the reconciliation. Phase 12.5 had already been marked complete at U.4; it stays complete and now includes U.5."
+  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build on 6808426.
+  KPI formatters and values are unchanged. The cards render one group
+  at a time, defaulting to Returns. Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
