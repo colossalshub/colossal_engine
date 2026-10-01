@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { ApiClientError } from '../../api/client'
 import { createRun } from '../../api/runs'
-import type { RunCreate } from '../../api/types'
+import type { ResearchStage, RunCreate } from '../../api/types'
 import './strategyForm.css'
 
 const STRATEGIES = [
@@ -19,6 +19,26 @@ const TIMEFRAMES = [
   { value: '4h', label: '4h' },
   { value: '1d', label: '1d' },
   { value: '1w', label: '1w' },
+] as const
+
+const RESEARCH_STRINGS = [
+  ['experiment_id', 'Experiment ID'],
+  ['hypothesis_id', 'Hypothesis ID'],
+  ['strategy_version', 'Strategy version'],
+] as const
+
+const RESEARCH_DATES = [
+  ['in_sample_start_ts', 'In-sample start (UTC)'],
+  ['in_sample_end_ts', 'In-sample end (UTC)'],
+  ['validation_start_ts', 'Validation start (UTC)'],
+  ['validation_end_ts', 'Validation end (UTC)'],
+  ['oos_start_ts', 'OOS start (UTC)'],
+  ['oos_end_ts', 'OOS end (UTC)'],
+] as const
+
+const RESEARCH_TRIALS = [
+  ['trial_index', 'Trial index'],
+  ['trial_count', 'Trial count'],
 ] as const
 
 function dateStrToEpochMs(dateStr: string): number {
@@ -45,6 +65,8 @@ export function StrategyForm() {
   const [deployPercent, setDeployPercent] = useState<string>('100')
   const [benchmark, setBenchmark] = useState<string>('')
   const [name, setName] = useState<string>('')
+  const [research, setResearch] = useState<Record<string, string>>({})
+  const [researchStage, setResearchStage] = useState<ResearchStage | ''>('')
   const [formError, setFormError] = useState<string | null>(null)
 
   const mutation = useMutation({
@@ -121,6 +143,35 @@ export function StrategyForm() {
     }
     if (name.trim()) {
       payload.name = name.trim()
+    }
+    for (const [key] of RESEARCH_STRINGS) {
+      const value = research[key]?.trim()
+      if (value) payload[key] = value
+    }
+    if (researchStage) payload.research_stage = researchStage
+    for (const [key, label] of RESEARCH_DATES) {
+      const value = research[key]?.trim()
+      if (!value) continue
+      const timestamp = Date.parse(`${value}T00:00:00.000Z`)
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        !Number.isFinite(timestamp) ||
+        new Date(timestamp).toISOString().slice(0, 10) !== value
+      ) {
+        setFormError(`${label}: invalid date. Use YYYY-MM-DD.`)
+        return
+      }
+      payload[key] = timestamp
+    }
+    for (const [key, label] of RESEARCH_TRIALS) {
+      const value = research[key]?.trim()
+      if (!value) continue
+      const trial = Number(value)
+      if (!/^[+-]?\d+$/.test(value) || !Number.isSafeInteger(trial)) {
+        setFormError(`${label} must be a complete safe integer.`)
+        return
+      }
+      payload[key] = trial
     }
     mutation.mutate(payload)
   }
@@ -263,6 +314,64 @@ export function StrategyForm() {
           />
         </label>
       </div>
+
+      <section aria-label="Research metadata (optional)">
+        <h3>Research metadata (optional)</h3>
+        <div className="strategy-form__row strategy-form__row--4col">
+          {RESEARCH_STRINGS.map(([key, label]) => (
+            <label key={key} className="strategy-form__field">
+              <span className="strategy-form__label">{label}</span>
+              <input
+                className="strategy-form__input"
+                type="text"
+                value={research[key] ?? ''}
+                onChange={(e) => setResearch({ ...research, [key]: e.target.value })}
+              />
+            </label>
+          ))}
+          <label className="strategy-form__field">
+            <span className="strategy-form__label">Research stage</span>
+            <select
+              className="strategy-form__input"
+              value={researchStage}
+              onChange={(e) => setResearchStage(e.target.value as ResearchStage | '')}
+            >
+              <option value="">Unset</option>
+              <option value="exploration">Exploration</option>
+              <option value="validation">Validation</option>
+              <option value="oos">OOS</option>
+            </select>
+          </label>
+        </div>
+        <div className="strategy-form__row strategy-form__row--3col">
+          {RESEARCH_DATES.map(([key, label]) => (
+            <label key={key} className="strategy-form__field">
+              <span className="strategy-form__label">{label}</span>
+              <input
+                className="strategy-form__input"
+                type="text"
+                placeholder="YYYY-MM-DD"
+                value={research[key] ?? ''}
+                onChange={(e) => setResearch({ ...research, [key]: e.target.value })}
+              />
+            </label>
+          ))}
+        </div>
+        <div className="strategy-form__row">
+          {RESEARCH_TRIALS.map(([key, label]) => (
+            <label key={key} className="strategy-form__field">
+              <span className="strategy-form__label">{label}</span>
+              <input
+                className="strategy-form__input"
+                type="text"
+                inputMode="numeric"
+                value={research[key] ?? ''}
+                onChange={(e) => setResearch({ ...research, [key]: e.target.value })}
+              />
+            </label>
+          ))}
+        </div>
+      </section>
 
       {formError || serverError ? (
         <div className="strategy-form__error">{formError ?? serverError}</div>

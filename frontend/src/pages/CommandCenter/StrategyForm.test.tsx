@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -57,9 +57,149 @@ function renderForm() {
   return renderWithProviders(<Harness />, { route: '/' })
 }
 
+const researchFields = [
+  ['experiment_id', 'Experiment ID'],
+  ['hypothesis_id', 'Hypothesis ID'],
+  ['strategy_version', 'Strategy version'],
+  ['in_sample_start_ts', 'In-sample start (UTC)'],
+  ['in_sample_end_ts', 'In-sample end (UTC)'],
+  ['validation_start_ts', 'Validation start (UTC)'],
+  ['validation_end_ts', 'Validation end (UTC)'],
+  ['oos_start_ts', 'OOS start (UTC)'],
+  ['oos_end_ts', 'OOS end (UTC)'],
+  ['trial_index', 'Trial index'],
+  ['trial_count', 'Trial count'],
+] as const
+
+function fillResearch(label: string, value: string) {
+  fireEvent.change(screen.getByLabelText(label), { target: { value } })
+}
+
 describe('StrategyForm', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  it('renders accessible optional research controls blank with all stage options', () => {
+    renderForm()
+    const section = screen.getByRole('region', { name: 'Research metadata (optional)' })
+    for (const [, label] of researchFields) {
+      expect(within(section).getByLabelText(label)).toHaveValue('')
+    }
+    const stage = within(section).getByLabelText('Research stage')
+    expect(stage).toHaveValue('')
+    expect(within(stage).getAllByRole('option').map((option) => [option.textContent, (option as HTMLOptionElement).value])).toEqual([
+      ['Unset', ''], ['Exploration', 'exploration'], ['Validation', 'validation'], ['OOS', 'oos'],
+    ])
+  })
+
+  it('submits every research field at top level with trimmed strings and UTC midnight dates', async () => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    fillResearch('Experiment ID', ' experiment-1 ')
+    fillResearch('Hypothesis ID', ' hypothesis-1 ')
+    fillResearch('Strategy version', ' v2 ')
+    fillResearch('Research stage', 'validation')
+    const dates = ['2023-01-01', '2023-06-30', '2023-07-01', '2023-12-31', '2024-01-01', '2024-02-29']
+    researchFields.slice(3, 9).forEach(([, label], index) => fillResearch(label, dates[index]))
+    fillResearch('Trial index', ' 2 ')
+    fillResearch('Trial count', ' 10 ')
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+    const payload = spy.mock.calls[0][0]
+    expect(payload).toMatchObject({
+      experiment_id: 'experiment-1', hypothesis_id: 'hypothesis-1', strategy_version: 'v2', research_stage: 'validation',
+      in_sample_start_ts: 1672531200000, in_sample_end_ts: 1688083200000,
+      validation_start_ts: 1688169600000, validation_end_ts: 1703980800000,
+      oos_start_ts: 1704067200000, oos_end_ts: 1709164800000,
+      trial_index: 2, trial_count: 10,
+    })
+    for (const [key] of researchFields) expect(payload.params).not.toHaveProperty(key)
+    expect(payload.params).not.toHaveProperty('research_stage')
+  })
+
+  it.each(['exploration', 'validation', 'oos'])('submits stage %s', async (stage) => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    fillResearch('Research stage', stage)
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(expect.objectContaining({ research_stage: stage })))
+  })
+
+  it.each(['whitespace', 'cleared'])('omits %s research fields and unset stage', async (mode) => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    for (const [, label] of researchFields) {
+      if (mode === 'cleared') fillResearch(label, '2024-01-01')
+      fillResearch(label, mode === 'whitespace' ? '   ' : '')
+    }
+    fillResearch('Research stage', 'oos')
+    fillResearch('Research stage', '')
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+    for (const [key] of researchFields) expect(spy.mock.calls[0][0]).not.toHaveProperty(key)
+    expect(spy.mock.calls[0][0]).not.toHaveProperty('research_stage')
+  })
+
+  it.each(researchFields.slice(3, 9))('allows the single date endpoint %s', async (key, label) => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    fillResearch(label, '2024-02-29')
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+    const payload = spy.mock.calls[0][0]
+    expect(payload).toHaveProperty(key, 1709164800000)
+    for (const [otherKey] of researchFields.slice(3, 9)) {
+      if (otherKey !== key) expect(payload).not.toHaveProperty(otherKey)
+    }
+  })
+
+  it('allows reversed and overlapping research ranges and index greater than count', async () => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    for (const [, label] of researchFields.slice(3, 9)) {
+      fillResearch(label, label.includes('start') ? '2025-12-31' : '2023-01-01')
+    }
+    fillResearch('Trial index', '8')
+    fillResearch('Trial count', '2')
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+    expect(spy.mock.calls[0][0]).toMatchObject({
+      in_sample_start_ts: 1767139200000, in_sample_end_ts: 1672531200000,
+      validation_start_ts: 1767139200000, validation_end_ts: 1672531200000,
+      oos_start_ts: 1767139200000, oos_end_ts: 1672531200000, trial_index: 8, trial_count: 2,
+    })
+  })
+
+  it.each(['0', '-2', '+3', '9007199254740991', '-9007199254740991'])('accepts safe integer trials %s', async (value) => {
+    const spy = vi.spyOn(runsApi, 'createRun').mockResolvedValue(sampleRun)
+    renderForm()
+    fillResearch('Trial index', value)
+    fillResearch('Trial count', value)
+    fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(expect.objectContaining({ trial_index: Number(value), trial_count: Number(value) })))
+  })
+
+  it.each(['Trial index', 'Trial count'])('rejects invalid nonblank values for %s', async (label) => {
+    const spy = vi.spyOn(runsApi, 'createRun')
+    renderForm()
+    for (const value of ['1.5', 'NaN', 'Infinity', '-Infinity', '9007199254740992', '-9007199254740992', '2junk', '1e2', '0x10', '+']) {
+      fillResearch(label, value)
+      fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+      expect(screen.getByText(`${label} must be a complete safe integer.`)).toBeInTheDocument()
+      expect(spy).not.toHaveBeenCalled()
+    }
+  })
+
+  it.each(researchFields.slice(3, 9))('rejects invalid nonblank dates for %s', async (_key, label) => {
+    const spy = vi.spyOn(runsApi, 'createRun')
+    renderForm()
+    for (const value of ['2024-02-30', '2023-02-29', '2024-13-01', '2024-01-32', 'not-a-date', '2024-1-01']) {
+      fillResearch(label, value)
+      fireEvent.click(screen.getByRole('button', { name: /Run/ }))
+      expect(screen.getByText(`${label}: invalid date. Use YYYY-MM-DD.`)).toBeInTheDocument()
+      expect(spy).not.toHaveBeenCalled()
+    }
   })
 
   it('renders with default universe chip "BTC/USDT"', () => {
