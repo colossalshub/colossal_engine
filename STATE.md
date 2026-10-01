@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 16.5
 current_phase_status: IN_PROGRESS
-current_task: 16.5.2
+current_task: 16.5.3
 current_task_status: READY
-next_task: 16.5.3
-last_completed_task: 16.5.1
+next_task: 16.5.4
+last_completed_task: 16.5.2
 last_completed_phase: 16
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -41,7 +41,7 @@ human_transition_required: false
 - **Phase 14 — COMPLETE (14.1–14.4)**
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
-- **Phase 16.5 — IN_PROGRESS (16.5.2 READY)** (tear-sheet research report UI; not Phase 17)
+- **Phase 16.5 — IN_PROGRESS (16.5.3 READY)** (tear-sheet research report UI; not Phase 17)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -80,32 +80,23 @@ The human confirmed the target clock on 2026-10-01. For daily bars, the close of
 
 ### Current task
 
-**16.5.2 — Overview executive summary** — READY
+**16.5.3 — Performance investigation layout** — READY
 
 The human authorized Phase 16.5 on 2026-10-01 instead of opening Phase 17. Phase 17 is not started. Do not invent a Phase 17 task split. `PROJECT.md` §4.4 still omits `execution_assumptions`; that docs sync stays out of scope.
 
-Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.2 only.
+Phase 16.5 is a frontend-only tear-sheet report. It does not add metrics, engines, or API fields. One task at a time. The open task is 16.5.3 only. On 2026-10-01 the human authorized the same agent to review a task after re-running its acceptance commands, then continue.
 
-**16.5.2 goal.** On the Overview tab, show the existing KPIs together and add the existing equity curve, underwater chart, and monthly heatmap. The researcher should see the result before opening another tab. Reuse `KpiCard`, `EquityCurve`, `DrawdownChart`, and `MonthlyHeatmap`. Do not rewrite those components.
+**16.5.3 goal.** On the Performance tab, keep the existing price chart with fill markers, the existing equity curve, and the existing underwater chart. Make equity dominant: full width, after the price chart, and taller than the underwater chart. Underwater stays full width below equity. Do not place them side by side.
 
-Show every KPI `KpiCards` already renders, in two bands, all at once:
+Reuse `PriceChart`, `EquityCurve`, and `DrawdownChart`. Do not rewrite them. Pass height through the existing prop: equity `420`, underwater `280`. Price keeps its current default height.
 
-- Headline: CAGR, Sharpe, Max DD
-- Secondary: Sortino, Volatility, Calmar, Win Rate, Profit Factor, Trades, Avg Duration when it is non-null, Turnover
-
-Use the same formatters and null em dashes `KpiCards` already uses. A null average duration omits that card. Do not calculate a replacement. Do not add a cumulative-return card, rolling Sharpe, or rolling volatility.
-
-Below the KPIs, render `EquityCurve` from `data.equity`, `DrawdownChart` from `data.drawdown`, and the existing monthly heatmap. Leave the Performance tab as it is. Charts may appear on both tabs after this task.
-
-`KpiCards` keeps the U.5 one-group default. Compare must keep that behavior, and its tests must still pass. Do not change `DataTab`, the nav rail, `ExperimentHeader`, or any backend file.
+Do not add rolling Sharpe or rolling volatility. The tear sheet has no such series. Do not change Overview, the nav rail, `ExperimentHeader`, `DataTab`, `KpiCards`, or any backend file. If `.tear-sheet-tab__grid-2` is unused after this change, delete that rule.
 
 **Deliverables**
 
-- `frontend/src/pages/TearSheet/OverviewSummary.tsx`
-- `frontend/src/pages/TearSheet/OverviewSummary.test.tsx`
-- `frontend/src/pages/TearSheet/tabs/OverviewTab.tsx`
-- `frontend/src/pages/TearSheet/index.test.tsx` (the overview assertion currently expects the Returns group tab)
-- a CSS file only if the two bands need layout, and only under `frontend/src/pages/TearSheet/`
+- `frontend/src/pages/TearSheet/tabs/PerformanceTab.tsx`
+- `frontend/src/pages/TearSheet/index.test.tsx` (performance assertions must follow the new order and widths)
+- `frontend/src/pages/TearSheet/tearSheet.css` only if the unused grid rule is removed
 
 **Acceptance**
 
@@ -115,17 +106,17 @@ Below the KPIs, render `EquityCurve` from `data.equity`, `DrawdownChart` from `d
 
 **Commit**
 
-`git add frontend/src/pages/TearSheet/OverviewSummary.tsx frontend/src/pages/TearSheet/OverviewSummary.test.tsx frontend/src/pages/TearSheet/tabs/OverviewTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
+`git add frontend/src/pages/TearSheet/tabs/PerformanceTab.tsx frontend/src/pages/TearSheet/index.test.tsx`
 
-Add the CSS file to that line only if this task creates one.
+Add `frontend/src/pages/TearSheet/tearSheet.css` only if this task changes it.
 
-`feat(ui): show the overview executive summary (Phase 16.5.2)`
+`feat(ui): make equity the dominant performance chart (Phase 16.5.3)`
 
 ### Phase 16.5 tasks
 
 - [x] **16.5.1 — Experiment identity header** — COMPLETE
-- [ ] **16.5.2 — Overview executive summary** — READY. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
-- [ ] **16.5.3 — Performance investigation layout** — NOT_STARTED. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
+- [x] **16.5.2 — Overview executive summary** — COMPLETE. Headline and secondary KPIs visible together, plus existing equity, drawdown, and monthly heatmap. No new metrics. No rolling series.
+- [ ] **16.5.3 — Performance investigation layout** — READY. Existing price, equity, and underwater charts, equity dominant. No rolling Sharpe or volatility unless a series already exists on the tear sheet.
 - [ ] **16.5.4 — Trades summary** — NOT_STARTED. Existing closed-trade KPIs above the current ledger. No MAE, MFE, or R-multiple charts.
 - [ ] **16.5.5 — Data methodology layout** — NOT_STARTED. Reorganize fields the Data tab already renders, including the recorded equity clock. No new identity fields.
 - [ ] **16.5.6 — Honest unavailable sections** — NOT_STARTED. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
@@ -884,6 +875,46 @@ notes: |
   Data tab, KPI grouping, charts, and the nav rail are unchanged.
   Vite still prints the existing chunk-size warning. The build exits 0.
   Phase 17 is not started.
+```
+
+### 16.5.2 completion evidence
+
+```yaml
+task_id: 16.5.2
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/OverviewSummary.tsx
+  - frontend/src/pages/TearSheet/OverviewSummary.test.tsx
+  - frontend/src/pages/TearSheet/tabs/OverviewTab.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+tests_added:
+  - frontend/src/pages/TearSheet/OverviewSummary.test.tsx (3)
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "27 files, 195 passed"
+  build: "exit 0"
+git_commit_sha: f1770f8023a92c333b2f6655a532e73cd3ea20a3
+next_task: 16.5.3
+deviations:
+  - "Formatters are copied into OverviewSummary. KpiCards is unchanged, so Compare keeps the one-group default."
+  - "No new CSS file. The summary reuses the existing kpi-cards grid."
+  - "The overview page test scopes KPI labels to their sections because the nav item Trades shares that word."
+  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
+notes: |
+  Reviewer re-ran tsc -b, vitest, and the production build on f1770f8.
+  Headline shows CAGR, Sharpe, and Max DD. Secondary shows Sortino,
+  volatility, Calmar, win rate, profit factor, trades, average duration
+  when non-null, and turnover. Nulls are em dashes. Equity, underwater,
+  and the monthly heatmap render from the tear sheet series. The
+  Performance tab was not changed in this commit. The human authorized
+  same-agent review on 2026-10-01. Vite still prints the existing
+  chunk-size warning. The build exits 0. Phase 17 is not started.
 ```
 
 Phase 12.1 is committed as `ccadbfc`. The commit message follows the
