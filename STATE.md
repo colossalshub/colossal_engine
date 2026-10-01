@@ -12,10 +12,10 @@
 ```yaml
 current_phase: U.6
 current_phase_status: IN_PROGRESS
-current_task: U.6.1
+current_task: U.6.2
 current_task_status: READY
-next_task: U.6.2
-last_completed_task: 16.5.6
+next_task: U.6.3
+last_completed_task: U.6.1
 last_completed_phase: 16.5
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: false
@@ -42,7 +42,7 @@ human_transition_required: false
 - **Phase 15 — COMPLETE (15.1–15.4)**
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
-- **U.6 — IN PROGRESS (U.6.1 READY)** (tear-sheet research workspace redesign)
+- **U.6 — IN PROGRESS (U.6.1 complete; U.6.2 READY)** (tear-sheet research workspace redesign)
 - Phase 17–29 — BACKLOG (research-platform ambitions; scope to be
   explicitly committed or deferred after Phase 16)
 
@@ -65,15 +65,14 @@ work.
 
 ### Current task
 
-**U.6.1 — Risk tab component — READY.** Add the Risk tab component and
-its direct test only. It renders supplied Sharpe, Sortino, volatility,
-maximum drawdown, and Calmar values plus the existing underwater chart.
-No route or navigation change belongs to U.6.1.
+**U.6.2 — Risk route and eight-item navigation — READY.** Add the Risk
+route and place the eight navigation items in the approved order. Remove
+the Execution planned badge; retain the Regimes and Robustness badges.
 
 ### U.6 tasks
 
-- [ ] **U.6.1 — Risk tab component** — READY
-- [ ] **U.6.2 — Risk route and eight-item navigation** — NOT_STARTED
+- [x] **U.6.1 — Risk tab component** — COMPLETE
+- [ ] **U.6.2 — Risk route and eight-item navigation** — READY
 - [ ] **U.6.3 — Overview KPI and chart cleanup** — NOT_STARTED
 - [ ] **U.6.4 — Performance cleanup and Risk chart ownership** — NOT_STARTED
 - [ ] **U.6.5 — Data experiment identity and UTC range** — NOT_STARTED
@@ -88,6 +87,35 @@ No route or navigation change belongs to U.6.1.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### U.6.1 completion evidence
+
+```yaml
+task_id: U.6.1
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-01
+files_changed:
+  - frontend/src/pages/TearSheet/tabs/RiskTab.tsx
+  - frontend/src/pages/TearSheet/tabs/RiskTab.test.tsx
+tests_added:
+  - RiskTab shows the five supplied risk KPIs and drawdown series
+  - RiskTab renders five null KPI values as em dashes
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "30 files, 205 passed"
+  build: "exit 0"
+git_commit_sha: bff113e37788b898172bfa10bae15d533bc71e84
+next_task: U.6.2
+deviations: []
+notes: |
+  Reviewer re-ran all frontend acceptance commands. No backend or
+  scripts files changed, so pytest, ruff, and mypy were not re-run.
+```
 
 ### 16.5.6 completion evidence
 
