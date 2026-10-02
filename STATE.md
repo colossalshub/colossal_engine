@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2a
-current_task_status: READY
-next_task: 18.2b
-last_completed_task: 18.1.1
+current_task: 18.2b
+current_task_status: NOT_STARTED
+next_task: null
+last_completed_task: 18.2a
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,25 +72,28 @@ work.
 
 ### Current task
 
-**18.2a — Pure research-range declaration helper** — READY. The user
-confirmed the complete decision record and authorized starting the first bounded
-task. Implement only one pure declaration helper and its direct test: stage
-applicability, complete endpoint pairs, strict start<end validity, and
-chronological nonoverlap under [start,end). Null-stage ordinary behavior and
-historical records remain intact. This helper does not certify runtime
-eligibility, actual coverage, warmup, execution containment, frozen selection,
-API/CLI enforcement, gaps, or walk-forward properties. No engine, API, CLI, or
-UI behavior changed in the accepted documentation prerequisite.
+**18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED.
+18.2a has independently passed acceptance as a pure declaration helper. The next
+bounded helper requires fresh narrow planning and a readiness gate before it
+may become READY; no implementation of 18.2b has begun. Its supported clock,
+calendar and coverage contract must be established from the accepted decisions
+and existing code rather than invented defaults.
 
-Only 18.2a is open. A fresh narrow planner must specify its exact helper/test
-contract before implementation. 18.2b is the next bounded verified bar-clock
-and coverage helper with its direct test; it remains NOT_STARTED pending 18.2a
-acceptance and its own narrow planning/readiness gate. Remaining admission and
-runtime integration, warmup and information access, boundary artifacts, frozen
-selection and provenance work require fresh narrow planning before their READY
-transitions. These bounds do not claim the entire 18.2 scope is split or complete.
-Continue serial planner/doer/independent reviewer roles and separate reviewer
-state commits. No automatic phase crossing is authorized.
+18.2a implements stage applicability, complete endpoint pairs, strict start<end,
+chronological nonoverlap and [start,end) integer point membership. Null-stage
+ordinary behavior is preserved. No existing caller uses the helper. Acceptance
+certifies this declaration contract only, not runtime eligibility, actual
+coverage, causal availability, warmup, execution containment, frozen selection,
+API/CLI enforcement, gaps or walk-forward properties. Historical execution and
+metadata remain intact.
+
+Remaining admission and runtime integration, warmup and information access,
+boundary artifacts, frozen selection and provenance work require fresh narrow
+planning before their READY transitions. No task after 18.2b is opened or split
+by this acceptance; next_task is null pending that later planning. These bounds
+do not claim the entire 18.2 scope is split or complete. Continue serial
+planner/doer/independent reviewer roles and separate reviewer state commits.
+No automatic phase crossing is authorized.
 
 ### Phase 17 tasks
 
@@ -108,8 +111,8 @@ state commits. No automatic phase crossing is authorized.
 - [x] **18.1 — IS/validation/OOS semantics questions** — COMPLETE. Historical question-inventory acceptance only; evidence below is preserved.
 - [x] **18.1.1 — Confirmed temporal decision record** — COMPLETE. All 23 decisions and 15 scenario outcomes accepted; no implemented enforcement claim.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
-- [ ] **18.2a — Pure research-range declaration helper and test** — READY. Declaration checks only; no runtime or research-validity certification.
-- [ ] **18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED. Next bounded helper; exact supported contract requires fresh planning after 18.2a acceptance.
+- [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
+- [ ] **18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED. Next bounded helper; exact supported contract requires fresh planning/readiness now that 18.2a is accepted.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -131,6 +134,78 @@ state commits. No automatic phase crossing is authorized.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2a completion evidence
+
+```yaml
+task_id: 18.2a
+status: COMPLETE
+reviewer_decision: accepted_declaration_contract_only
+reviewer_date: 2026-10-03
+files_changed:
+  - backend/src/quant/engine/temporal.py
+  - backend/tests/engine/test_temporal.py
+tests_added_or_updated:
+  - 184 deterministic parameterized declaration and point-membership cases
+  - absent/null stage exits before endpoint reads and ignores malformed legacy ranges
+  - exact stages, applicability, every complete optional/required pair and endpoint type
+  - semantic chronology, overlap rejection, signed/zero/unbounded integers and shared boundaries
+  - matching single ERROR and ValueError, first-failure precedence, caller immutability and frozen outputs
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "628 passed, 81 warnings in 34.71s; exit 0"
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 31 source files; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: 73f81f0636b6c715e07c3f01ba0ab03c8eb0251a
+next_task: 18.2b
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux venv/Bash activation and command-only network grant instead of documented Windows example; acceptance commands unchanged."
+notes: |
+  The authorized serial task moved from READY through planner contract/readiness,
+  doer implementation (IN_PROGRESS), committed handoff (ACCEPTANCE_PENDING),
+  and fresh independent reviewer acceptance (COMPLETE). The intervening role
+  handoffs are recorded here; the doer did not advance STATE or self-accept.
+  Reviewer read the full actual two-file commit, accepted narrow plan, doer
+  report, full workflow/reviewer/incident/spec records and relevant project
+  contracts. Stage requirements, every supplied inactive pair, fixed semantic
+  order, half-open membership, immutable detached records, early ordinary exit
+  and deterministic log-plus-raise behavior match the approved contract.
+  All exact whole-tree acceptance commands independently passed on their first
+  reviewer invocation using the existing venv; no installs or code changes.
+  Full pytest used command-only network permission for local TestClient socket
+  operation, preserving configured proxy/TLS and all command options/plugins.
+  Doer's initial restricted pytest stalled without a result; only verified
+  owned PID was terminated after the network-granted diagnostic succeeded.
+  Its original shell exit was unavailable, not reported as a passed run.
+  Two precommit cosmetic lint correction cycles (5 issues then one remaining
+  long line) and all original failures remain in the doer report/logs.
+  Reviewer found no hidden semantic correction or weakened test assertion.
+  Independent output is preserved in /tmp/phase18a-review-pytest.log,
+  /tmp/phase18a-review-ruff.log and /tmp/phase18a-review-mypy.log; temporary
+  reports are supplemental, while this evidence and task commit are durable.
+  Live git ls-remote --heads origin main work independently returned main
+  81824f70aaeeb7efc07b8afc127a43a2b888bcd7 and work
+  90c35911d95515fde0f25e856fd9858e99332a9f before this state commit.
+  That observation verifies current connectivity, not publication of this task.
+  This separate reviewer commit changes STATE only. No caller/API/CLI/runtime
+  integration, bar/calendar coverage, warmup, gaps, frozen selection, provenance
+  or walk-forward guarantee is accepted. API coercion cannot be undone here;
+  missing versus null is intentionally equivalent, validation use cannot be
+  inferred, and integer points/touching boundaries prove no availability/gap
+  eligibility. 18.2b remains NOT_STARTED pending fresh narrow planning/readiness.
+  Whole 18.2 remains incomplete, Phase 18 remains IN_PROGRESS, and no later
+  task or phase is opened. Historical evidence below is preserved unchanged.
+```
 
 ### 18.1.1 completion evidence
 
