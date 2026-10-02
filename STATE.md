@@ -13,7 +13,7 @@
 current_phase: 18
 current_phase_status: IN_PROGRESS
 current_task: 18.2b
-current_task_status: NOT_STARTED
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2a
 last_completed_phase: 17
@@ -72,12 +72,12 @@ work.
 
 ### Current task
 
-**18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED.
-18.2a has independently passed acceptance as a pure declaration helper. The next
-bounded helper requires fresh narrow planning and a readiness gate before it
-may become READY; no implementation of 18.2b has begun. Its supported clock,
-calendar and coverage contract must be established from the accepted decisions
-and existing code rather than invented defaults.
+**18.2b — Verified bar-clock and coverage helper and test** — READY.
+Fresh narrow planning and independent readiness review have established the
+bounded supported contract below from the accepted decisions and current code.
+No implementation of 18.2b has begun. Only this helper and its mirrored test
+are opened; its acceptance will certify supplied clock consistency and coverage,
+not actual source publication evidence or runtime eligibility.
 
 18.2a implements stage applicability, complete endpoint pairs, strict start<end,
 chronological nonoverlap and [start,end) integer point membership. Null-stage
@@ -112,7 +112,7 @@ No automatic phase crossing is authorized.
 - [x] **18.1.1 — Confirmed temporal decision record** — COMPLETE. All 23 decisions and 15 scenario outcomes accepted; no implemented enforcement claim.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
-- [ ] **18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED. Next bounded helper; exact supported contract requires fresh planning/readiness now that 18.2a is accepted.
+- [ ] **18.2b — Verified bar-clock and coverage helper and test** — READY. Fresh independently reviewed fixed-grid, explicit zero-delay clock and exact coverage contract below; no implementation or acceptance yet.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -134,6 +134,153 @@ No automatic phase crossing is authorized.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2b readiness contract and evidence
+
+Fresh independent readiness review accepts only the following task contract.
+Rule source: `docs/specs/phase-18.md`, `phase18-temporal-v1`, especially
+TW-01/TW-02/TW-03/TW-05, IA-02 and EN-01/EN-02/EN-04/EN-05. The coordinator
+accepted this conservative supported capability under the human's delegated
+choices. Unsupported clocks fail closed rather than acquiring invented defaults.
+
+**Scope:** create only `backend/src/quant/engine/bar_coverage.py` and
+`backend/tests/engine/test_bar_coverage.py`. Production uses stdlib and an
+absolute import of the accepted `quant.engine.temporal.ResearchInterval`.
+No existing code, exports, schema, storage, ingestion, API, CLI, runner, worker,
+frontend, fingerprint, protected file or dependency changes. Doer never edits
+STATE. Direct record construction itself is unvalidated, as in 18.2a.
+
+**Public interface:** frozen `BarClock(open_ts: int, close_ts: int,
+available_ts: int)` and
+`validate_bar_coverage(interval: ResearchInterval, *, timeframe: object,
+calendar: object, anchor_ts: object, observations: Sequence[Mapping[str, object]])
+-> tuple[BarClock, ...]`. Input containers obey their typed Sequence/Mapping
+contracts; payloads are validated at runtime. Caller supplies the interval
+explicitly, with no stage inference, active-range fallback or eligibility flag.
+
+**Supported clock:** exact calendar token `continuous_utc_fixed` plus explicit
+anchor; no venue/session/weekday/midnight/epoch-zero default. Exact canonical
+fixed durations in UTC milliseconds: 1m=60000, 5m=300000, 15m=900000,
+30m=1800000, 1h=3600000, 4h=14400000, 1d=86400000, 1w=604800000.
+These established units match orchestrator.py; an identical local table avoids
+importing its third-party execution dependencies. Session and calendar-month
+clocks, 1mo/1M and all other unsupported tokens reject without normalization.
+Week is an explicit elapsed duration anchored by the caller, not an exchange
+weekday assumption. This is a helper input contract, not new persisted fields.
+
+**Values and boundaries:** anchor and interval endpoints must be integers
+excluding bool; benign int subclasses, signed/zero/unbounded integers are
+preserved. No coercion, datetime bound or normalization. Revalidate interval
+endpoints because ResearchInterval is directly constructible: start<end and
+both endpoints congruent to anchor modulo duration. Each observation explicitly
+supplies integer `ts` (established OPEN meaning), `close_ts`, `available_ts`;
+missing/null evidence rejects. Open must align, close must equal open+duration,
+and availability must explicitly equal close for this supported zero-delay
+capability. Known delayed availability is unsupported, not silently shifted;
+unknown availability cannot be inferred from opens, ingested_at or wall time.
+
+**Exact coverage batch:** each close lies in [start,end), including start and
+excluding end. Input contains exactly the active-stage batch, already ordered;
+context/warmup/later observations reject, never filter/sort/deduplicate/repair.
+All repeated opens reject, including equal records and conflicting extras;
+strict chronological order is required. First close may have an open one
+interval before start. Membership does not permit scoring earlier movement or
+carrying exposure, positions, orders or returns. Empty batch rejects. With
+expected_count=(end-start)//duration, require exact count after validating every
+row. Aligned unique strictly ordered closes inside the aligned half-open grid
+with exact count mathematically imply start,start+duration,...,end-duration.
+Independent reviewer identified a redundant unreachable per-index mismatch
+predicate in the draft plan; coordinator explicitly approved its removal before
+implementation. No accepted inputs or observable errors change and no impossible
+branch test is required. Use O(n) actual-row work/memory and arithmetic count,
+never allocate or iterate a huge expected schedule or shorten an interval.
+Return detached frozen records in a tuple; extra mapping values are ignored,
+caller inputs untouched, repeated calls equal, later caller mutation harmless.
+
+**Failure order:** calendar then timeframe; anchor/start/end types; strict
+interval order; start then end alignment; each row in input order checks ts,
+close_ts, available_ts types, open alignment, close equality, availability
+equality, close membership, duplicate open, strict chronology. After all rows:
+empty batch then complete count. A later malformed row outranks missing-count
+failure; row-local types outrank duplicate/order. Every rejection logs exactly
+one ERROR on this module's logger and raises ValueError with identical message;
+valid calls emit no log. Do not serialize caller payloads or arbitrary objects.
+
+Exact messages:
+
+- `calendar must be continuous_utc_fixed`
+- `timeframe must be one of 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w`
+- `<field> must be an integer UTC epoch-millisecond timestamp (bool is not allowed)`
+  for anchor_ts, interval.start_ts, interval.end_ts or observations[i].ts,
+  observations[i].close_ts, observations[i].available_ts
+- `interval.start_ts must be less than interval.end_ts`
+- `interval.start_ts must align with the declared bar grid`
+- `interval.end_ts must align with the declared bar grid`
+- `observations[i].ts must align with the declared bar grid`
+- `observations[i].close_ts must equal ts plus the declared timeframe duration`
+- `observations[i].available_ts must equal close_ts for the supported clock`
+- `observations[i].close_ts must be inside the half-open interval`
+- `observations[i].ts duplicates an earlier observation`
+- `observations must be strictly chronological`
+- `observations must contain at least one stage observation`
+- `observations do not provide complete expected bar coverage`
+
+**Required tests:** independent fixtures for all eight durations with shifted
+anchors and exact records; one-duration/start-inclusive/end-exclusive/shared
+boundary membership; signed/zero/huge/subclass integers; unsupported tokens and
+nonstrings; bool/float/string/Decimal/null/NaN/inf/object for all six timestamp
+slots plus missing row fields; equal/reversed/misaligned intervals/opens;
+incorrect/stretched closes; early/unknown/delayed availability; empty/missing
+first/interior/last/partial batches; exact/conflicting duplicates, reversed order
+and extra context rows; February/March monthly rejection; enormous interval
+with small batch and no timing-based assertion; deterministic precedence,
+single ERROR/value error and no payload leakage; mapping proxies/nested sentinels,
+repeatability/caller mutation, tuple/frozen output. No random data, real data
+writes, new dependencies, external services or weakened existing tests.
+Every function needs meaningful public-path/direct coverage.
+
+**Claim limits:** mechanically consistent supplied timestamps/calendar do not
+certify source history, actual publication delays, point-in-time revisions,
+realistic same-bar execution, preboundary exposure, causal warmup, fitting,
+feature/outcome horizons, gaps, freezing, provenance, multi-instrument coverage,
+OOS contamination or walk-forward properties. No caller integration is opened.
+Stored bars contain opens only; read.py's inclusive open filter/deduplication
+and runner.py's next-stored-open/monthly-30-day inference are insufficient
+research evidence and remain unchanged. Whole 18.2 and Phase 18 remain incomplete.
+No later task or phase is opened; never begin Phase 29.
+
+Readiness baseline: clean branch `phase18/18.2b-bar-coverage` at
+`4d3c8e84ca25974e78ee69952116b0211109fb7c`. Reviewer independently verified
+live `git ls-remote --heads origin main` returned that SHA; accepted decision
+commit 2bfe143 and helper commit 73f81f0 are ancestors (both exit 0). The user's
+wait-for-PR-merge condition is fulfilled by the merged prerequisite tree on main.
+Remote observation is current-check evidence, not guaranteed future freshness
+or publication. Git used command-only network permission, preserving proxy/TLS.
+Existing venv Python 3.12.14 imports pytest 9.1.1, ruff 0.16.10, mypy 2.4.0,
+duckdb 1.5.6, pydantic 2.13.5 and NautilusTrader 1.231.0; no installs needed.
+Readiness review read full AGENTS/STATE/WORKFLOW/REVIEWER/INCIDENTS/spec and
+required PROJECT/rules, planner report and relevant actual code/tests.
+Supplemental exact plan: /tmp/phase18b-plan.md; this durable contract does not
+depend on that temporary file for the supported scope. No third-party call in
+this task needs a Stage-1 probe. No Python files changed; pytest/ruff/mypy were
+not rerun for this STATE-only readiness commit under WORKFLOW section 5.
+Reviewer ran whole git diff/status/staged whitespace and scope checks before
+terminal commit. This READY transition is separate from future implementation
+and acceptance; last_completed_task remains 18.2a and next_task remains null.
+
+**Implementation acceptance:** activate existing Linux venv, run from repo root
+exactly `python -m pytest backend/tests -q`, `python -m ruff check .`,
+`python -m mypy --strict backend/src`, `git diff --check`, `git status --short`.
+Full pytest needs the previously evidenced command-only network grant for
+local TestClient sockets, with options/plugins/proxy/TLS unchanged. Preserve
+all failures and authorized correction history under the documented loop limit.
+One terminal implementation commit:
+`feat(engine): validate explicit bar clock coverage (Phase 18.2b)`.
+Fresh independent acceptance reviewer reruns all exact commands, then records
+accepted evidence in a separate STATE commit. Task-level PR targets main after
+acceptance; coordinator confirms remote branch/PR before claiming publication.
+Doer/readiness reviewer neither pushes nor merges. Further tasks require fresh
+narrow planning/readiness; no automatic main mutation or phase crossing.
 
 ### 18.2a completion evidence
 
