@@ -12,13 +12,14 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
+current_task: 18.2b
 current_task_status: NOT_STARTED
-next_task: 18.3
-last_completed_task: 18.1
+next_task: null
+last_completed_task: 18.2a
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: true
+human_decisions: confirmed
+human_transition_required: false
 ```
 
 ### Phase status
@@ -55,8 +56,12 @@ human_transition_required: true
 
 Phase 17 is complete. Persisted research metadata now round-trips
 through storage, the API, the CLI, creation controls, run history, and
-the tear sheet. Phase 18 may not invent embargo lengths, range
-inclusivity, or walk-forward windows. Those rules are not yet explicit.
+the tear sheet. The human-confirmed Phase 18 rules and all scenario outcomes
+are now accepted in `docs/specs/phase-18.md` under `phase18-temporal-v1`.
+Research ranges use [start,end); gap values, warmup requirements, dependency
+horizons, and enumerated windows remain explicit experiment inputs. No global
+numeric defaults may be invented. Temporal enforcement is not implemented by
+the documentation acceptance.
 
 Older per-task evidence blocks (12.1 through 16.5.5), the stray Phase
 12.1 notes, the Phase 12 non-goals list, and the Phase 0–11 audit's
@@ -67,13 +72,28 @@ work.
 
 ### Current task
 
-**18.2 — Enforce the approved stage windows** — NOT_STARTED, awaiting
-human temporal decisions. The 18.1 question inventory in
-`docs/specs/phase-18.md` is accepted; its semantic questions and scenario
-outcomes remain unresolved. Inventory acceptance does not authorize
-implementation. Do not choose embargo length, inclusivity, or walk-forward
-window size. Human decisions and explicit scope approval are required before
-18.2 can become READY. No engine, API, CLI, or UI behavior has changed.
+**18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED.
+18.2a has independently passed acceptance as a pure declaration helper. The next
+bounded helper requires fresh narrow planning and a readiness gate before it
+may become READY; no implementation of 18.2b has begun. Its supported clock,
+calendar and coverage contract must be established from the accepted decisions
+and existing code rather than invented defaults.
+
+18.2a implements stage applicability, complete endpoint pairs, strict start<end,
+chronological nonoverlap and [start,end) integer point membership. Null-stage
+ordinary behavior is preserved. No existing caller uses the helper. Acceptance
+certifies this declaration contract only, not runtime eligibility, actual
+coverage, causal availability, warmup, execution containment, frozen selection,
+API/CLI enforcement, gaps or walk-forward properties. Historical execution and
+metadata remain intact.
+
+Remaining admission and runtime integration, warmup and information access,
+boundary artifacts, frozen selection and provenance work require fresh narrow
+planning before their READY transitions. No task after 18.2b is opened or split
+by this acceptance; next_task is null pending that later planning. These bounds
+do not claim the entire 18.2 scope is split or complete. Continue serial
+planner/doer/independent reviewer roles and separate reviewer state commits.
+No automatic phase crossing is authorized.
 
 ### Phase 17 tasks
 
@@ -88,10 +108,13 @@ window size. Human decisions and explicit scope approval are required before
 
 ### Phase 18 tasks
 
-- [x] **18.1 — IS/validation/OOS semantics questions** — COMPLETE. Question inventory accepted in `docs/specs/phase-18.md`; all semantic decisions remain unresolved. No behavior change or implementation approval.
-- [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED. Starts only after 18.1 is accepted and the human has chosen the rules.
-- [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only gaps named by the accepted 18.1 spec.
-- [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only after the accepted spec defines the window model.
+- [x] **18.1 — IS/validation/OOS semantics questions** — COMPLETE. Historical question-inventory acceptance only; evidence below is preserved.
+- [x] **18.1.1 — Confirmed temporal decision record** — COMPLETE. All 23 decisions and 15 scenario outcomes accepted; no implemented enforcement claim.
+- [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
+- [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
+- [ ] **18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED. Next bounded helper; exact supported contract requires fresh planning/readiness now that 18.2a is accepted.
+- [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
+- [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
 ### U.6 tasks
 
@@ -111,6 +134,136 @@ window size. Human decisions and explicit scope approval are required before
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2a completion evidence
+
+```yaml
+task_id: 18.2a
+status: COMPLETE
+reviewer_decision: accepted_declaration_contract_only
+reviewer_date: 2026-10-03
+files_changed:
+  - backend/src/quant/engine/temporal.py
+  - backend/tests/engine/test_temporal.py
+tests_added_or_updated:
+  - 184 deterministic parameterized declaration and point-membership cases
+  - absent/null stage exits before endpoint reads and ignores malformed legacy ranges
+  - exact stages, applicability, every complete optional/required pair and endpoint type
+  - semantic chronology, overlap rejection, signed/zero/unbounded integers and shared boundaries
+  - matching single ERROR and ValueError, first-failure precedence, caller immutability and frozen outputs
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "628 passed, 81 warnings in 34.71s; exit 0"
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 31 source files; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: 73f81f0636b6c715e07c3f01ba0ab03c8eb0251a
+next_task: 18.2b
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux venv/Bash activation and command-only network grant instead of documented Windows example; acceptance commands unchanged."
+notes: |
+  The authorized serial task moved from READY through planner contract/readiness,
+  doer implementation (IN_PROGRESS), committed handoff (ACCEPTANCE_PENDING),
+  and fresh independent reviewer acceptance (COMPLETE). The intervening role
+  handoffs are recorded here; the doer did not advance STATE or self-accept.
+  Reviewer read the full actual two-file commit, accepted narrow plan, doer
+  report, full workflow/reviewer/incident/spec records and relevant project
+  contracts. Stage requirements, every supplied inactive pair, fixed semantic
+  order, half-open membership, immutable detached records, early ordinary exit
+  and deterministic log-plus-raise behavior match the approved contract.
+  All exact whole-tree acceptance commands independently passed on their first
+  reviewer invocation using the existing venv; no installs or code changes.
+  Full pytest used command-only network permission for local TestClient socket
+  operation, preserving configured proxy/TLS and all command options/plugins.
+  Doer's initial restricted pytest stalled without a result; only verified
+  owned PID was terminated after the network-granted diagnostic succeeded.
+  Its original shell exit was unavailable, not reported as a passed run.
+  Two precommit cosmetic lint correction cycles (5 issues then one remaining
+  long line) and all original failures remain in the doer report/logs.
+  Reviewer found no hidden semantic correction or weakened test assertion.
+  Independent output is preserved in /tmp/phase18a-review-pytest.log,
+  /tmp/phase18a-review-ruff.log and /tmp/phase18a-review-mypy.log; temporary
+  reports are supplemental, while this evidence and task commit are durable.
+  Live git ls-remote --heads origin main work independently returned main
+  81824f70aaeeb7efc07b8afc127a43a2b888bcd7 and work
+  90c35911d95515fde0f25e856fd9858e99332a9f before this state commit.
+  That observation verifies current connectivity, not publication of this task.
+  This separate reviewer commit changes STATE only. No caller/API/CLI/runtime
+  integration, bar/calendar coverage, warmup, gaps, frozen selection, provenance
+  or walk-forward guarantee is accepted. API coercion cannot be undone here;
+  missing versus null is intentionally equivalent, validation use cannot be
+  inferred, and integer points/touching boundaries prove no availability/gap
+  eligibility. 18.2b remains NOT_STARTED pending fresh narrow planning/readiness.
+  Whole 18.2 remains incomplete, Phase 18 remains IN_PROGRESS, and no later
+  task or phase is opened. Historical evidence below is preserved unchanged.
+```
+
+### 18.1.1 completion evidence
+
+```yaml
+task_id: 18.1.1
+status: COMPLETE
+reviewer_decision: accepted_confirmed_decision_record_only
+reviewer_date: 2026-10-03
+files_changed:
+  - docs/specs/phase-18.md
+tests_added_or_updated: []
+acceptance_commands:
+  - python /tmp/phase18-verify-decision-record.py
+  - python /tmp/phase18-reviewer-compare.py
+  - git diff --check
+  - git status --short
+  - git show --check 2bfe14315cb6c0152ad01e57068173e379a66f9e
+  - git diff-tree --no-commit-id --name-only -r 2bfe14315cb6c0152ad01e57068173e379a66f9e
+acceptance_output:
+  source_comparison: "PASS: all 23 stable decision IDs match the source record exactly (whitespace normalized). PASS: all 15 stable scenario IDs match the source record exactly."
+  provenance_scope: "PASS: approval/provenance, historical inventory acceptance, scope gates, stage applicability, and absence of decision placeholders verified."
+  changed_paths: "PASS: only docs/specs/phase-18.md changed; protected/state/code/test/dependency files unchanged."
+  independent_comparison: "All 23 unique IDs/decisions and 15 outcomes exact; original headings, scenarios, question links, established contract bullets/source links preserved; exit 0."
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update"
+  commit_check: "commit header/message only; no whitespace errors; exit 0"
+  file_list: "docs/specs/phase-18.md"
+git_commit_sha: 2bfe14315cb6c0152ad01e57068173e379a66f9e
+next_task: 18.2a
+next_task_status: READY
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Question prose replaced with confirmed answers; stable headings/IDs and original inventory commit preserve historical evidence. Coordinator explicitly accepted this approach; no amendment requested."
+notes: |
+  Fresh independent reviewer read the full spec and actual one-file task diff,
+  applicable project/workflow/reviewer/rules and incident records, doer report,
+  and independently supplied /tmp/phase18-confirmed-decisions.md. All 23
+  decision paragraphs and 15 scenario outcomes match that approved source.
+  Manual review confirmed stage applicability, approval provenance, scope gates,
+  historical preservation, explicit experiment inputs and limited guarantees.
+  The user approved seven initial decisions, delegated remaining choices, saw
+  the complete record, and explicitly confirmed/authorized the first task with
+  "just fix the git connectivity and start the first task auto now".
+  Reviewer independently re-ran every documentation acceptance command.
+  A supplemental comparison first failed at SC-01 because its temporary parser
+  included the trailing table delimiter; the parser alone was corrected outside
+  the checkout. Its full rerun passed; no specification correction was needed.
+  Live git ls-remote origin refs/heads/main independently returned
+  81824f70aaeeb7efc07b8afc127a43a2b888bcd7 using configured proxy/network permission.
+  No backend, scripts, or frontend files changed; pytest, ruff, mypy, tsc,
+  vitest and build were not rerun under WORKFLOW.md section 5.
+  This separate reviewer state commit opens only 18.2a. 18.2b, 18.3 and 18.4
+  remain NOT_STARTED. Phase 18 remains IN_PROGRESS; no phase crossing or
+  runtime eligibility, warmup, gap/window, API/CLI or freeze enforcement is
+  certified. Further narrow task planning and independent acceptance remain
+  required. The original 18.1 evidence block below is historical and unchanged.
+```
 
 ### 18.1 completion evidence
 
