@@ -12,8 +12,8 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
-current_task_status: NOT_STARTED
+current_task: 18.2c
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2b
 last_completed_phase: 17
@@ -72,28 +72,14 @@ work.
 
 ### Current task
 
-**18.2 — Remaining stage-window enforcement** — NOT_STARTED pending fresh
-narrow planning. Bounded task 18.2b is COMPLETE after independent acceptance.
-Its fixed-grid helper validates supplied zero-delay clock consistency and exact
-batch coverage only; no existing caller uses it. Actual source publication
-evidence and runtime eligibility are not certified. No further bounded task
-contract is established or READY; next_task remains null.
-
-18.2a implements stage applicability, complete endpoint pairs, strict start<end,
-chronological nonoverlap and [start,end) integer point membership. Null-stage
-ordinary behavior is preserved. No existing caller uses the helper. Acceptance
-certifies this declaration contract only, not runtime eligibility, actual
-coverage, causal availability, warmup, execution containment, frozen selection,
-API/CLI enforcement, gaps or walk-forward properties. Historical execution and
-metadata remain intact.
-
-Remaining admission and runtime integration, warmup and information access,
-boundary artifacts, frozen selection and provenance work require fresh narrow
-planning before their READY transitions. No task after 18.2b is opened or split
-by this acceptance; next_task is null pending that later planning. These bounds
-do not claim the entire 18.2 scope is split or complete. Continue serial
-planner/doer/independent reviewer roles and separate reviewer state commits.
-No automatic phase crossing is authorized.
+**18.2c — RunCreate raw research declaration admission** — READY after
+fresh independent readiness review. Only request-model declaration validation
+and its mirrored tests are opened. Accepted 18.2a/18.2b helpers are merged on
+main; 18.2b remains unwired. Whole 18.2 remains incomplete; remaining CLI,
+runtime eligibility, coverage/availability, warmup, boundaries, selection and
+provenance work requires fresh narrow planning. No later task is READY and
+next_task remains null. Continue serial planner/doer/independent reviewer roles
+and separate reviewer state commits; no automatic phase crossing.
 
 ### Phase 17 tasks
 
@@ -113,6 +99,7 @@ No automatic phase crossing is authorized.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
 - [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
+- [ ] **18.2c — RunCreate raw research declaration admission** — READY. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -134,6 +121,99 @@ No automatic phase crossing is authorized.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2c readiness contract and evidence
+
+Independent readiness review accepts this bounded contract under
+`phase18-temporal-v1` ST-01, TW-01/TW-03, EN-01/EN-02/EN-04/EN-05 and
+SC-03/SC-04. Only `backend/src/quant/api/schemas.py` and
+`backend/tests/api/test_schemas.py` may change in implementation. No fields,
+defaults, nullability, Literal values, extra-forbid policy, JSON schema shapes,
+execution timestamps, transport, dependencies, protected files or other callers
+change. Doer never edits STATE.
+
+**Exact interface:** import `collections.abc.Mapping`, Pydantic
+`model_validator`, and absolute `quant.engine.temporal.validate_research_declaration`.
+At RunCreate's end, after trial_count and before KpiBlock, add only:
+
+```python
+    @model_validator(mode="before")
+    @classmethod
+    def validate_research_ranges(cls, data: Any) -> Any:
+        """Check raw designated declarations before field coercion."""
+        if isinstance(data, Mapping):
+            validate_research_declaration(data)
+        return data
+```
+
+Original mapping is passed/returned unchanged; factory result is discarded.
+No RunSummary/base validator, normalization, catch/rethrow, added logging,
+assignment validation, revalidation or from_attributes setting. Existing
+18.2a messages and failure precedence remain authoritative: stage, supplied
+IS/validation/OOS pairs/types/order, applicability, chronological nonoverlap.
+Pydantic wraps helper ValueError as root loc (), type value_error and message
+`Value error, ` plus exact factory message; temporal emits one matching ERROR.
+Missing/null stage preserves ordinary field validation/coercion and permissive
+range semantics; nonmapping inputs retain Pydantic handling. RunSummary remains
+permissive historical metadata. Construction/copy bypasses and postcreation
+mutation are outside admission guarantee.
+
+**Focused tests:** retain existing assertions; valid all-stage applicability,
+optional absent/null pairs, touching ranges and signed/zero/huge/subclass
+integers. Across all six endpoint slots reject coercible bool/string/integral
+float/Decimal before field conversion (24 cases). Representative stage,
+required-range, pair, equal/reversed/order/inactive-range failures and precedence
+exercise real models. Verify exact root error/log wrapping, clean successful
+logs, constructor/mapping/JSON paths, JSON raw string/bool/float rejection,
+unchanged dumps/top-level metadata and mapping/nested-params immutability.
+Ordinary missing/null-stage partial/reversed/overlap and normal string/bool
+coercion persist; noncoercible ordinary fields keep field errors. Historical
+RunSummary incomplete/reversed/overlap acceptance, nonmapping errors and valid
+model-instance defaults are explicit regressions. Existing factory suite owns
+exhaustive payload/overlap matrices; do not duplicate it. Real POST tests in
+this mirrored file copy established FastAPI/router/TestClient setup with
+isolated tmp_path DB: invalid partial/order/string/bool declarations give 422
+with existing default detail list and no row; valid designated and ordinary
+null-stage cases give 201/queued with unchanged metadata. No weakened tests,
+new dependencies, real data writes, random fixtures or redundant mock tests.
+
+**Probe interpretation:** REVIEWER section 4 explicitly says
+"It's a Pydantic model (schemas follow §4.4, no probing needed)"; this narrow
+request-model validator qualifies for that specific exception to WORKFLOW
+section 2's general third-party probe pattern. Existing FastAPI test patterns
+are copied, with no new internals. Coordinator and independent reviewer accept
+this interpretation under delegated routine choices; no post-probe human
+approval is invented or required for this exempt model task. Supplemental
+installed Pydantic 2.13.5 import/signature/docstring/live prototype succeeded
+in /tmp/phase18c-pydantic-probe.py and .log; no installs.
+
+**Evidence and limits:** reviewer inspected full startup/state/workflow/review/
+incident/spec records, relevant project/rules, actual helper/schema/router/tests
+and /tmp/phase18c-plan.md. Clean branch `phase18/18.2c-api-declarations` at
+`7a1894db0166722e338c6d6edb2124f2f69a7ab4`; live
+`git ls-remote --heads origin main` independently returned that same SHA,
+exit 0, using command-only network permission and preserved proxy/TLS.
+Accepted helper task commits 73f81f0 and b9a25ee are ancestors (exit 0).
+This verifies merged prerequisite tree now, not future freshness/publication.
+No Python/frontend files changed; acceptance suites are skipped for this
+STATE-only readiness commit under WORKFLOW section 5. Whole diff/status/staged
+whitespace/scope checks run before terminal commit. Prior evidence is preserved.
+Request admission alone certifies no CLI/runtime enforcement, actual coverage,
+availability, execution containment, warmup, gaps, freezing, provenance, OOS
+contamination or walk-forward guarantees. Whole 18.2 and Phase 18 remain incomplete;
+18.3/18.4 stay NOT_STARTED, no later task opens, never begin Phase 29.
+
+**Implementation acceptance:** activate existing Linux venv; from repo root run
+exactly `python -m pytest backend/tests -q`, `python -m ruff check .`,
+`python -m mypy --strict backend/src`, `git diff --check`, `git status --short`.
+Full pytest uses command-only network grant for local TestClient sockets with
+options/plugins/proxy/TLS unchanged. Preserve full failures/correction history
+under five-loop limit. One terminal task commit, only the two declared paths:
+`feat(api): reject invalid raw research declarations (Phase 18.2c)`.
+Independent reviewer reruns every exact command before separate completion
+STATE commit. Coordinator creates task PR to main after acceptance; no doer or
+readiness-reviewer push/amend/merge. Stop after this bounded task; subsequent
+work waits for its PR merge and fresh readiness.
 
 ### 18.2b readiness contract and evidence
 
