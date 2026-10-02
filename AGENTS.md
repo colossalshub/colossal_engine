@@ -51,3 +51,14 @@ Before planning or writing code:
 - Windows, PowerShell 5.x. `&&` doesn't work; use `;` or separate commands.
 - Activate the venv before running Python: `.venv\Scripts\Activate.ps1`
 - Repo root: `E:\Documents\Projects\colossal_quant`
+
+## Cursor Cloud specific instructions
+
+Cloud agents run on Linux. The Windows notes above describe the local workstation.
+
+- Python is 3.12 (`requires-python >= 3.12`). `python3.12-venv` is installed with apt before `python3 -m venv .venv`. Run tools through that interpreter: `.venv/bin/python -m pip`, `.venv/bin/python -m pytest`, `.venv/bin/python -m ruff`, `.venv/bin/python -m mypy`.
+- Backend install is `.venv/bin/python -m pip install -e ".[dev,ingestion]"`. Those extras cover tests, the API, the worker, and bar ingestion.
+- Frontend install is `npm ci --prefix frontend`. The first `node` on PATH can be `/exec-daemon/node` v22.14.0. `jsdom` asks for Node `^22.22.2`, which is already at `$HOME/.nvm/versions/node/v22.22.2`. Prepend that directory to PATH before `npm` or `npx`. The frontend suite also passed on v22.14.0.
+- On boot, three tmux sessions serve the app: `quant-api` (`.venv/bin/python -m uvicorn quant.api.main:app --host 127.0.0.1 --port 8000 --reload`), `quant-web` (`npm run dev -- --host 127.0.0.1 --port 5173` in `frontend`), and `quant-worker` (`.venv/bin/python scripts/run_worker.py`). The UI is http://127.0.0.1:5173 and proxies `/api` to port 8000. Health is `curl http://127.0.0.1:8000/health`.
+- Whole-tree checks from the repo root: `.venv/bin/python -m pytest backend/tests -q`, `.venv/bin/python -m ruff check .`, `.venv/bin/python -m mypy --strict backend/src`. In `frontend`: `npx tsc -b`, `npx vitest run`, `npm run build`.
+- `api.binance.com` answers HTTP 451 from this region, so `scripts/ingest_bars.py --venue binance` stops while ccxt loads markets. Public spot klines are on `https://data-api.binance.vision`. Set ccxt Binance `urls["api"]["public"]` to `https://data-api.binance.vision/api/v3`, set options `fetchMarkets` to `["spot"]`, and pass `exchange.fetch_ohlcv` into `scripts.ingest_bars.fetch_and_ingest`. The UI reads and writes bars with venue `binance`.
