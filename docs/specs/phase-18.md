@@ -1,17 +1,18 @@
-# Phase 18 — Temporal Semantics Decision Questions
+# Phase 18 — Confirmed Temporal Semantics
 
-**Every semantic choice below remains unresolved. Acceptance of task 18.1
-accepts the question inventory, not answers or permission to implement them.
-Human decisions are required before task 18.2.**
+**Task 18.1 accepted the question inventory only. Task 18.1.1 records the
+human-confirmed decisions below; neither documentation task implements temporal
+enforcement.**
 
-This document changes no behavior. Alternatives are discussion prompts, not
-defaults, recommendations, or an exhaustive list. No embargo duration,
-endpoint convention, or walk-forward size is selected. There is no optimizer
-in scope. Question IDs remain stable so human decisions can refer to them.
+Rule identity: `phase18-temporal-v1`. Decision date: 2026-10-03 (Asia/Manila).
+Stable question and scenario IDs connect these decisions to the accepted
+inventory. This document changes no engine, API, CLI, or UI behavior. The
+approved rules are implementation requirements, not evidence that current runs
+satisfy them. No optimizer is in scope.
 
 ## Established contracts and evidence
 
-These facts describe accepted contracts; they do not settle the questions below.
+These facts describe the accepted contracts that the confirmed rules must preserve.
 
 - `research_stage` has exact wire values `exploration`, `validation`, `oos`,
   or `null`. IS is a range concept, not a stage wire value.
@@ -49,316 +50,328 @@ Sources: [PROJECT.md §§4.1–4.2 and Phases 16–18](../../PROJECT.md),
 
 ### ST-01 — Meanings and applicability
 
-What operations constitute exploration, IS fitting/selection, validation, and
-final OOS evaluation? Does exploration encompass IS work, or can it describe
-other research? When is validation applicable or absent, and which ranges are
-required for each stage? Separate stages improve attribution; combined research
-work permits iteration but needs explicit limits on information reuse.
-
-Decision: unresolved
+Decision: Exploration permits development and IS fitting/selection, including general
+research without a formal split. A claimed IS interval requires complete IS endpoints.
+Validation compares IS-developed candidates and may select the final candidate; complete
+IS and validation ranges are required. Final OOS evaluates a frozen selection; complete
+IS and OOS ranges plus validation ranges when validation was used are required.
+Validation is optional and explicitly absent when skipped. No optimizer is authorized.
 
 ### ST-02 — Frozen selection and scope
 
-What identifies the selected hypothesis, strategy/version, parameter set,
-experiment, trial set, and dataset/code identity before evaluation? Is selection
-frozen per experiment, candidate, or window? Which edits create a new selection,
-and when may reselection occur? Broader identity permits reuse; finer identity
-distinguishes changes but increases provenance obligations.
-
-Decision: unresolved
+Decision: Freeze each candidate before its validation evaluation, then freeze the final
+selected candidate before any OOS inspection. Changes to strategy logic, parameters,
+fitted preprocessing or selection criteria create a new candidate revision with recorded
+lineage. The selection record binds experiment, hypothesis, candidate/version, exact
+parameters, fitted artifacts where applicable, considered trials, selection-data
+identity, code identity, seed where relevant, and approved temporal rules. Evaluation
+results bind actual input identity and preserve prior results.
 
 ## Boundaries, membership, and coverage
 
 ### TW-01 — Endpoint convention and shared endpoints
 
-Are starts and ends inclusive or exclusive for each range? Must conventions be
-uniform? At a shared endpoint, does an event belong to the earlier stage, later
-stage, neither, or both under an explicitly permitted policy? Each alternative
-changes membership and potential double counting; which matches the intended
-separation of selection and evaluation?
-
-Decision: unresolved
+Decision: Uniform research range convention is start-inclusive, end-exclusive
+[start,end). A point event at a shared endpoint belongs only to the later stage. These
+research semantics do not silently rewrite historical ordinary execution semantics.
 
 ### TW-02 — Membership clock and straddling events
 
-Does membership follow bar open, bar close, signal availability, order, fill,
-or the full information interval? Which clock applies to each event/artifact?
-How is a bar that opens before a boundary and closes after it treated: included,
-excluded, or considered ineligible for that boundary? Must boundaries align to
-bars, or can arbitrary UTC instants be used? Alignment simplifies membership;
-arbitrary instants require explicit straddling rules.
-
-Decision: unresolved
+Decision: Completed bars belong by verified close/availability time; signals, orders,
+fills and equity changes use actual event clocks. Require research boundaries to align
+with a verified bar clock. A bar that opens before a boundary and closes after it
+becomes usable only at its close, in the later stage. Its earlier price movement cannot
+be counted as evaluation exposure. Selection cannot use information arriving at or after
+selection end. Preserve the established daily artifact clock; membership rules do not
+alter existing timestamps or prove realistic same-bar execution.
 
 ### TW-03 — Range validity and ordering
 
-What do partial endpoints, equal endpoints, reversed ranges, zero-duration ranges,
-and ranges containing no observations mean? Are they invalid, unspecified, or
-eligible under declared conditions? May IS, validation, and OOS overlap or occur
-out of chronological order? Must absent validation affect ordering between the
-remaining stages? Permissive declarations preserve old records; stricter
-eligibility provides stronger research guarantees.
-
-Decision: unresolved
+Decision: Required research ranges have both endpoints and start<end. Optional ranges
+are wholly absent or wholly specified. IS precedes validation, which precedes OOS; if
+validation is absent IS precedes OOS directly. Stages cannot overlap; touching endpoints
+may be allowed subject to explicit gap rules. A stage with no eligible observations
+cannot receive a valid evaluation claim. Invalid declarations are rejected, never
+silently repaired, reordered or shortened. Historical records are preserved.
 
 ### TW-04 — Execution coverage
 
-Must execution equal the active stage, contain it with separate warmup, or be
-contained by a declared research range? Can one execution span several stages?
-How are events and artifacts outside the designated range treated? Equality
-simplifies attribution; broader execution permits context and continuity but
-needs explicit boundaries on scoring and information access.
-
-Decision: unresolved
+Decision: One evaluated stage per research run, with optional explicitly declared
+earlier warmup. Trading and scored results stay inside the active stage; warmup has no
+trading, returns or performance metrics. No later observations may influence execution.
+Execution timestamps and six research endpoints are distinct and their relationship must
+be enforced explicitly.
 
 ### TW-05 — Data availability and calendar time
 
-Is coverage assessed by elapsed time, expected bars, observed bars, trading
-sessions, or another declared calendar? What makes partial coverage, missing
-bars, an empty interval, or unequal coverage across instruments acceptable?
-Should incomplete data invalidate, qualify, or shorten an evaluation? How are
-calendar months, weeks, session boundaries, and variable-duration bars handled
-without treating calendar units as fixed elapsed durations? Different coverage
-definitions change both membership and comparability.
-
-Decision: unresolved
+Decision: Require complete expected coverage under an explicit timeframe/calendar
+contract. Missing observations, conflicting duplicates, empty stages or unverifiable
+closes prevent eligible evaluation. No interpolation or shortening. Unsupported calendar
+mappings are ineligible. Calendar months cannot be treated as a fixed elapsed duration
+for eligibility; the current final-month 30-day fallback is not calendar-correct
+evidence.
 
 ## Information access and boundary state
 
 ### IA-01 — Warmup and preprocessing
 
-Which prior observations may initialize indicators, features, normalization,
-imputation, or fitted preprocessing? Are these operations fitted only in IS,
-refitted in validation, or updated causally during evaluation? Can warmup cross
-a stage boundary or gap, and can warmup observations contribute to metrics?
-Frozen transformations aid isolation; causal updates represent adaptation but
-require a precise information-availability rule.
-
-Decision: unresolved
+Decision: Prior observations, including earlier stages, may initialize indicators only
+causally and under declared warmup requirements; no invented default warmup length. Fit
+models, normalization, imputation and other learned transformations only in permitted IS
+data, then freeze for evaluation. Fixed indicator algorithms may update causally during
+evaluation. Insufficient required history prevents eligibility. Warmup within gaps
+follows EG-02. Warmup never contributes trades or metrics.
 
 ### IA-02 — Feature and outcome horizons
 
-How are feature lookbacks, publication delays, labels, and future outcome
-horizons assigned to stages? Is an observation eligible by its timestamp or
-only if its entire dependency/outcome interval is permitted? What happens when
-a selection outcome extends into evaluation? Point membership retains more
-observations; interval-based eligibility accounts for cross-boundary dependence.
-
-Decision: unresolved
+Decision: Features must be available when used, including publication delays and event
+ordering. Selection outcomes must be fully available strictly before selection ends;
+exclude observations whose outcomes enter evaluation. Earlier feature history is
+permitted only through approved causal warmup. A timestamp alone does not establish
+eligibility; dependency and outcome intervals must be permitted. Unknown availability is
+not silently inferred from event time.
 
 ### IA-03 — State, orders, positions, and metrics
 
-Which indicator/model state, cash, positions, and open orders may carry across
-boundaries? Are stages independent restarts or continuous execution segments?
-What happens to trades opened before a boundary and closed after it, and to
-fills, fees, equity changes, and returns at the boundary? Is attribution based
-on entry, exit, event time, or segmented exposure? Restarts isolate stages;
-continuity preserves path dependence and needs explicit metric attribution.
-
-Decision: unresolved
+Decision: Every evaluated stage starts with declared initial cash, no positions and no
+open orders. Reconstruct permitted indicator state from warmup; only approved frozen
+model state may be loaded. Preserve actual fills and fees. At the end disclose remaining
+positions and value them at the last eligible price; only genuinely closed trades enter
+closed-trade statistics. Do not fabricate liquidation or use later prices. No
+position/order carry into another stage. Independent stage results are not a
+continuous-account return series.
 
 ### IA-04 — OOS inspection and contamination
 
-Which access to OOS data or results counts as inspection, and which later
-changes count as selection informed by OOS? After inspection, may the interval
-remain a designated holdout, become development data, or require a new holdout?
-How are repeated evaluation, manual inspection, and external analysis disclosed?
-Reuse enables diagnosis; claims of final evaluation depend on the permitted
-feedback and its recorded history.
-
-Decision: unresolved
+Decision: Record inspection of OOS observations or results, including
+researcher-declared external/manual inspection. Original frozen evaluation results
+remain preserved. Later selection informed by that inspection requires a new unseen
+final holdout. Exact reruns are reproducibility checks, not additional independent
+evidence. External behavior cannot be independently certified by labels or hashes.
 
 ## Embargo and gap semantics
 
 ### EG-01 — Transitions, direction, unit, and value
 
-Which transitions require a gap: IS to validation, validation to OOS, IS directly
-to OOS, or transitions between walk-forward windows? Is exclusion before a
-boundary, after it, or on both sides? Is its unit elapsed time, bars, sessions,
-or calendar units, and what value applies under which conditions? Are values
-explicit declarations or derived from declared dependencies? Time-based and
-observation-based gaps differ when coverage is irregular.
-
-Decision: unresolved
+Decision: Explicitly declare a nonnegative minimum gap in elapsed UTC milliseconds for
+IS->validation, validation->OOS, IS->OOS if validation is absent, and every walk-forward
+training->evaluation transition. The interval between stages is excluded from selection
+and scoring. No universal numeric duration or silent default is selected.
 
 ### EG-02 — Dependencies and activity inside gaps
 
-How do lookbacks, outcome horizons, holding periods, frequency, or cross-series
-dependencies determine necessary separation? Are gap observations unavailable,
-available for causal warmup, or usable for state evolution without scoring?
-Can orders/positions persist through a gap? Stronger isolation discards more
-context; permitted continuity needs a precise account of surviving dependencies.
-
-Decision: unresolved
+Decision: Gap observations may initialize fixed indicators causally, but may not
+fit/select models, generate scored performance or carry trading exposure. Check declared
+feature, release, outcome, holding-period and cross-series dependencies. A gap alone
+does not establish statistical independence.
 
 ### EG-03 — Exceptional gaps and reproducibility
 
-How do missing bars and calendar boundaries affect gap measurement? When is a
-zero gap meaningful? What happens if a required gap consumes a stage or leaves
-insufficient observations: invalidation, qualification, or revised boundaries?
-What declared inputs and rule identity must reproduce the same excluded
-intervals? Fixed declarations simplify replay; dependency-derived gaps require
-reproducible dependency information.
-
-Decision: unresolved
+Decision: Zero gap requires explicit declaration and sufficient dependency evidence.
+Unknown dependencies are not zero. Missing bars do not shorten elapsed gaps. Reject
+insufficient gaps and stages consumed by exclusions; preserve declared boundaries and
+reproducible exclusion evidence.
 
 ## Walk-forward model and identity
 
 ### WF-01 — Window generation
 
-Is the model rolling, expanding, explicitly enumerated, or another approved
-model? What defines the anchor, stage lengths, step, stopping condition, and
-optional validation placement? Are lengths and steps elapsed, observation, or
-calendar based? Rolling windows bound history, expanding windows retain it,
-and enumerated windows allow bespoke boundaries with additional declarations.
-Which inputs must be chosen before generation can be reproducible?
-
-Decision: unresolved
+Decision: Start with an explicitly ordered list of windows, each declaring IS, optional
+development-validation, forward-evaluation boundaries and applicable gaps. No automatic
+generator or invented rolling lengths, anchor, step or window duration. The declared
+list defines generation and stopping.
 
 ### WF-02 — Overlap, reuse, and gaps
 
-May training windows overlap, may evaluation windows overlap, and may an earlier
-evaluation interval enter a later training window? How do gaps apply to each
-transition? Is reselection permitted per window or only before the sequence?
-Reuse can represent sequential learning; independent evaluations require a
-different information boundary. How is the distinction expressed and assessed?
-
-Decision: unresolved
+Decision: Training windows may overlap; evaluation windows may not. Earlier
+forward-evaluation observations may enter later training only under a sequential
+learning recipe fixed before the sequence and only after they become available. Forward
+windows are development/validation evidence, not the untouched final OOS holdout. Manual
+changes require a new sequence identity. Each window's selected candidate is frozen
+before that evaluation; no future window information may influence earlier windows.
 
 ### WF-03 — Incomplete windows and final holdout
 
-Should an incomplete first or final window be omitted, rejected, or retained
-with declared reduced coverage? Is a final holdout separate from walk-forward
-evaluation, or is a designated window the final evaluation? What selection
-activity may use earlier window results before that holdout? Retaining partial
-windows increases coverage but changes comparability; reserving a holdout
-changes how much data is available for iterative research.
-
-Decision: unresolved
+Decision: Reject incomplete declared windows rather than silently trimming or omitting
+them. Reserve a separate final OOS holdout after development windows and freeze the
+final selection before inspecting it. Earlier forward-window results may support final
+selection; final OOS may not.
 
 ### WF-04 — Identity, reruns, and aggregate results
 
-What makes a window the same window across reruns: boundaries alone or also
-selection, data/code, rule, and sequence identity? How are reruns distinguished
-from new windows while preserving every result? If evaluation intervals overlap,
-are results reported separately, combined with unique-event attribution, or
-combined under another declared interpretation? Separate reporting preserves
-local results; aggregation needs explicit handling of repeated observations,
-trades, and returns to avoid double counting.
-
-Decision: unresolved
+Decision: Bind window results to sequence, boundaries, candidate, data, code, seed and
+temporal-rule identity. Preserve each rerun separately. Initially report individual
+results; no invented combined return series or aggregate statistical claim.
 
 ## Enforcement, compatibility, and approval gates
 
 ### EN-01 — Consistency and invalid outcomes
 
-What semantic guarantees must be consistent across API creation, CLI execution,
-workers, and stored records? At what lifecycle points must temporal eligibility
-be established or rechecked? Should invalid or unverifiable declarations prevent
-execution, permit ordinary execution without a validation claim, or produce a
-qualified research result? Early rejection and later qualification have different
-effects on usability, incomplete information, and interpretation. This question
-does not prescribe endpoints, database changes, or implementation mechanisms.
-
-Decision: unresolved
+Decision: Same contract at API/CLI admission and recheck actual input data and
+eligibility before execution. Invalid designated research runs fail explicitly; no
+silent downgrade to ordinary execution. Unsupported guarantees stay clearly unverified.
+A completed lower-level subtask does not certify unenforced properties.
 
 ### EN-02 — Legacy and null metadata
 
-How should historical runs, omitted metadata, null stages, and partial ranges be
-interpreted after enforcement exists? Do they remain ordinary runs, require
-explicit designation before research use, or become eligible only with additional
-evidence? Compatibility preserves access; retroactive validation claims require
-evidence unavailable from labels alone. Can interpretation change without
-changing the historical record, and how would that distinction remain visible?
-
-Decision: unresolved
+Decision: Preserve historical records and original execution semantics. Null-stage runs
+remain ordinary runs. Older research labels are unverified declarations. New eligibility
+requires a separate evaluation with supporting evidence, not history rewriting.
 
 ### EN-03 — Rule identity, lineage, and replay
 
-What evidence must bind results to the chosen rule version, original declarations,
-effective boundaries, selection lineage, dependency horizons, and data/code
-identity? Does a rule change produce a new interpretation, a new evaluation, or
-both? How are comparisons and reruns under different rules distinguished?
-Preserving historical interpretation aids auditability; reassessment under new
-rules requires explicit lineage rather than silent reinterpretation.
-
-Decision: unresolved
+Decision: Rule identity phase18-temporal-v1. Preserve original declarations, effective
+membership, warmup, gaps, dependency evidence, selection lineage, actual input
+identities, environment and seed information. Changes to data/code/parameters/rules
+create a distinct evaluation identity. Existing formatted data fingerprints are not
+complete revision/availability records. Reassessment never silently overwrites
+historical interpretation.
 
 ### EN-04 — Guarantees versus declarations
 
-Which non-leakage properties can the application establish from available data
-and execution evidence, and which rely on researcher declarations about manual
-selection or external inspection? What evidence permits each research claim,
-and how should an unverified claim differ from an enforced guarantee? Restricting
-claims to observable evidence improves auditability; declarations cover behavior
-outside application visibility but cannot establish it independently.
-
-Decision: unresolved
+Decision: Report mechanically enforced window/availability properties separately from
+researcher declarations about outside inspection. Do not claim universal non-leakage,
+statistical independence, realistic execution or historical point-in-time validity
+without evidence. Green tests are necessary but not sufficient.
 
 ### EN-05 — Decisions required by subsequent tasks
 
-Which question IDs and scenario outcomes must the human resolve to authorize
-18.2 stage-window enforcement? Which named transitions and rules authorize 18.3
-embargo/gap work, and which window model and identity rules authorize 18.4?
-Must interdependent decisions be approved together, or can a precisely bounded
-subset be approved with explicit exclusions? Joint approval resolves interactions;
-bounded approval requires clear limits. What evidence demonstrates each gate?
+Decision: Stage-window enforcement is 18.2 first; named gaps are 18.3; explicit window
+identities/results are 18.4. Unsupported gap/window properties cannot be claimed
+prematurely. Follow documented narrow task splitting, serial planner/doer/independent
+reviewer, independent acceptance, separate reviewer STATE.md commits, protected files
+and phase-boundary stops. Never begin Phase29. No dependency additions or updates are
+authorized.
 
-Decision: unresolved
+## Stage applicability and implementation scope
 
-The existing task gate remains: 18.2 cannot start merely because this inventory
-is accepted. The human must choose the rules; 18.3 covers only named accepted
-gaps, and 18.4 waits for an accepted window model. No question here supplies an
-implicit fallback while approval is absent.
+The confirmed ST-01 applicability is explicit:
 
-## Scenario matrix for human decisions and later acceptance cases
+| Research stage | Required research ranges |
+| --- | --- |
+| `exploration` | Formal IS may be omitted for general research. If formal IS is claimed, both IS endpoints are required. |
+| `validation` | Complete IS and validation ranges. |
+| `oos` | Complete IS and OOS ranges, plus complete validation ranges if validation was used. Validation is explicitly absent when skipped. |
 
-These are unresolved scenarios, not expected behavior or executable tests.
-Each row needs an explicit outcome after the related questions are answered.
+Every supplied optional range is wholly absent or wholly specified; required
+ranges satisfy TW-03. Research range declarations and execution timestamps are
+distinct. The active-stage, warmup, event-clock, coverage, and information-access
+rules must be enforced explicitly before eligible evaluation can be claimed.
+
+The human has confirmed all 23 decisions and 15 scenario outcomes. The standard
+workflow still requires narrow task splits, serial planner/doer/independent
+reviewer roles, independent acceptance, and separate reviewer `STATE.md`
+commits. Recording this decision does not advance the live state or accept a
+future implementation task.
+
+- **18.2 — Stage-window enforcement:** begin with **18.2a, a pure declaration
+  validator**, under a separately accepted task split. That first subtask checks
+  stage applicability, endpoint completeness, strict range validity, and
+  chronological nonoverlap under the approved convention. It does not certify
+  execution containment, actual coverage, causal availability, warmup, frozen
+  selection, or runtime enforcement. Subsequent narrow subtasks must inspect
+  supported engine/API/CLI contracts and implement/recheck the supported
+  stage-window guarantees before claiming them. API/CLI admission alone cannot
+  establish actual input eligibility.
+- **18.3 — Named gaps:** only EG-01's IS->validation, validation->OOS,
+  IS->OOS when validation is absent, and every walk-forward training->evaluation
+  transition, with EG-02/EG-03 dependency and exclusion rules. No gap guarantee
+  may be claimed before its enforcement is accepted.
+- **18.4 — Explicit windows:** only the explicitly ordered, enumerated model
+  in WF-01 through WF-04, with preserved sequence/window identities and results.
+  No walk-forward guarantee may be claimed before its enforcement is accepted.
+
+Per-experiment gap values, warmup requirements, dependency horizons, and
+enumerated window boundaries are required explicit inputs. They are not missing
+global defaults to invent. No universal numeric gap, warmup length, rolling
+length, anchor, step, or window duration is selected. No new optimizer,
+statistical estimator, aggregation, multi-instrument execution, realistic fill
+model, or calendar repair is authorized implicitly. Unsupported guarantees fail
+or remain unverified as the confirmed rules specify; ordinary historical
+behavior remains intact. Phase-boundary stops still apply; never begin Phase 29.
+No dependency additions or updates are authorized.
+
+## Confirmed scenario outcomes for later acceptance cases
+
+These are approved expected outcomes for future implementation acceptance, not
+evidence of executable checks or enforcement in the current application.
 
 | ID | Scenario | Related questions | Outcome |
 | --- | --- | --- | --- |
-| SC-01 | Selection ends exactly when evaluation starts; an event has that timestamp. | TW-01, TW-02 | Decision: unresolved |
-| SC-02 | A bar opens before a boundary and closes after it. | TW-02, IA-02 | Decision: unresolved |
-| SC-03 | A range has one endpoint, reversed endpoints, or equal endpoints. | TW-03, EN-02 | Decision: unresolved |
-| SC-04 | A legacy run has null stage and null research ranges. | ST-01, EN-02 | Decision: unresolved |
-| SC-05 | Execution starts before or ends after its designated stage. | TW-04, IA-03 | Decision: unresolved |
-| SC-06 | A declared stage has missing bars, partial instrument coverage, or no observations. | TW-03, TW-05 | Decision: unresolved |
-| SC-07 | Evaluation warmup needs observations from an earlier stage or gap. | IA-01, EG-02 | Decision: unresolved |
-| SC-08 | A selection observation's outcome horizon enters evaluation. | IA-02, EG-02 | Decision: unresolved |
-| SC-09 | An open order or position crosses the boundary; a later close realizes its result. | IA-03, TW-01 | Decision: unresolved |
-| SC-10 | A declared gap is insufficient, zero, or consumes the next stage. | EG-01, EG-03 | Decision: unresolved |
-| SC-11 | A calendar-month timeframe or missing session changes elapsed window/gap duration. | TW-05, EG-03, WF-01 | Decision: unresolved |
-| SC-12 | Walk-forward evaluation windows share observations or trades. | WF-02, WF-04 | Decision: unresolved |
-| SC-13 | Available data ends before the final generated window is complete. | WF-03, TW-05 | Decision: unresolved |
-| SC-14 | Identical boundaries are rerun after a parameter, dataset, code, or rule change. | ST-02, WF-04, EN-03 | Decision: unresolved |
-| SC-15 | OOS results are inspected and then used to revise selection or a later window. | IA-04, WF-02, WF-03, EN-04 | Decision: unresolved |
+| SC-01 | Selection ends exactly when evaluation starts; an event has that timestamp. | TW-01, TW-02 | Point event at shared endpoint belongs to later stage only; information arriving then cannot enter earlier selection. |
+| SC-02 | A bar opens before a boundary and closes after it. | TW-02, IA-02 | Straddling bar usable at verified close in later stage only; no prior-stage selection use or scoring of pre-evaluation exposure. |
+| SC-03 | A range has one endpoint, reversed endpoints, or equal endpoints. | TW-03, EN-02 | Reject new designated research declarations with partial/reversed/equal endpoints; preserve historical records as unverified. |
+| SC-04 | A legacy run has null stage and null research ranges. | ST-01, EN-02 | Legacy null-stage/null-range run is ordinary history, with no inferred research guarantee. |
+| SC-05 | Execution starts before or ends after its designated stage. | TW-04, IA-03 | Explicit earlier nontrading warmup may precede active stage; later execution or outside-stage scoring rejected. |
+| SC-06 | A declared stage has missing bars, partial instrument coverage, or no observations. | TW-03, TW-05 | Missing, partial or empty required coverage prevents eligible evaluation, without silent repair. |
+| SC-07 | Evaluation warmup needs observations from an earlier stage or gap. | IA-01, EG-02 | Prior-stage or gap warmup may be used causally under declared warmup/gap rules; not scored or fitted. |
+| SC-08 | A selection observation's outcome horizon enters evaluation. | IA-02, EG-02 | Outcome horizon entering evaluation excludes the observation from selection; reject if sufficient eligible selection data no longer exists. |
+| SC-09 | An open order or position crosses the boundary; a later close realizes its result. | IA-03, TW-01 | No open position/order carry into next independent stage; disclose residual exposure without later-price attribution. |
+| SC-10 | A declared gap is insufficient, zero, or consumes the next stage. | EG-01, EG-03 | Reject insufficient or stage-consuming gaps; zero accepted only explicitly with evidence. |
+| SC-11 | A calendar-month timeframe or missing session changes elapsed window/gap duration. | TW-05, EG-03, WF-01 | Declared calendar and elapsed-gap clock govern; unverifiable mappings fail eligibility. |
+| SC-12 | Walk-forward evaluation windows share observations or trades. | WF-02, WF-04 | Reject evaluation overlap; no duplicated observations/trades/returns in combined claims. |
+| SC-13 | Available data ends before the final generated window is complete. | WF-03, TW-05 | Incomplete declared final window is rejected, not shortened. |
+| SC-14 | Identical boundaries are rerun after a parameter, dataset, code, or rule change. | ST-02, WF-04, EN-03 | Changed parameters/data/code/rules create new evaluation identity; preserve original result/lineage. |
+| SC-15 | OOS results are inspected and then used to revise selection or a later window. | IA-04, WF-02, WF-03, EN-04 | Final OOS inspection used for revision makes it development information for that revision, requiring a new unseen holdout. Predeclared sequential reuse applies only to forward-validation windows. |
 
 ## Human approval record
 
-Blank fields are not approval. Inventory acceptance and semantic approval are
-separate; no human answer or authorization is recorded by this task.
+**Inventory reviewer and acceptance reference:** The independent reviewer
+accepted task 18.1 as `accepted_question_inventory_only`, recorded in
+`STATE.md` at starting HEAD `81824f70aaeeb7efc07b8afc127a43a2b888bcd7`.
+The original inventory commit is
+`f6060f8b97e2ed304e7c8a4618647d9dca725d09`. That historical acceptance settled
+no semantic answers and authorized no enforcement implementation.
 
-Inventory reviewer and acceptance reference:
+**Human decision-maker:** The user in the current Codex chat. No additional
+personal identity or signature is asserted.
 
-Human decision-maker:
+**Decision date:** 2026-10-03 (Asia/Manila).
 
-Decision date:
+**Approved question IDs and explicit answers:** All 23: ST-01–ST-02,
+TW-01–TW-05, IA-01–IA-04, EG-01–EG-03, WF-01–WF-04, and EN-01–EN-05. The
+`Decision:` paragraphs above contain the confirmed answers.
 
-Approved question IDs and explicit answers:
+**Approved scenario outcomes:** All 15, SC-01–SC-15, exactly as recorded in the
+confirmed scenario matrix above.
 
-Approved scenario outcomes:
+**Rationale and tradeoffs accepted:** Explicit selection/evaluation separation,
+causal information availability, independent stage state, frozen selection and
+preserved lineage, reproducible declarations, and claims limited to supported
+evidence. Gap values, warmup requirements, dependencies, and window boundaries
+remain experiment inputs; no numeric global defaults are invented. The complete
+confirmed decisions above govern these tradeoffs.
 
-Rationale and tradeoffs accepted:
+**Remaining questions and exclusions:** No question or scenario in this
+inventory awaits a semantic answer. Experiment-specific inputs and future
+implementation task splits are still required. The scope exclusions above
+remain in force; documentation approval does not certify implementation.
 
-Remaining unresolved questions and exclusions:
+**Approved rule identity and decision reference:** `phase18-temporal-v1`, the
+complete Phase 18 human-confirmed decision record supplied in this Codex chat
+and transcribed under the stable IDs above. The session source was
+`/tmp/phase18-confirmed-decisions.md`; this specification preserves the decisions
+in the repository rather than depending on that temporary file for replay.
 
-Approved rule identity and decision reference:
+**Authorization and scope for 18.2:** Approved stage-window rules, beginning
+with the narrow 18.2a pure declaration validator after independent acceptance of
+this documentation prerequisite and a recorded task split/readiness gate.
+Later enforcement subtasks retain their own acceptance gates. No currently
+implemented enforcement is implied.
 
-Authorization and scope for 18.2:
+**Authorization and named gaps for 18.3:** The named EG-01 transitions only,
+with EG-02/EG-03 rules and explicit per-experiment inputs, after preceding
+acceptance/readiness gates. No universal duration is authorized.
 
-Authorization and named gaps for 18.3:
+**Authorization and window model for 18.4:** The explicitly ordered, enumerated
+WF-01 model and WF-02–WF-04 rules only, after preceding acceptance/readiness
+gates. No automatic generator or combined return-series claim is authorized.
 
-Authorization and window model for 18.4:
-
-Human approval/signature:
+**Approval provenance:** The user explicitly approved ST-01/ST-02, then
+TW-01/TW-03, then TW-04/IA-01/IA-03, delegated remaining choices with
+"i approve just make the best trustworthy decisions", received the complete
+record, and instructed "just fix the git connectivity and start the first task
+auto now". The coordinator treats that latest instruction as confirmation of
+the complete record and authorization to start the first bounded Phase 18 task.
+No automatic phase crossing is authorized. Repository acceptance and readiness
+gates still apply. This records chat approval, not a fabricated signature.
