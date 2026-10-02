@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.1
-current_task_status: READY
-next_task: 18.2
-last_completed_task: 17.8
+current_task: 18.2
+current_task_status: NOT_STARTED
+next_task: 18.3
+last_completed_task: 18.1
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_transition_required: true
@@ -67,11 +67,13 @@ work.
 
 ### Current task
 
-**18.1 — IS/validation/OOS semantics questions** — READY. Write
-`docs/specs/phase-18.md` listing the undecided temporal rules as
-questions, not answers. Do not choose embargo length, inclusivity, or
-walk-forward window size. Do not change engine, API, CLI, or UI
-behavior. Human approval is required before 18.2.
+**18.2 — Enforce the approved stage windows** — NOT_STARTED, awaiting
+human temporal decisions. The 18.1 question inventory in
+`docs/specs/phase-18.md` is accepted; its semantic questions and scenario
+outcomes remain unresolved. Inventory acceptance does not authorize
+implementation. Do not choose embargo length, inclusivity, or walk-forward
+window size. Human decisions and explicit scope approval are required before
+18.2 can become READY. No engine, API, CLI, or UI behavior has changed.
 
 ### Phase 17 tasks
 
@@ -86,7 +88,7 @@ behavior. Human approval is required before 18.2.
 
 ### Phase 18 tasks
 
-- [ ] **18.1 — IS/validation/OOS semantics questions** — READY. Questions only, in `docs/specs/phase-18.md`. No behavior change. No invented embargo, inclusivity, or walk-forward sizes.
+- [x] **18.1 — IS/validation/OOS semantics questions** — COMPLETE. Question inventory accepted in `docs/specs/phase-18.md`; all semantic decisions remain unresolved. No behavior change or implementation approval.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED. Starts only after 18.1 is accepted and the human has chosen the rules.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only gaps named by the accepted 18.1 spec.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only after the accepted spec defines the window model.
@@ -109,6 +111,50 @@ behavior. Human approval is required before 18.2.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.1 completion evidence
+
+```yaml
+task_id: 18.1
+status: COMPLETE
+reviewer_decision: accepted_question_inventory_only
+reviewer_date: 2026-10-03
+files_changed:
+  - docs/specs/phase-18.md
+tests_added_or_updated: []
+acceptance_commands:
+  - git diff --check
+  - git status --short
+  - git show --check f6060f8b97e2ed304e7c8a4618647d9dca725d09
+  - git diff-tree --no-commit-id --name-only -r f6060f8b97e2ed304e7c8a4618647d9dca725d09
+acceptance_output:
+  diff_check: "no output; exit 0"
+  status: "no output; clean before state evidence update"
+  commit_check: "commit header only; no whitespace errors; exit 0"
+  file_list: "docs/specs/phase-18.md"
+git_commit_sha: f6060f8b97e2ed304e7c8a4618647d9dca725d09
+next_task: 18.2
+next_task_status: NOT_STARTED
+human_transition_required: true
+deviations: []
+notes: |
+  Fresh independent reviewer inspected the entire 364-line questions document
+  and actual one-file commit, current metadata schemas/persistence/wire types,
+  accepted Phase 17 evidence, and the Phase 16 clock contract and test evidence.
+  Manual documentation acceptance verified all 23 question groups and 15
+  scenario outcomes remain unresolved; all human approval fields remain blank.
+  Coverage includes stage meaning, boundaries and membership, warmup and
+  information access, boundary state, gaps, walk-forward identity and reselection,
+  final holdout, enforcement, legacy records, provenance, and guarantee limits.
+  No defaults, recommendations, numeric window sizes, implementation design,
+  inferred human decisions, or authorization for 18.2 were introduced.
+  No backend, scripts, or frontend files changed; pytest, ruff, mypy, tsc,
+  vitest, and build were not rerun for this documentation-only task.
+  Implementation and acceptance review of 18.1 have concluded; this separate
+  reviewer evidence commit records completion. The next task is identified
+  without opening it: 18.2 remains NOT_STARTED pending human decisions.
+  Phase 18 remains IN_PROGRESS; 18.3 and 18.4 remain NOT_STARTED.
+```
 
 ### 17.1 completion evidence
 
