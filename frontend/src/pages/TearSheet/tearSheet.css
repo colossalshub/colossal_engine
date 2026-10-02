@@ -106,6 +106,35 @@
   font-size: var(--fs-xs);
 }
 
+.tear-sheet__research-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: var(--s-4);
+  row-gap: var(--s-1);
+  margin: 0;
+}
+
+.tear-sheet__research-facts dt {
+  margin: 0;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  line-height: 20px;
+}
+
+.tear-sheet__research-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 20px;
+}
+
 /* Sections ------------------------------------------------------------- */
 
 .tear-sheet__section {
