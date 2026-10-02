@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2b
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2a
+last_completed_task: 18.2b
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,12 +72,12 @@ work.
 
 ### Current task
 
-**18.2b — Verified bar-clock and coverage helper and test** — READY.
-Fresh narrow planning and independent readiness review have established the
-bounded supported contract below from the accepted decisions and current code.
-No implementation of 18.2b has begun. Only this helper and its mirrored test
-are opened; its acceptance will certify supplied clock consistency and coverage,
-not actual source publication evidence or runtime eligibility.
+**18.2 — Remaining stage-window enforcement** — NOT_STARTED pending fresh
+narrow planning. Bounded task 18.2b is COMPLETE after independent acceptance.
+Its fixed-grid helper validates supplied zero-delay clock consistency and exact
+batch coverage only; no existing caller uses it. Actual source publication
+evidence and runtime eligibility are not certified. No further bounded task
+contract is established or READY; next_task remains null.
 
 18.2a implements stage applicability, complete endpoint pairs, strict start<end,
 chronological nonoverlap and [start,end) integer point membership. Null-stage
@@ -112,7 +112,7 @@ No automatic phase crossing is authorized.
 - [x] **18.1.1 — Confirmed temporal decision record** — COMPLETE. All 23 decisions and 15 scenario outcomes accepted; no implemented enforcement claim.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
-- [ ] **18.2b — Verified bar-clock and coverage helper and test** — READY. Fresh independently reviewed fixed-grid, explicit zero-delay clock and exact coverage contract below; no implementation or acceptance yet.
+- [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -281,6 +281,86 @@ accepted evidence in a separate STATE commit. Task-level PR targets main after
 acceptance; coordinator confirms remote branch/PR before claiming publication.
 Doer/readiness reviewer neither pushes nor merges. Further tasks require fresh
 narrow planning/readiness; no automatic main mutation or phase crossing.
+
+### 18.2b completion evidence
+
+```yaml
+task_id: 18.2b
+status: COMPLETE
+reviewer_decision: accepted_supplied_clock_consistency_and_batch_coverage_only
+reviewer_date: 2026-10-03
+files_changed:
+  - backend/src/quant/engine/bar_coverage.py
+  - backend/tests/engine/test_bar_coverage.py
+tests_added_or_updated:
+  - 164 deterministic cases with independent eight-duration fixtures and shifted anchors
+  - exact explicit calendar and zero-delay availability; unsupported session/monthly/delayed clocks reject
+  - six strict timestamp slots, signed/zero/unbounded/subclass integers, missing evidence and aligned half-open boundaries
+  - exact complete ordered unique batch, missing/empty/duplicate/context rejection and enormous arithmetic-count fixture
+  - deterministic precedence, one matching ERROR and ValueError, no payload serialization, immutable detached tuple and repeatability
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "792 passed, 81 warnings in 41.30s; exit 0"
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 32 source files; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: b9a25ee197b637e3f3a99ee693d6c13bc34cd5e0
+readiness_commit_sha: 5c3d600564146d1bf287ed0427f0168a5e8dd77c
+readiness_baseline_sha: 4d3c8e84ca25974e78ee69952116b0211109fb7c
+next_task: 18.2
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux Bash venv activation and command-only network grant instead of Windows examples; exact acceptance commands/options/plugins unchanged."
+notes: |
+  The authorized serial READY task proceeded through doer implementation
+  (IN_PROGRESS), committed handoff (ACCEPTANCE_PENDING) and fresh independent
+  reviewer acceptance (COMPLETE). These role handoffs are recorded here; doer
+  neither advanced STATE nor self-accepted. Reviewer read full startup,
+  workflow/reviewer/incident/spec records, required project/rules, corrected
+  plan, readiness report, doer report and actual complete two-file commit.
+  Public interface, ordered predicate/message precedence, no inferred evidence,
+  no filtering/repair and exact detached frozen values match the durable
+  readiness contract. Aligned unique strictly ordered closes inside the finite
+  half-open grid plus exact arithmetic count prove complete expected coverage;
+  no redundant impossible predicate or giant schedule is required.
+  Every exact whole-tree acceptance command independently passed on its first
+  reviewer invocation. Full raw output is supplemental in
+  /tmp/phase18b-review-pytest.log, /tmp/phase18b-review-ruff.log and
+  /tmp/phase18b-review-mypy.log. Full pytest used required command-only network
+  permission for local TestClient sockets, preserving proxy/TLS and all options
+  and plugins. No installs, retries or implementation/test changes by reviewer.
+  Doer disclosed initial Ruff failure (three long lines, two B008 constructor
+  defaults) before its authorized cosmetic correction. Original output is
+  preserved in its report/logs; full final acceptance rerun passed. Review found
+  no weakened assertion or hidden behavioral correction. Existing 81 warnings
+  concern Starlette httpx and Pandas Timestamp.utcnow, not new helper code.
+  Independently verified branch phase18/18.2b-bar-coverage, exact task parent
+  and clean checkout, unchanged protected/dependency/existing files, and accepted
+  decision/helper prerequisites as ancestors. Live git ls-remote --heads origin
+  main returned 4d3c8e84ca25974e78ee69952116b0211109fb7c, exit 0, before this
+  STATE-only terminal commit. This point-in-time check is not future freshness
+  or publication evidence. Coordinator must confirm task remote branch/PR.
+  Supplied timestamps/calendar consistency does not prove actual historical
+  source publication, delays or point-in-time revisions. Zero-delay fixed grids
+  are the supported capability; delayed/session/monthly clocks fail closed.
+  No caller wiring, runtime eligibility, preboundary exposure/scoring, realistic
+  same-bar execution, causal warmup, fitting, dependencies/gaps, frozen selection,
+  provenance, multi-instrument coverage, OOS contamination or walk-forward
+  property is accepted. Direct value-record construction remains unvalidated.
+  Ordinary/historical behavior remains unchanged. Whole 18.2 is incomplete;
+  current_task 18.2 identifies remaining narrow planning only and stays
+  NOT_STARTED with next_task null. No further split or READY contract is
+  invented, 18.3/18.4 remain NOT_STARTED, Phase 18 remains IN_PROGRESS, and no
+  phase crossing is opened. Historical readiness/evidence blocks are unchanged.
+```
 
 ### 18.2a completion evidence
 
