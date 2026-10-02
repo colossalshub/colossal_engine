@@ -15,9 +15,12 @@ representations to these models happens in the routers/deps layer, not here.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from quant.engine.temporal import validate_research_declaration
 
 __all__ = [
     "ApiErrorDetail",
@@ -128,6 +131,14 @@ class RunCreate(BaseModel):
     oos_end_ts: int | None = None
     trial_index: int | None = None
     trial_count: int | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_research_ranges(cls, data: Any) -> Any:
+        """Check raw designated declarations before field coercion."""
+        if isinstance(data, Mapping):
+            validate_research_declaration(data)
+        return data
 
 
 class KpiBlock(BaseModel):
