@@ -10,15 +10,15 @@
 ## 1. Current State
 
 ```yaml
-current_phase: 17
+current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 17.8
+current_task: 18.1
 current_task_status: READY
-next_task: null
-last_completed_task: 17.7
-last_completed_phase: U.6
+next_task: 18.2
+last_completed_task: 17.8
+last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
-human_transition_required: false
+human_transition_required: true
 ```
 
 ### Phase status
@@ -43,8 +43,9 @@ human_transition_required: false
 - **Phase 16 — COMPLETE (16.1–16.4)** (research-integrity foundation; closed before Phase 17+)
 - **Phase 16.5 — COMPLETE (16.5.1–16.5.6)** (tear-sheet research report UI; not Phase 17)
 - **U.6 — COMPLETE (U.6.1–U.6.5)** (tear-sheet research workspace redesign)
-- **Phase 17 — IN PROGRESS** (research experiment foundation)
-- Phase 18–29 — BACKLOG (research-platform ambitions)
+- **Phase 17 — COMPLETE (17.1–17.8)** (research experiment foundation)
+- **Phase 18 — IN PROGRESS** (OOS and walk-forward validation; semantics first)
+- Phase 19–29 — BACKLOG (research-platform ambitions)
 
 > Phase 0–11 status above is the recorded project state from the latest research-integrity audit context. If repository evidence contradicts this state, STOP and report the conflict rather than silently changing this file.
 
@@ -52,10 +53,10 @@ human_transition_required: false
 
 ## 2. Current Objective
 
-Build the Phase 17 research experiment foundation so exploratory trials
-and designated validation/OOS runs carry explicit, durable identity.
-This phase records research metadata without adding an optimizer or the
-temporal enforcement rules reserved for Phase 18.
+Phase 17 is complete. Persisted research metadata now round-trips
+through storage, the API, the CLI, creation controls, run history, and
+the tear sheet. Phase 18 may not invent embargo lengths, range
+inclusivity, or walk-forward windows. Those rules are not yet explicit.
 
 Older per-task evidence blocks (12.1 through 16.5.5), the stray Phase
 12.1 notes, the Phase 12 non-goals list, and the Phase 0–11 audit's
@@ -66,9 +67,11 @@ work.
 
 ### Current task
 
-**17.8 — Tear-sheet research identity display** — READY. Present persisted
-research metadata on the tear sheet using the accepted frontend wire
-contracts. Research-aware run history is accepted.
+**18.1 — IS/validation/OOS semantics questions** — READY. Write
+`docs/specs/phase-18.md` listing the undecided temporal rules as
+questions, not answers. Do not choose embargo length, inclusivity, or
+walk-forward window size. Do not change engine, API, CLI, or UI
+behavior. Human approval is required before 18.2.
 
 ### Phase 17 tasks
 
@@ -79,7 +82,14 @@ contracts. Research-aware run history is accepted.
 - [x] **17.5 — Frontend research metadata wire types** — COMPLETE
 - [x] **17.6 — Research metadata creation controls** — COMPLETE
 - [x] **17.7 — Research-aware run history** — COMPLETE
-- [ ] **17.8 — Tear-sheet research identity display** — READY
+- [x] **17.8 — Tear-sheet research identity display** — COMPLETE
+
+### Phase 18 tasks
+
+- [ ] **18.1 — IS/validation/OOS semantics questions** — READY. Questions only, in `docs/specs/phase-18.md`. No behavior change. No invented embargo, inclusivity, or walk-forward sizes.
+- [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED. Starts only after 18.1 is accepted and the human has chosen the rules.
+- [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only gaps named by the accepted 18.1 spec.
+- [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only after the accepted spec defines the window model.
 
 ### U.6 tasks
 
@@ -406,6 +416,55 @@ notes: |
   the existing large-chunk advisory. No backend or scripts files changed;
   pytest, ruff and mypy were not rerun under WORKFLOW.md section 5.
   Phase 17 remains IN_PROGRESS; task 17.8 is opened but not implemented.
+```
+
+### 17.8 completion evidence
+
+```yaml
+task_id: 17.8
+status: COMPLETE
+reviewer_decision: accepted
+reviewer_date: 2026-10-02
+files_changed:
+  - frontend/src/pages/TearSheet/ExperimentHeader.tsx
+  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx
+  - frontend/src/pages/TearSheet/index.test.tsx
+  - frontend/src/pages/TearSheet/tearSheet.css
+tests_added_or_updated:
+  - null research metadata renders as em dashes in run-history label order
+  - populated strings, all three stages, and full UTC ranges stay exact
+  - partial endpoints, a reversed range, trial zero, and a negative trial count stay exact
+  - the Data tab timeframe em dash assertion is scoped to that row
+acceptance_commands:
+  - cd frontend && npx tsc -b
+  - cd frontend && npx vitest run
+  - cd frontend && npm run build
+  - git diff --check
+  - git status --short
+acceptance_output:
+  tsc: "exit 0"
+  vitest: "Test Files  30 passed (30); Tests  256 passed (256); Duration  11.95s; exit 0"
+  build: "142 modules transformed; built in 561ms; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean"
+git_commit_sha: 77df5035d30446328ab45e63b3c52fec3b8bb590
+next_task: 18.1
+deviations:
+  - "Display formatters live in ExperimentHeader instead of being shared with RunHistoryTable."
+  - "The reversed-range test title also says overlapping; the asserted OOS case is reversed (1000 to 0), not a separate overlap fixture."
+  - "Supplementary whole-tree npx vitest run --retry=0: 30 files passed, 256 tests passed, duration 11.88s, exit 0. This was not a required acceptance command."
+notes: |
+  Fresh reviewer read the four-file committed diff against the task,
+  accepted wire types, and run-history display rules, then reran every
+  required frontend acceptance command from the repository root.
+  Required acceptance passed on its first invocation. The header shows
+  all eleven persisted fields, including explicit nulls, without
+  inferring validity or adding Phase 18 enforcement. The Data tab still
+  omits a null experiment id. The production build reported the existing
+  large-chunk advisory. No backend or scripts files changed; pytest,
+  ruff, and mypy were not rerun under WORKFLOW.md section 5. Phase 17
+  is complete. Phase 18.1 is opened as questions only because embargo,
+  inclusivity, and walk-forward sizes are not specified.
 ```
 
 ### U.6.1 completion evidence
