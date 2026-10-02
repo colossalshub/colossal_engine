@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2c
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2b
+last_completed_task: 18.2c
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,14 +72,15 @@ work.
 
 ### Current task
 
-**18.2c — RunCreate raw research declaration admission** — READY after
-fresh independent readiness review. Only request-model declaration validation
-and its mirrored tests are opened. Accepted 18.2a/18.2b helpers are merged on
-main; 18.2b remains unwired. Whole 18.2 remains incomplete; remaining CLI,
-runtime eligibility, coverage/availability, warmup, boundaries, selection and
-provenance work requires fresh narrow planning. No later task is READY and
-next_task remains null. Continue serial planner/doer/independent reviewer roles
-and separate reviewer state commits; no automatic phase crossing.
+**18.2 — Remaining stage-window enforcement** — NOT_STARTED pending fresh
+narrow planning and readiness after task 18.2c publication/merge. Independent
+acceptance completed raw RunCreate declaration admission only; ordinary
+null-stage and historical response behavior remain preserved. Accepted
+18.2a/18.2b prerequisites are merged on main; 18.2b remains unwired. CLI,
+runtime eligibility, actual coverage/availability, warmup, boundaries, selection
+and provenance remain unverified. No later task is READY; next_task is null.
+Phase 18 remains IN_PROGRESS with serial roles and separate reviewer state
+commits; no automatic phase crossing.
 
 ### Phase 17 tasks
 
@@ -99,7 +100,7 @@ and separate reviewer state commits; no automatic phase crossing.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
 - [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
-- [ ] **18.2c — RunCreate raw research declaration admission** — READY. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
+- [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -214,6 +215,80 @@ Independent reviewer reruns every exact command before separate completion
 STATE commit. Coordinator creates task PR to main after acceptance; no doer or
 readiness-reviewer push/amend/merge. Stop after this bounded task; subsequent
 work waits for its PR merge and fresh readiness.
+
+### 18.2c completion evidence
+
+```yaml
+task_id: 18.2c
+status: COMPLETE
+reviewer_decision: accepted_raw_api_declaration_admission_only
+reviewer_date: 2026-10-02
+files_changed:
+  - backend/src/quant/api/schemas.py
+  - backend/tests/api/test_schemas.py
+tests_added_or_updated:
+  - 68 focused raw request-model and real POST admission regressions
+  - six endpoint slots reject bool/string/integral float/Decimal before coercion
+  - exact root error and single temporal ERROR, precedence, applicability and immutable payloads
+  - constructor/mapping/JSON paths, touching/signed/zero/huge/subclass integers
+  - ordinary missing/null stage coercion and historical permissive summaries preserved
+  - isolated POST 422 without inserted row and 201 queued metadata persistence
+acceptance_commands:
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - python -m pytest backend/tests -q
+  - git diff --check
+  - git status --short
+acceptance_output:
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 32 source files; exit 0"
+  pytest: "860 passed, 81 warnings in 38.04s; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: 9049d6af141b61785453443a3faaef8a811da751
+readiness_commit_sha: d3827ca48595d47e84cce6e78c0cab1b8eeb776b
+readiness_baseline_sha: 7a1894db0166722e338c6d6edb2124f2f69a7ab4
+next_task: 18.2
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux Bash venv activation and command-only socket grant replace historical Windows examples; acceptance options/plugins/proxy/TLS unchanged."
+notes: |
+  Serial READY task proceeded through doer implementation (IN_PROGRESS),
+  committed handoff (ACCEPTANCE_PENDING), and fresh independent acceptance
+  (COMPLETE). Doer did not edit STATE or self-accept. Reviewer read full
+  startup/state/workflow/reviewer/incident/spec records, relevant PROJECT/rules,
+  planner/readiness/doer reports, supplemental installed Pydantic probe and
+  actual complete two-file commit. Exact Mapping before-validator passes and
+  returns original data, discards factory result and adds no logging/rethrow.
+  Existing fields/defaults/nullability/JSON schema shape and RunSummary are
+  unchanged; no earlier test assertion was removed or weakened. REVIEWER4's
+  explicit Pydantic model exception was independently accepted at readiness;
+  copied established FastAPI test setup requires no new API internals.
+  Every exact whole-tree command independently passed on its first invocation.
+  Full outputs remain in /tmp/phase18c-review-ruff.log, -mypy.log, -pytest.log,
+  -diff-check.log and -status-before.log (same phase18c-review prefix).
+  Full pytest used required command-only network permission for TestClient
+  sockets, with proxy/TLS/options/plugins preserved. Existing warnings concern
+  Starlette httpx and Pandas Timestamp.utcnow. No installs, retries, code/test
+  edits or hidden behavioral corrections by reviewer. Doer disclosed two
+  precommit cosmetic Ruff failures (12 then 2 diagnostics); exact originals
+  /tmp/phase18c-doer-ruff-1.log and -2.log remain preserved and were inspected.
+  Verified clean phase18/18.2c-api-declarations at exact task/parent SHAs,
+  only two declared changed paths and accepted helpers as ancestors. Live
+  git ls-remote --heads origin main returned baseline 7a1894db0166722e338c6d6edb2124f2f69a7ab4,
+  exit 0 before this separate STATE-only terminal commit. This is point-in-time
+  prerequisite evidence, not publication, merge or future freshness evidence.
+  Coordinator publishes the task PR to main after handoff; reviewer stops.
+  Admission alone proves no CLI/runtime eligibility, actual coverage/source
+  availability, execution containment, causal warmup, gaps, freezing, provenance,
+  OOS contamination or walk-forward property. Model construction/copy bypasses
+  and postcreation mutation are outside the admission guarantee. Whole 18.2
+  remains incomplete; current_task 18.2 is NOT_STARTED remaining planning only,
+  next_task null, 18.3/18.4 NOT_STARTED and Phase 18 IN_PROGRESS. No later READY
+  split or phase crossing is opened. All readiness/prior evidence is preserved.
+```
 
 ### 18.2b readiness contract and evidence
 
