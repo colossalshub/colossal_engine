@@ -269,7 +269,7 @@ describe('TearSheet page', () => {
       '2024-01-01 → 2024-01-31',
     )
     expect(screen.getByText('abcdef1234567890')).toBeInTheDocument()
-    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(within(methodology as HTMLElement).getByText('Timeframe').nextElementSibling).toHaveTextContent('—')
     expect(screen.getByText('maker 0.009 · taker 0.008')).toBeInTheDocument()
     expect(screen.getByText('none')).toBeInTheDocument()
     expect(screen.getAllByText(/Equity verified \(self-consistent\)/)).toHaveLength(2)

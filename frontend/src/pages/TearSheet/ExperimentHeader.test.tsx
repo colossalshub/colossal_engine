@@ -101,10 +101,86 @@ describe('ExperimentHeader', () => {
     expect(screen.getByText('git deadbee (dirty)')).toBeInTheDocument()
   })
 
-  it('does not invent venue, strategy version, or dataset identity', () => {
+  it('shows persisted research metadata, including explicit nulls', () => {
     renderHeader()
+    const region = screen.getByRole('region', { name: 'Research identity' })
+    const labels = [...region.querySelectorAll('dt')].map((term) => term.textContent)
+    expect(labels).toEqual([
+      'Experiment',
+      'Research Stage',
+      'Hypothesis',
+      'Strategy Version',
+      'In-sample UTC',
+      'Validation UTC',
+      'OOS UTC',
+      'Trial Index',
+      'Trial Count',
+    ])
+    for (const term of region.querySelectorAll('dt')) {
+      expect(term.nextElementSibling?.textContent).toBe('—')
+    }
     expect(screen.queryByText(/venue/i)).not.toBeInTheDocument()
-    expect(screen.queryByText('Strategy version')).not.toBeInTheDocument()
     expect(screen.queryByText('Dataset identity')).not.toBeInTheDocument()
+  })
+
+  it('renders populated research identity with exact strings, stages, and UTC ranges', () => {
+    const stages = ['exploration', 'validation', 'oos'] as const
+    const labels = ['Exploration', 'Validation', 'OOS']
+    for (const [index, research_stage] of stages.entries()) {
+      const view = renderHeader({
+        run: {
+          experiment_id: '  exp-A  ',
+          research_stage,
+          hypothesis_id: ' H/alpha ',
+          strategy_version: ' v1+dirty ',
+          in_sample_start_ts: 1704067200123,
+          in_sample_end_ts: 1704153600456,
+          validation_start_ts: 1704153600456,
+          validation_end_ts: 1704240000789,
+          oos_start_ts: 1704240000789,
+          oos_end_ts: 1704326400000,
+          trial_index: 7,
+          trial_count: 3,
+        },
+      })
+      const region = screen.getByRole('region', { name: 'Research identity' })
+      const value = (label: string) =>
+        [...region.querySelectorAll('dt')].find((term) => term.textContent === label)
+          ?.nextElementSibling?.textContent
+      expect(value('Experiment')).toBe('  exp-A  ')
+      expect(value('Research Stage')).toBe(labels[index])
+      expect(value('Hypothesis')).toBe(' H/alpha ')
+      expect(value('Strategy Version')).toBe(' v1+dirty ')
+      expect(value('In-sample UTC')).toBe('2024-01-01T00:00:00.123Z → 2024-01-02T00:00:00.456Z')
+      expect(value('Validation UTC')).toBe('2024-01-02T00:00:00.456Z → 2024-01-03T00:00:00.789Z')
+      expect(value('OOS UTC')).toBe('2024-01-03T00:00:00.789Z → 2024-01-04T00:00:00.000Z')
+      expect(value('Trial Index')).toBe('7')
+      expect(value('Trial Count')).toBe('3')
+      view.unmount()
+    }
+  })
+
+  it('keeps partial, reversed, and overlapping ranges and exact trial numbers', () => {
+    renderHeader({
+      run: {
+        in_sample_start_ts: 0,
+        in_sample_end_ts: null,
+        validation_start_ts: null,
+        validation_end_ts: 0,
+        oos_start_ts: 1000,
+        oos_end_ts: 0,
+        trial_index: 0,
+        trial_count: -2,
+      },
+    })
+    const region = screen.getByRole('region', { name: 'Research identity' })
+    const value = (label: string) =>
+      [...region.querySelectorAll('dt')].find((term) => term.textContent === label)
+        ?.nextElementSibling?.textContent
+    expect(value('In-sample UTC')).toBe('1970-01-01T00:00:00.000Z → —')
+    expect(value('Validation UTC')).toBe('— → 1970-01-01T00:00:00.000Z')
+    expect(value('OOS UTC')).toBe('1970-01-01T00:00:01.000Z → 1970-01-01T00:00:00.000Z')
+    expect(value('Trial Index')).toBe('0')
+    expect(value('Trial Count')).toBe('-2')
   })
 })
