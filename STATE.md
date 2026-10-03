@@ -12,7 +12,7 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2g
+current_task: 18.2g.1
 current_task_status: READY
 next_task: null
 last_completed_task: 18.2f
@@ -72,11 +72,11 @@ work.
 
 ### Current task
 
-**18.2g — Research-only fresh BuyHold adapter** — READY after independent
-bounded readiness and recorded explicit post-probe human approval below.
-18.2f remains COMPLETE. Whole 18.2 remains incomplete, runtime eligibility
-unverified; next_task null, Phase 18 IN_PROGRESS. Only the new adapter and
-mirrored test are authorized; later integration and guarantees retain gates.
+**18.2g.1 — Preserve admitted decimal formatting** — READY as the bounded
+blocking fix below. Original 18.2g implementation remains IN_PROGRESS,
+blocked on this precision fix and fresh combined acceptance; commit 5a24edc
+is preserved and is not accepted. Last completed task remains 18.2f,
+next_task null, Phase 18 IN_PROGRESS. Existing post-probe approval persists.
 
 ### Phase 17 tasks
 
@@ -100,7 +100,8 @@ mirrored test are authorized; later integration and guarantees retain gates.
 - [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
 - [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
 - [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
-- [ ] **18.2g — Research-only fresh BuyHold adapter** — READY. Explicit post-probe approval recorded below; supplied-clock/runtime containment only, implementation and acceptance pending.
+- [ ] **18.2g — Research-only fresh BuyHold adapter** — IN_PROGRESS; blocking decimal serialization fix, implementation 5a24edc unaccepted.
+- [ ] **18.2g.1 — Preserve admitted decimal formatting** — READY; only this bounded two-file fix is opened.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -122,6 +123,93 @@ mirrored test are authorized; later integration and guarantees retain gates.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2g.1 blocking-fix readiness contract
+
+Independent readiness opens only this mini-task under the existing explicit
+post-probe approval and the user's delegated instruction, "make trustworthy
+decisions and continue until this phase is done". Fixing observed violation of
+the already approved no-rounding contract is within that authorization; no
+new third-party API, dependency, unseen-probe approval or phase crossing.
+
+**Observed blocker:** independent review of original implementation
+`5a24edce407b4d3da75ee54c123ee14f0f928d3a` found admitted float volume
+`1000000000000.0001` satisfies precision validation of `Decimal(str(value))`,
+but binary float `.6f` serializes it to `1000000000000.000122`. Installed
+Quantity accepts that changed value and the real public runner returns
+BacktestResult. This violates "Formatting serializes accepted precision only,
+never rounds source values." Reviewer reproduction evidence is retained in
+`/tmp/phase18g-review-blocker.log` and `/tmp/phase18g-review-report.md`.
+Original review Ruff and mypy passed; whole pytest was not started following
+interruption and blocker discovery. That partial review is not completed
+acceptance. Original doer lint failures and report remain preserved. No buggy
+original SHA alone is accepted; do not amend or erase it.
+
+**Exact scope:** modify only `backend/src/quant/engine/research_runner.py` and
+`backend/tests/engine/test_research_runner.py`. In the five admitted Bar OHLCV
+constructor arguments, format `Decimal(str(row[field]))` rather than the binary
+float: `.2f` for open/high/low/close, `.6f` for volume, then existing
+Price.from_str/Quantity.from_str. Use the identical decimal interpretation that
+passed admission; precision predicates, accepted/rejected inputs, public
+signature, clock selection/gating, lifecycle, results and ordinary runner stay
+unchanged. No new helpers, APIs, dependencies, defaults, numeric coercion or
+other behavior. Serialize initial cash with
+`f"{Decimal(str(starting_balance_usdt)):.0f}"` for the same admitted-decimal
+consistency; existing whole-float cash admission is unchanged. This authorizes
+only these six formatting sites, no cash/size/fee redesign.
+
+**Regression:** run the actual public research runner with real Nautilus engine
+and admitted float volume `1000000000000.0001`; use existing delegating engine
+watch to capture actual Bars, assert exact volume string
+`1000000000000.000100` (or exact Decimal equality plus precision6), normal
+actual fill/fee/results and unchanged input deep snapshot. Verify representative
+normal OHLCV exact serializations and normal control results remain unchanged.
+No factory mocks as the sole proof, weakened assertions or changes to existing
+fixtures/expectations. The original failure must be exposed by this regression
+on the original serialization and pass on the correction, retaining evidence.
+
+**Acceptance:** existing Linux venv activated, repository root, both doer and
+fresh independent combined reviewer run exactly:
+
+```bash
+python -m ruff check .
+python -m mypy --strict backend/src
+python -m pytest backend/tests -q
+git diff --check
+git status --short
+```
+
+Whole-tree checks, unchanged options/plugins/proxy/TLS, established command-only
+local TestClient socket permission as needed. Preserve complete outputs,
+failures/corrections under five-loop limit. No frontend files/checks. One
+terminal fix commit, no amend:
+`fix(engine): preserve admitted decimal formatting (Phase 18.2g.1)`.
+Doer does not edit STATE or self-accept. Independent reviewer verifies the
+combined original+fix tree against full 18.2g contract and this correction,
+reruns all commands and then records separate STATE completion for g and g.1,
+final combined accepted implementation SHA and original blocking evidence.
+No completion is recorded by this readiness. Later integration/guarantees
+retain separate gates; whole 18.2 and Phase 18 stay incomplete.
+
+**Readiness evidence:** known unchanged startup/spec/probe/rules from the earlier
+readiness review were retained; no new claim of complete historical reads. The
+original acceptance reviewer disclosed truncated mandatory-document output;
+fresh combined reviewer must complete unread portions in bounded chunks before
+acceptance. Latest live STATE/current task, original
+review report and actual five serialization sites/test watch inspected.
+Clean same branch `phase18/18.2g-research-buy-hold` at original task SHA above;
+accepted prerequisite main 8b519e0 is ancestor (exit 0). Independent live
+`git ls-remote --heads origin main` returned
+`8b519e04fe676ef2be6d58bb047a92990177fd5e`, exit 0. Network proxy/TLS unchanged.
+Whole diff/staged scope/whitespace checks precede this separate STATE-only
+readiness commit; no production edits, suites, installs, workers, push/merge
+or amend. No Python files changed; pytest/Ruff/mypy skipped under WORKFLOW §5.
+Serial original g READY -> implementation IN_PROGRESS -> committed
+ACCEPTANCE_PENDING -> blocking review returns g to IN_PROGRESS is recorded
+here; the earlier persisted READY snapshot was not completion evidence.
+Only g.1 READY, next_task null, last_completed_task 18.2f and
+human_transition_required false; historical approval/evidence preserved.
+No other task/phase opened; never Phase 29.
 
 ### 18.2g readiness contract and post-probe approval
 
