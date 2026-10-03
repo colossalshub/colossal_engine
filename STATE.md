@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2j
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2i
+last_completed_task: 18.2j
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,10 +72,10 @@ work.
 
 ### Current task
 
-**18.2j — Append-only source and frozen candidate capture store** — READY.
-Only the durable capture task below is open. Accepted 18.2i continues to certify
-reproduced synthetic contents/clocks only. Remaining 18.2 as a whole remains
-NOT_STARTED, next_task null, Phase18 IN_PROGRESS.
+**18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole.
+18.2j is accepted for durable synthetic source and candidate capture only.
+Selection/inspection barriers and runtime integration remain unimplemented.
+No next task is READY; next_task null, Phase18 IN_PROGRESS.
 
 ### Phase 17 tasks
 
@@ -103,7 +103,7 @@ NOT_STARTED, next_task null, Phase18 IN_PROGRESS.
 - [x] **18.2g.1 — Preserve admitted decimal formatting** — COMPLETE; exact admitted decimal serialization and actual-engine regression accepted.
 - [x] **18.2h — Immutable raw research input snapshot and exact identity** — COMPLETE; supplied evidence/content identity only.
 - [x] **18.2i — Reproduce and bind controlled fixture inputs** — COMPLETE; deterministic synthetic recipe reproduction only, no historical source certification or runtime integration.
-- [ ] **18.2j — Append-only source and frozen candidate capture store** — READY; durable capture only, no selection/inspection barrier or runtime integration.
+- [x] **18.2j — Append-only source and frozen candidate capture store** — COMPLETE; durable capture only, no selection/inspection barrier or runtime integration.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -151,6 +151,7 @@ are preserved when known in the original records; no missing SHA is inferred.
 
 | Task | Implementation SHA | Readiness SHA | Recorded acceptance | Evidence |
 | --- | --- | --- | --- | --- |
+| 18.2i | `d7f5edc5f5fcb0fbd00e77347321b21d05259f72` | `5634a2e281fc199d262dd60b9649b662fce6395e` | 1165 passed, 123 warnings in 40.85s; reviewer completion `6ba8c10694a9733d756376f094446e4437a27687`; reproduced synthetic contents/clocks only | [Full historical record](docs/evidence/STATE-archive.md#182i-completion-evidence), [readiness](docs/evidence/STATE-archive.md#182i-independent-readiness-contract--2026-10-04-asiamanila) |
 | 18.2g / 18.2g.1 | `47fa7068077952fe9894483ee373ab5873f000df` (original unaccepted `5a24edce407b4d3da75ee54c123ee14f0f928d3a`) | `568822e9adc6e96e9e8923ea2747875a8773e00f`, `8154fdebdbde089a95b8b6839df3a94eb73dc1aa` | 961 passed, 121 warnings in 40.42s; reviewer completion `a5be160409489991d1d2fecde7e807ad7cba0455`; supplied-clock/runtime containment only | [Full historical record](docs/evidence/STATE-archive.md#182g-and-182g1-combined-completion-evidence) |
 | 18.2h | `a0d08e6aa2ff36ead2eac54dda698ea7ec5fb2a3` | `2213ee19704c28514d1051a961f1a5b64cc76484` | 1134 passed, 121 warnings in 38.53s; reviewer completion `31170fc`; supplied evidence/content identity only | [Full historical record](docs/evidence/STATE-archive.md#182h-completion-evidence), [readiness](docs/evidence/STATE-archive.md#182h-independent-readiness-contract--2026-10-04-asiamanila) |
 | 18.2f | `78250cd5af871c065cf96c186f95432d9227d36e` | `59257d113f1649138c6d768fb4ba392bfb6c7189` | Independent probe replay exit 0; documentation only | [Full historical record](docs/evidence/STATE-archive.md#182f-completion-evidence) |
@@ -176,19 +177,19 @@ are preserved when known in the original records; no missing SHA is inferred.
 | U.6.5 | `3928376` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u65-completion-evidence) |
 | 16.5.6 | `aa0aaff7c21011f3301d97c467f8e7f91dc2007f` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#1656-completion-evidence) |
 
-### 18.2i completion evidence
+### 18.2j completion evidence
 
 ```yaml
-task_id: 18.2i
+task_id: 18.2j
 status: COMPLETE
-reviewer_decision: accepted_reproduced_synthetic_fixture_contents_and_clocks_only
+reviewer_decision: accepted_durable_synthetic_source_and_candidate_capture_only
 reviewer_date: 2026-10-04 Asia/Manila
-git_commit_sha: d7f5edc5f5fcb0fbd00e77347321b21d05259f72
-readiness_commit_sha: 5634a2e281fc199d262dd60b9649b662fce6395e
+git_commit_sha: a61fdc9e6841573daa14448509bcddfe93a09411
+readiness_commit_sha: 47ca51ede7f5248bf396cfa5e5e481978d08fb19
 files_changed:
-  - backend/src/quant/engine/research_fixture.py
-  - backend/tests/engine/test_research_fixture.py
-tests_added_or_updated: 31 focused public generation, binding, error and actual-engine cases
+  - backend/src/quant/data/research_store.py
+  - backend/tests/data/test_research_store.py
+tests_added_or_updated: 45 actual tmp_path SQLite persistence, replay, ordering, rollback and concurrency cases
 acceptance_commands:
   - .venv/bin/python -m ruff check .
   - .venv/bin/python -m mypy --strict backend/src
@@ -197,214 +198,39 @@ acceptance_commands:
   - git status --short
 acceptance_output:
   ruff: "All checks passed!; exit 0"
-  mypy: "Success: no issues found in 35 source files; exit 0"
-  pytest: "1165 passed, 123 warnings in 40.85s; exit 0"
+  mypy: "Success: no issues found in 36 source files; exit 0"
+  pytest: "1210 passed, 123 warnings in 36.85s; exit 0"
   diff_check: "no output; exit 0"
-  status: "no output; clean before reviewer state maintenance; exit 0"
+  status: "no output; clean before reviewer documentation maintenance; exit 0"
 next_task: null
 remaining_18_2_status: NOT_STARTED
 human_transition_required: false
 deviations:
-  - "Authorized reviewer documentation maintenance also touches docs/evidence/STATE-archive.md: the exact 287-line g/g.1 completion, h completion and h readiness slice is appended verbatim; original archive prefix, post-probe approval, i readiness contract and current rules preserved. Compact live SHA/acceptance references replace moved records. This is reviewer-only scope, not a doer/readiness scope expansion."
+  - "Authorized reviewer maintenance also touches docs/evidence/STATE-archive.md: exact 230-line i completion/readiness slice appended verbatim, original archive prefix preserved, compact live SHA/check references added. j readiness, approval and rules remain unchanged. No implementation deviation."
 notes: |
-  Serial READY -> implementation IN_PROGRESS -> committed ACCEPTANCE_PENDING
-  -> independent acceptance COMPLETE. Doer never edited STATE or self-accepted.
-  Reviewer read full live STATE/AGENTS/WORKFLOW/REVIEWER/INCIDENTS in bounded
-  chunks, required PROJECT/spec/rules and Nautilus guide, exact two new files,
-  accepted snapshot factory and relevant runner boundary implementation.
-  Exact no-default recipe fields, ordered integer/grid/positive-price checks,
-  signed unbounded integers, explicit synthetic zero-delay rows and typed-hex
-  recipe identity match the contract. Binder regenerates first, validates raw
-  supplied document second, compares canonical bytes AND snapshot ID third,
-  and returns fresh expected snapshot only after equality. Factory failures
-  propagate once unchanged. No direct-record/label/hash trust shortcut or flags.
-  Independent literal recipe reconstruction verifies recipe SHA-256
-  9ef687c70741b00dba743e2dbc8de911cd26b70392d837e5a21c224ca1b04c44;
-  complete hardcoded rows/clocks/provenance and separate content reconstruction
-  verify snapshot SHA-256
-  468fd3da9955a653d0398d67c561f534bd36c6109322a707a730f86bd4e7739d.
-  Actual-engine integration sees first fill100, fee0.1 and last eligible price120,
-  ending equity100019.9; later generated price140 excluded by explicit interval.
-  Tampered payload/source/revision/reference/delay/anchor/count/numeric kind
-  cannot bind despite valid supplied recomputed identity. Huge integer clocks,
-  prices and volume, signed steps, mutation isolation, exact logs and failure
-  precedence are covered. No implementation correction or acceptance retry.
-  One fresh completed whole reviewer pytest invocation used unchanged enabled
-  network/default sandbox/options/plugins/proxy/TLS. Raw complete logs:
-  /tmp/phase18i-review-ruff.log, -mypy.log, -pytest.log, -diff-check.log,
-  -status-before.log and -independent.log. Report /tmp/phase18i-review-report.md.
-  Doer first full suite1165 passed,123 warnings in36.37s is separate evidence.
-  Initial doer Ruff failed4 diagnostics (import formatting and3 E501); cosmetic
-  authorized-file formatting repaired them before first pytest. Raw initial
-  failure remains /tmp/phase18i-doer-ruff-1.log; doer report and final logs retained.
-  Established warnings concern Starlette httpx/Nautilus Pandas UTC deprecations.
-  Acceptance certifies synthetic reproduction only, never actual historical
-  origin/publication/revision history, frozen selection/OOS inspection, causal
-  dependencies, realistic execution, research eligibility, runtime gateway,
-  evidence transport/store/API/CLI/worker integration, gaps/windows or whole18.2
-  or Phase18 completion. Future runtime must call binder on raw recipe+document.
-  No dependencies, files/network in generator, globals, count cap or invented
-  experiment numeric defaults. No publish/merge/workers or implementation edits.
-  Reviewer documentation maintenance is separately authorized for efficient
-  mandatory live-state reads; no historical correction or failure removal.
-  Coordinator independently byte-verified exact slice relocation, unchanged
-  archive prefix, approval, i contract/rules tail and live SHA references before
-  this separate completion commit; documentation diff check exit0.
-  No next READY; current_task18.2 NOT_STARTED, last_completed_task18.2i,
-  next_task null, human_transition_required false, Phase18 IN_PROGRESS.
-  Coordinator verifies authorized PR/checks/merge before fresh next readiness.
-  Never begin Phase29.
+  Serial independent acceptance of committed implementation; no doer STATE edits.
+  Actual source/candidate code and tests checked against standalone j contract,
+  mandatory startup/spec/rules and prior binder/input/coverage/runner boundaries.
+  Same-transaction references, indexed columns, canonical replay, immutable
+  revisions, server ordering, rollback and actual concurrent contenders accepted.
+  One fresh whole reviewer suite, no failure, retry or implementation correction;
+  enabled network/default sandbox/options/plugins/proxy/TLS unchanged.
+  Complete logs /tmp/phase18j-review-{ruff,mypy,pytest,diff-check,status-before}.log;
+  full review /tmp/phase18j-review-report.md. Doer1210/123/40.42s is separate.
+  Doer initial Ruff53 then6 cosmetic diagnostics and both correction cycles
+  retained in /tmp/phase18j-doer-ruff-{1,2}.log and doer report; no suite retry.
+  Pre-first-suite bare JSON nonfinite/huge-number rejection and real replay
+  regressions accepted; no failures lost or historical evidence corrected.
+  Durable synthetic capture only, no selection/inspection/OOS barrier, runtime
+  access gateway, authenticity, unseen market holdout, external-inspection or
+  research-eligibility certification. Code identity remains caller assertion.
+  No dependency, worker, publish, merge, next READY or whole-phase completion.
+  current_task18.2 NOT_STARTED, last_completed_task18.2j, Phase18 IN_PROGRESS.
+  Coordinator byte-validated exact slice/prefix, unchanged j contract/rules/approval
+  and live SHAs before this separate completion commit. Initial docs diff check
+  exit2: archive3423 new blank line at EOF; preserved historical bytes and added
+  authored end marker, final docs diff check exit0. Raw diagnostic retained.
 ```
-
-### 18.2i independent readiness contract — 2026-10-04 Asia/Manila
-
-Independent readiness opens **ONLY 18.2i READY** after accepted 18.2h and
-coordinator-verified PR11 merge with all three checks SUCCESS, no reviews or
-review threads. Baseline clean `phase18/18.2i-controlled-fixtures`, HEAD/refreshed
-main `559d48ab7e353d8d745af30f1e169aacd4b9daa2`; independent origin connectivity
-returned that exact main SHA. `git diff --quiet 31170fc origin/main` exit 0;
-`git merge-base --is-ancestor a0d08e6 HEAD` and the same command for `31170fc`
-exit 0. Preserve implementation `a0d08e6aa2ff36ead2eac54dda698ea7ec5fb2a3`
-and acceptance `31170fc` evidence; merge does not replace original SHAs.
-User delegation authorizes these conservative explicit synthetic wire choices.
-Original post-probe approval and all historical evidence remain unchanged.
-
-Full live STATE/AGENTS/WORKFLOW/REVIEWER/INCIDENTS, required PROJECT stack,
-data/execution/conventions, Phases16–18, §§7–8, confirmed Phase18 specification,
-applicable project/backend rules and accepted factory/runner contracts reviewed.
-No unfamiliar third-party call: stdlib generation and accepted public factory;
-one integration test copies the existing accepted research runner call pattern.
-No probe, install, worker, push or implementation in this readiness review.
-Scratch plan is disposable; this standalone contract governs the task.
-
-**Deliverables only:** new `backend/src/quant/engine/research_fixture.py` and
-mirrored `backend/tests/engine/test_research_fixture.py`. Use stdlib and absolute
-imports of accepted `create_research_input_snapshot` / `ResearchInputSnapshot`.
-No changes to existing helper/runner/caller/store/API/CLI/UI/fingerprint, protected
-files, dependencies or archive. No exporter, plugin/callback, arbitrary fixture
-file/URL/reference fetching, selection freeze, gap/window enforcement or workers.
-
-**Exact public interface, no defaults:**
-`create_controlled_fixture(recipe: Mapping[str, object]) -> ResearchInputSnapshot`;
-`bind_controlled_fixture(*, recipe: Mapping[str, object],
-document: Mapping[str, object]) -> ResearchInputSnapshot`.
-Create actual deterministic rows, then validate them with the accepted factory.
-Bind regenerates expected FIRST, validates supplied raw document independently
-through that same factory SECOND, compares both canonical_bytes and snapshot_id
-exactly THIRD, and returns only the freshly generated expected snapshot after
-matching. Never return/trust supplied or directly constructed records, unchecked
-bytes, caller labels, opaque hashes, references, eligible/source_verified flags
-or a verifier callback. Production docstring states the complete contract.
-
-**Exact required recipe fields:** recipe_version, rule_id, anchor_ts,
-start_open_ts, observation_count, price_start, price_step, volume; no omissions,
-defaults or extra keys. Exact tokens `controlled-daily-linear-v1` and
-`phase18-temporal-v1`. Remaining fields signed unbounded int excluding bool;
-count>0, price_start>0, volume>=0. Signed price_step permitted. Require
-`(start_open_ts-anchor_ts)%86400000==0` and
-`price_start+(observation_count-1)*price_step>0`; linear endpoints ensure every
-price is positive. No invented anchor/calendar/warmup/gap inputs, count cap,
-decimal-digit limits, global settings or float coercion. Producing rows costs
-O(count); no resource-bound or execution-compatibility claim at this pure layer.
-Change recipe contract version if generation semantics change.
-
-**Recipe identity:** dictionary of all exact validated recipe fields, version
-and rule strings unchanged, EVERY integer replaced by
-`{'kind':'int','value':hex(value)}`. Canonical bytes are
-`json.dumps(identity, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
-allow_nan=False).encode('utf-8')`, no BOM/newline; recipe_id is `'sha256:'` plus
-lowercase SHA-256 digest. Uses the accepted typed-hex convention, never existing
-fingerprint. Identity binds a recipe, not authenticity.
-
-**Exact generated raw document:** required top fields contract_version
-`research-input-v1`, rule_id `phase18-temporal-v1`, venue `binance`, symbol
-`BTC/USDT`, timeframe `1d`, calendar `continuous_utc_fixed`, explicit recipe
-anchor_ts, observations list. For `i in range(observation_count)`,
-`ts=start_open_ts+i*86400000`, `close_ts=ts+86400000`,
-`available_ts=close_ts`, `price=price_start+i*price_step`; raw open/high/low/close
-all that integer price, volume exact recipe integer. Exact row fields are ts,
-close_ts, available_ts, open, high, low, close, volume, source_id, revision_id,
-provenance. Fixed source_id `controlled-fixture:controlled-daily-linear-v1`,
-revision_id recipe_id, provenance exactly
-`{'kind':'controlled_fixture','reference':recipe_id,'declared_by':None}`.
-These namespaces and zero-delay clocks are explicit synthetic generator
-DEFINITIONS, never inferred real-market availability or source history. No
-randomness, rounding, network, files or real source data. Generated range is
-nonempty and complete on its own explicit grid; no stage/window coverage claim.
-Integer 100 and float 100.0 deliberately have different accepted content identity.
-
-**Trust boundary and limitations:** internal deterministic code plus explicit
-recipe and exact comparison certify only reproduced synthetic contents/clocks.
-A caller may choose a different recipe and legitimately generate different
-synthetic data. Even historical-looking prices supplied as recipe inputs do not
-certify historical origin, publication or revision history. Caller-controlled
-controlled_fixture labels/references alone cannot qualify arbitrary input.
-Future runtime gateway must CALL this binder on raw recipe+document at execution,
-not trust a transported type/flag/hash. This task does not wire that gateway,
-certify selection/OOS inspection, realistic execution, causal dependencies,
-research eligibility, real historical availability, or complete 18.2/Phase18.
-
-**Own failures:** exactly one ERROR on `quant.engine.research_fixture` and an
-identical ValueError; no input serialization/payload leakage, success silent.
-Accepted factory errors propagate once unchanged, never wrapped or re-logged.
-Order: exact fields; recipe_version; rule_id; integer types in anchor_ts,
-start_open_ts, observation_count, price_start, price_step, volume order; positive
-count; positive starting price; nonnegative volume; start alignment; final price.
-Then supplied document validation and exact match. Exact error messages:
-
-- `recipe must contain exactly the declared fields`
-- `recipe_version must be controlled-daily-linear-v1`
-- `rule_id must be phase18-temporal-v1`
-- `<field> must be an integer excluding bool`
-- `observation_count must be positive`
-- `price_start must be positive`
-- `volume must be nonnegative`
-- `start_open_ts must align with the declared daily grid`
-- `generated prices must all be positive`
-- `document does not match the reproduced controlled fixture`
-
-**Focused public tests:** hardcoded three-row recipe expected rows, clocks,
-provenance, independently reconstructed complete recipe identity and expected
-snapshot identity; repeat/insertion-order determinism; zero/negative steps valid,
-negative final price rejected; shifted anchor; huge signed clocks and integer
-prices beyond decimal conversion limit preserved; no generated None availability;
-deep caller mutation isolation. Independently rebuild supplied raw wire from the
-recipe, not private helpers; bind matches and returns a fresh expected snapshot.
-Tamper prices/source/revision/reference/delay/anchor/row count/numeric kind and
-recomputed supplied hash cannot bypass exact comparison. Fake labels/opaque
-hashes fail. Representative missing/extra/duplicate/out-of-order supplied rows
-propagate accepted factory behavior and only one log. Cover recipe types/bool,
-count/grid/tokens, exact fields and competing-invalid precedence without repeating
-existing broad matrices. No dataclass shortcut or real data writes.
-
-One meaningful actual-engine integration case imports existing
-`run_research_buy_hold`, `BarClock`, `ResearchInterval` and copies accepted calls.
-Use increasing integer prices, bound reproduced rows projected to ts/OHLCV and
-explicit reproduced clocks; explicit active interval, warmup=None,
-required_warmup_observations=0, timeframe/calendar/anchor, cash=100000.0,
-trade_size='1', deploy_pct='0', maker_fee=taker_fee='0.001'. Assert actual first
-fill clock/fee and residual valuation at the last eligible close. Source/payload
-tampering must fail binding before an engine call. Assert synthetic-only claim
-limits and absence of eligibility flag. No new Nautilus API, orchestration wiring,
-mock-only execution proof or repeated full engine admission matrices.
-
-**Acceptance from root using existing venv:**
-`.venv/bin/python -m ruff check .`;
-`.venv/bin/python -m mypy --strict backend/src`;
-`.venv/bin/python -m pytest backend/tests -q`;
-`git diff --check`; `git status --short`.
-One completed full suite each doer/fresh independent reviewer; repeat only after
-new failure/correction. Retain raw complete outputs/failures; maximum five loops.
-Use current enabled network with unchanged options/plugins/proxy/TLS. No frontend
-checks or installs. One terminal implementation commit:
-`feat(engine): reproduce controlled research fixtures (Phase 18.2i)`.
-Doer never edits STATE or self-accepts/publishes. Serial READY -> IN_PROGRESS ->
-ACCEPTANCE_PENDING -> independent acceptance COMPLETE with separate STATE commit;
-coordinator verifies authorized PR/checks/merge before fresh next readiness.
-Readiness changes STATE only; no Python files changed, pytest/ruff/mypy not rerun
-under WORKFLOW §5. Remaining18.2 as a whole NOT_STARTED, 18.3/18.4 NOT_STARTED,
-next_task null, last_completed_task18.2h, human_transition_required false,
-Phase18 IN_PROGRESS. No automatic phase crossing; never begin Phase29.
 
 ### 18.2j independent readiness contract — 2026-10-04 Asia/Manila
 
