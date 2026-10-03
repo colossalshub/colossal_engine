@@ -12,8 +12,8 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
-current_task_status: NOT_STARTED
+current_task: 18.2h
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2g.1
 last_completed_phase: 17
@@ -72,10 +72,9 @@ work.
 
 ### Current task
 
-**18.2 — Remaining stage-window enforcement planning** — NOT_STARTED.
-18.2g and its bounded precision repair 18.2g.1 are COMPLETE on the combined
-accepted tree. Whole 18.2 remains incomplete; next_task null, Phase 18
-IN_PROGRESS. No further READY contract is opened by this acceptance.
+**18.2h — Immutable raw research input snapshot and exact identity** — READY.
+Only the bounded standalone contract below is open. Remaining 18.2 is NOT_STARTED;
+18.2g/g.1 remain COMPLETE, next_task null, Phase18 IN_PROGRESS.
 
 ### Phase 17 tasks
 
@@ -101,6 +100,7 @@ IN_PROGRESS. No further READY contract is opened by this acceptance.
 - [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
 - [x] **18.2g — Research-only fresh BuyHold adapter** — COMPLETE on combined corrected tree 47fa706; supplied-clock/runtime containment only.
 - [x] **18.2g.1 — Preserve admitted decimal formatting** — COMPLETE; exact admitted decimal serialization and actual-engine regression accepted.
+- [ ] **18.2h — Immutable raw research input snapshot and exact identity** — READY; supplied evidence/content identity only.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -268,6 +268,134 @@ notes: |
   READY; remaining18.2 NOT_STARTED, next_task null, last_completed_task18.2g.1,
   human_transition_required false, Phase18 IN_PROGRESS. Never begin Phase29.
 ```
+
+### 18.2h independent readiness contract — 2026-10-04 Asia/Manila
+
+Independent plan review opens **ONLY 18.2h READY**. User's original post-probe
+approval remains dated 2026-10-03; current delegation authorizes conservative
+trustworthy choices within Phase 18, with independent gates and no phase crossing.
+Baseline: clean `phase18/18.2h-input-snapshot`, refreshed main
+`22da696ee3a1ed129a083acdb8945593595e0431`; origin main connectivity verified.
+PR10 squash integrates the full accepted tracked tree: independent
+`git diff --quiet a5be160 origin/main` exits 0. Original combined implementation
+`47fa7068077952fe9894483ee373ab5873f000df` and reviewer
+`a5be160409489991d1d2fecde7e807ad7cba0455` are not main ancestors (exit 1);
+original published source branch/PR preserves their evidence history. No original
+SHA ancestry is inferred from identical tree content. Coordinator verified PR10
+merged with all three checks green and original remote branch at a5be160.
+
+**Deliverables only:** new `backend/src/quant/engine/research_input.py` and
+mirrored `backend/tests/engine/test_research_input.py`. Pure stdlib, no probe,
+dependencies, caller/runtime/storage/API/CLI/UI/fingerprint changes. No exporter,
+execution adapter, selection freeze, gaps/windows, source verification or eligibility
+certification. Full live STATE, AGENTS, WORKFLOW, REVIEWER/INCIDENTS, required
+PROJECT sections, confirmed spec, applicable rules and relevant accepted helpers,
+runner/source/fingerprint code/tests reviewed. Detailed scratch plan is disposable;
+this standalone contract governs implementation.
+
+**Interface:** frozen slots dataclasses, direct construction unvalidated:
+`InputProvenance(kind: Literal['controlled_fixture','researcher_attested','unknown'],
+reference: str | None, declared_by: str | None)`;
+`ResearchObservation(ts: int, close_ts: int, available_ts: int | None,
+open: int | float, high: int | float, low: int | float, close: int | float,
+volume: int | float, source_id: str, revision_id: str, provenance: InputProvenance)`;
+`ResearchInputSnapshot(contract_version: str, rule_id: str, venue: str, symbol: str,
+timeframe: str, calendar: str, anchor_ts: int,
+observations: tuple[ResearchObservation,...], canonical_bytes: bytes, snapshot_id: str)`.
+`create_research_input_snapshot(document: Mapping[str, object]) -> ResearchInputSnapshot`
+is the sole validated factory; detached records/tuple/bytes have no mutable containers
+or verified/eligible/frozen flags. Production docstring records wire and identity rules.
+
+**Exact wire:** every declared field required; unknown keys rejected at document,
+row and provenance levels. Top fields match snapshot metadata plus observations,
+excluding canonical_bytes/snapshot_id. Fixed tokens in order: `research-input-v1`,
+`phase18-temporal-v1`, `binance`, `BTC/USDT`, `1d`, `continuous_utc_fixed`.
+Observations nonempty list/tuple of mappings, row fields exactly observation fields,
+provenance exactly kind/reference/declared_by. Strings preserved without trim/case/
+Unicode normalization; source/revision and required evidence/actor strings nonempty
+valid UTF-8 without NUL or surrogates. Exact provenance enum, no inferred defaults.
+Clocks signed unbounded int excluding bool; available_ts may explicit None.
+Daily grid `(ts-anchor_ts)%86400000==0`, close_ts=ts+86400000;
+known availability>=close, delays retained. No batch completeness/stage filtering.
+All rows retained in strict chronological order; duplicate opens reject before
+chronology after row validation, even equal duplicates; alternate revisions require
+separate documents. OHLCV finite int/float excluding bool, prices>0, volume>=0,
+high>=max(open,close), low<=min(open,close), high>=low. Integers intrinsically finite;
+only floats use math.isfinite. No float coercion, rounding or precision bounds.
+
+Unknown provenance requires reference/declared_by/availability all None.
+Researcher-attested requires nonempty reference and actor; availability may unknown.
+Controlled-fixture requires nonempty reference, actor None, known availability.
+All source labels and references are claims, never authenticated truth. A future
+trusted fixture importer must reproduce/bind rows before fixture capability can be
+used; actual historical publication/revision verification remains separate work.
+No reference fetching, availability inference from ingestion/open/close, or trust upgrade.
+
+**New explicitly delegated v1 identity convention:** canonical identity document
+contains validated detached wire fields, preserving row order; every numeric field
+(anchor and row ts/close/known available plus OHLCV) becomes
+`{'kind':'int','value':hex(value)}` (signed lowercase 0x) or
+`{'kind':'float','value':value.hex()}`. None stays null. Raw input/record values remain
+int/float. No unbounded bare ints in identity JSON, decimal-digit limit or global
+runtime setting change. This is neither existing fingerprint nor inferred RFC format.
+IEEE float content identity differs from runner's Decimal(str(value)) simulation
+interpretation; snapshot certifies no execution compatibility. Serialize
+`json.dumps(identity_document, sort_keys=True, separators=(',',':'),
+ensure_ascii=False, allow_nan=False).encode('utf-8')`, no BOM/newline.
+`snapshot_id='sha256:'+hashlib.sha256(canonical_bytes).hexdigest()`.
+Int/float and signed zero distinct, exact nearby float values distinct. Mapping key
+insertion order irrelevant; any valid field change alters content identity. Current
+factory rejects unsupported version/rule. Existing fingerprint unchanged. Mapping
+cannot detect already-discarded duplicate JSON keys; future parser must reject them
+before mapping admission, no such claim here.
+
+**Failure order:** exact document fields; ordered top tokens; anchor type;
+observations container/nonempty; per-row mapping/exact fields; ts/close/available
+types; grid/close equality/known availability; OHLCV type/sign in open/high/low/close/
+volume order; OHLC bounds; source/revision text; provenance exact fields/kind/string
+conditional constraints; duplicate then chronology. Canonicalize only after validation.
+One ERROR on `quant.engine.research_input` and identical ValueError, success silent,
+no payload/actor/reference leakage or broad exception/fallback. Paths use
+`observations[i]` (nested `.provenance`). Exact templates:
+
+- `<path> must contain exactly the declared fields` (document/row/provenance).
+- `<field> must be <exact token>`; `anchor_ts must be an integer excluding bool`;
+  `<path>.<clockfield> must be an integer excluding bool` (available permits None).
+- `observations must be a nonempty list or tuple of mappings`;
+  `observations[i] must be a mapping`.
+- `<path>.ts must align with the declared daily grid`;
+  `<path>.close_ts must equal ts plus one day`;
+  `<path>.available_ts must be at or after close_ts`.
+- `<path>.<pricefield> must be a finite positive int or float excluding bool`;
+  `<path>.volume must be a finite nonnegative int or float excluding bool`;
+  `<path> must have consistent OHLC bounds`.
+- `<path>.<textfield> must be a nonempty UTF-8 string without NUL`.
+- `<path>.provenance.kind must be controlled_fixture, researcher_attested, or unknown`;
+  `<path>.provenance must match the declared kind and availability`.
+- `<path>.ts duplicates an earlier observation`;
+  `observations must be strictly chronological`.
+
+**Tests:** hardcoded independent complete canonical bytes and known digest; insertion
+order/repeat determinism; int/float/-0.0/nearby float identity; changed payload/clocks/
+source/revision/provenance/reference identities; frozen nested records and deep caller
+mutation isolation; duplicates/conflicting revisions/order; exact fields/nulls/types/
+bool/NaN/inf/grid/OHLC; provenance/delays/claims without eligibility flags; UTF-8,
+nonascii/surrogate/NUL; competing-invalid precedence and one exact redacted ERROR.
+Arithmetic-built valid ints exceeding 4300 decimal digits must succeed in anchor,
+clocks and OHLCV without coercion/runtime settings, including negative huge clocks.
+Meaningful public factory coverage of private helpers; no redundant existing matrices.
+
+**Acceptance from root, existing venv:** `python -m ruff check .`;
+`python -m mypy --strict backend/src`; `python -m pytest backend/tests -q`;
+`git diff --check`; `git status --short`. One completed full suite by doer and fresh
+independent reviewer; repeats only justified by corrections/new failures. Preserve
+complete failures/output, maximum five loops. One terminal implementation commit:
+`feat(engine): preserve immutable research input evidence (Phase 18.2h)`.
+Doer never edits STATE or self-accepts. Independent acceptance and separate STATE
+commit precede coordinator-authorized PR/checks/merge verification and later readiness.
+Readiness changed documentation only; Python suites not run under WORKFLOW §5.
+Remaining 18.2 NOT_STARTED, 18.3/18.4 NOT_STARTED, Phase18 IN_PROGRESS,
+next_task null, last_completed_task18.2g.1, human_transition_required false.
 
 ## 3. Important Limitations
 
