@@ -12,14 +12,14 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
-current_task_status: NOT_STARTED
+current_task: 18.2g
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2f
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
-human_transition_required: true
+human_transition_required: false
 ```
 
 ### Phase status
@@ -72,13 +72,11 @@ work.
 
 ### Current task
 
-**18.2f — Minimal Stage 1 research runtime probe** — COMPLETE after
-independent documentation acceptance and exact scratch replay. Remaining
-**18.2 — Enforce the approved stage windows** remains NOT_STARTED as a whole;
-runtime eligibility is unverified. next_task is null. Explicit post-probe
-human approval under WORKFLOW §2 is required before Stage 2 implementation.
-The observed new positions_open calls and future research-only interface are
-recommendations awaiting that approval; Phase 18 remains IN_PROGRESS.
+**18.2g — Research-only fresh BuyHold adapter** — READY after independent
+bounded readiness and recorded explicit post-probe human approval below.
+18.2f remains COMPLETE. Whole 18.2 remains incomplete, runtime eligibility
+unverified; next_task null, Phase 18 IN_PROGRESS. Only the new adapter and
+mirrored test are authorized; later integration and guarantees retain gates.
 
 ### Phase 17 tasks
 
@@ -102,6 +100,7 @@ recommendations awaiting that approval; Phase 18 remains IN_PROGRESS.
 - [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
 - [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
 - [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
+- [ ] **18.2g — Research-only fresh BuyHold adapter** — READY. Explicit post-probe approval recorded below; supplied-clock/runtime containment only, implementation and acceptance pending.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -123,6 +122,179 @@ recommendations awaiting that approval; Phase 18 remains IN_PROGRESS.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2g readiness contract and post-probe approval
+
+Independent readiness opens only **18.2g — Research-only fresh BuyHold adapter**.
+Rule identity is `phase18-temporal-v1`; supplemental corrected plan is
+`/tmp/phase18g-plan.md`. This durable contract stands independently.
+
+**Human approval (2026-10-03):** after the accepted 18.2f probe and exact
+bounded Stage 2 proposal were presented, the user replied directly:
+"make trustworthy decisions and continue until this phase is done".
+The coordinator and independent readiness reviewer record this as explicit
+post-probe WORKFLOW §2 approval of the observed calls
+`engine.cache.positions_open()` and
+`engine.cache.positions_open(instrument_id=InstrumentId.from_str('BTCUSDT.BINANCE'))`,
+and the bounded research-only BuyHold implementation below. It clears the
+current human-transition gate. It approves no unseen future probe, unfamiliar
+API, new dependency, automatic phase crossing or completed implementation.
+Earlier 18.2f readiness/completion evidence remains historical and unchanged.
+
+**Scope/interface:** create only `backend/src/quant/engine/research_runner.py`
+and `backend/tests/engine/test_research_runner.py`. Doer never edits STATE.
+No existing runner, BuyHold, helper, export, orchestrator, transport, storage,
+API/CLI/worker/frontend/protected/dependency edits. Exact keyword-only public
+signature, no defaults:
+
+```text
+run_research_buy_hold(*, active: ResearchInterval,
+    warmup: ResearchInterval | None, required_warmup_observations: int,
+    timeframe: str, calendar: str, anchor_ts: int,
+    clocks: tuple[BarClock, ...], rows: Sequence[Mapping[str, object]],
+    starting_balance_usdt: float, trade_size: str, deploy_pct: str,
+    maker_fee: str, taker_fee: str) -> BacktestResult
+```
+
+Absolute imports of accepted interval/clock/coverage helper, BuyHold and existing
+BacktestResult. Only BTCUSDT.BINANCE CASH NETTING, timeframe exactly `1d`,
+calendar exactly `continuous_utc_fixed`, caller-supplied anchor. Unsupported
+capabilities reject, no symbol/strategy inference or numeric defaults.
+
+**Pre-engine admission:** validate all inputs before constructing BacktestEngine.
+Recheck directly constructed interval/clock integer fields excluding bool.
+Active start<end aligned to explicit daily grid. Required warmup count is
+nonbool integer >=0; absent warmup requires zero; present warmup requires
+positive count, valid aligned earlier [start,end), end<=active.start and complete
+coverage at least that count. No inferred history; BuyHold has no indicator or
+fitted state. A supplied gap is permitted without claiming 18.3 enforcement.
+
+Join rows to clocks by unique row `ts` = clock `open_ts`, independently of
+sequence order; reject duplicate keys and unequal keysets. Structural checks
+on every row/clock: integer keys/clocks, grid alignment, close=open+86400000,
+explicit available=close. Detached admitted snapshots sorted by unique open;
+no caller mutation, coercion, deduplication or declaration repair. Select only
+closes in active or explicitly declared warmup. Excluded earlier/sentinel/later
+rows never reach engine; their OHLCV is ignored. Exact chronological admitted
+active and warmup batches go to accepted validate_bar_coverage with explicit
+`ts`, `close_ts`, `available_ts`; propagate helper errors/logs unchanged.
+
+Admitted OHLCV must be finite int/float excluding bool, prices>0, volume>=0,
+high>=max(open,close), low<=min(open,close), high>=low. Reject strings/Decimal
+source prices. Reject prices not exactly representable at 2 decimal places and
+volume not exactly representable at 6, checking decimal value via str(value);
+trailing zeroes are harmless. Formatting serializes accepted precision only,
+never rounds source values. Earliest admitted instrument open and all admitted
+bar closes multiplied by 1000000 must fit [0,2**64-1] before engine creation;
+pure accepted helpers retain signed/unbounded integer support. Cash is finite
+positive float excluding bool and exactly whole USDT, an explicit capability
+restriction matching copied Money construction, no rounding. Decimal-string
+size/deploy/fees must be finite: size>0 exactly representable at 6 places,
+deploy in [0,1], fees>=0; lexical errors become field-specific ValueError.
+Adapter admission errors log once plus raise with precise field messages, no
+payload dump; no wrapper logging for accepted helper errors.
+
+**Runtime:** copy probed/existing builders and Bar API exactly, precision 2/6;
+instrument timestamps earliest admitted open, bar ts_event=ts_init=verified
+close*1000000. Only admitted Bars reach add_data. Existing engine.run() with
+no boundary/streaming kwargs. Finally dispose across construction aftermath,
+run and reports. Private _ResearchBuyHold retains inherited active action order.
+At on_start and immediately before first active inherited on_bar, require empty
+all-engine and instrument positions_open plus instrument orders_open/inflight
+using exact proven expressions; query failure is unknown state and aborts.
+Warmup returns without inherited trading/scoring. Unexpected callback membership
+rejects; active inherited callback only [start,end). Check actual fill ts_event
+inside active before inherited fill/snapshot replacement; no liquidation,
+cancellation, new callback/query/accessor or engine lifecycle API.
+
+Retain first callback Exception in private Python callback_error, re-raise;
+later overridden callbacks must fail before action if retained. Wrap checks and
+inherited on_start/on_bar/on_order_filled to retain failures, excluding
+BaseException. Immediately after engine.run(), re-raise retained failure before
+extraction even if engine dispatch logs/swallows. No successful fallback.
+Installed actor.pyx handle_bar and strategy.pyx handle_event log then re-raise;
+this inspection does not substitute for live public-run failure acceptance.
+This guard uses Python state only and requires no new third-party API probe.
+If implementation needs an unprobed call or documented runtime call fails,
+STOP and report verbatim rather than adapt or assume this approval covers it.
+
+**Result:** existing BacktestResult only, active snapshots/returns. Start returns
+from exact configured cash at active.start, including first eligible close's
+actual fill/fee effect. Ending balance is final scored snapshot. Independently
+value latest account row per currency USDT cash+BTC*last eligible close; absent
+required valuation rows fail loudly, no snapshot substitution. Preserve existing
+raw fills/positions report patterns/timestamps, reset_index for IDs, last USDT
+account_report shape. Disclose genuinely open residual positions, absent closure,
+no fabricated liquidation or carry to next fresh call. Proven terminal queries
+must reject nonzero open/inflight orders as unsupported; ending positions need
+not be flat. No pending-order stop assumption or new result fields.
+
+**Meaningful tests:** deterministic actual Nautilus engines/in-memory fixtures,
+no data/DB/network. Shifted-anchor daily stage includes first prior-open bar,
+start-inclusive/end-exclusive, no warmup and explicit complete/count warmup.
+Spy actual add_data to assert sentinel/later never admitted. Different first/final
+prices verify actual fill at active.start, first fee return, latest account cash
+plus base valuation at last eligible price, genuine residual position and fresh
+repeat calls. Radically vary excluded OHLC and warmup prices; independently
+shuffle clock/row order; assert unchanged admitted results/event clocks, ignore
+invalid excluded prices, inputs deep unchanged. Compare ordinary actual
+run_backtest daily control clocks; existing tests untouched. Representative
+pre-engine fail-if-called rejection cases cover missing/incomplete coverage,
+join/duplicates, direct bool/invalid records, delay, malformed OHLCV, precision,
+negative/overwide engine timestamps, unsupported tokens, fractional/nonfinite
+cash and malformed/nonfinite size/deploy/fees; helper owns exhaustive matrices.
+
+Inject nonempty/query failures during real on_start and first-active dispatch,
+including warmup, and invalid fill time during actual fill dispatch. Assert
+public function raises original failure, no submission after failed clean check,
+no successful BacktestResult and disposal. Test terminal orders fail. A narrow
+engine wrapper deliberately swallowing dispatched callback exception must still
+fail via retained Python guard before extraction. These are mandatory acceptance
+checks, not an already-observed successful propagation claim. No mock-only
+success certification, hidden retries, weakened assertions or unused scaffolding.
+
+**Implementation acceptance:** activate existing Linux venv, repository root:
+
+```bash
+python -m pytest backend/tests -q
+python -m ruff check .
+python -m mypy --strict backend/src
+git diff --check
+git status --short
+```
+
+Preserve complete outputs/failures/correction history, maximum five loops;
+established command-only local TestClient socket permission, unchanged
+options/plugins/proxy/TLS. No frontend changes/checks. One terminal two-file
+implementation commit: `feat(engine): add bounded research buy-hold adapter (Phase 18.2g)`.
+Fresh independent reviewer reruns every exact command before separate STATE
+completion commit. Coordinator verifies authorized PR merge before fresh later
+planning. This readiness changes only STATE, runs no implementation/suites,
+installs/workers/fetch/push/merge/amend. No Python files changed;
+pytest/ruff/mypy were not rerun under WORKFLOW §5.
+
+**Readiness evidence:** AGENTS/STATE/WORKFLOW/REVIEWER/INCIDENTS, relevant
+PROJECT §§1/2/4.1–4.3/4.5/5/6.0/Phases16–18/completion/AI rules, full approved
+spec/probe and Nautilus/project/backend rules reviewed; actual runner/BuyHold
+and installed callback error paths inspected. Clean branch
+`phase18/18.2g-research-buy-hold`, baseline
+`8b519e04fe676ef2be6d58bb047a92990177fd5e` (merged PR9). Independent live
+`git ls-remote --heads origin main` returned that exact SHA, exit 0, inherited
+proxy/TLS and command-only network permission preserved. Accepted probe
+78250cd and completion 8b8c1c2 are ancestors (both exit 0). Runtime skill/network
+policy inspected without credential values/configuration changes. Whole diff,
+status and staged whitespace/scope checks precede separate STATE-only terminal
+commit. Deviations from scratch draft: explicit no-rounding source precision,
+engine UInt64 timestamp support and retained callback failure safeguard/tests,
+all within delegated bounded scope; Linux commands replace historical Windows.
+
+Only 18.2g is READY, next_task null, last_completed_task 18.2f,
+human_transition_required false. Whole 18.2 remains incomplete, Phase 18
+IN_PROGRESS, 18.3/18.4 NOT_STARTED. Supplied clock self-consistency/containment
+cannot certify actual source availability/revision history, frozen selection,
+dependency/gap eligibility, OOS contamination, realistic fills, provenance or
+walk-forward guarantees. Source evidence transport/binding and caller integration
+require later narrow contracts; none opened. No whole-phase claim; never Phase 29.
 
 ### 18.2f readiness contract and evidence
 
