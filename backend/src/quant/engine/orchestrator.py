@@ -24,6 +24,7 @@ import pandas as pd  # type: ignore[import-untyped]  # stubs not in dev deps; pa
 from quant.data.fingerprint import fingerprint_bars
 from quant.data.read import read_bars_json
 from quant.engine.runner import run_backtest
+from quant.engine.temporal import validate_research_declaration
 from quant.extract.artifacts import write_artifacts
 from quant.extract.equity import extract_equity
 from quant.extract.metrics import TradeSummary, extract_metrics
@@ -162,6 +163,15 @@ def execute_run(
     equity extraction; missing or insufficient bars degrade to ``benchmark:
     null`` with a warning, without failing the run.
     """
+    validate_research_declaration({
+        "research_stage": record.research_stage,
+        "in_sample_start_ts": record.in_sample_start_ts,
+        "in_sample_end_ts": record.in_sample_end_ts,
+        "validation_start_ts": record.validation_start_ts,
+        "validation_end_ts": record.validation_end_ts,
+        "oos_start_ts": record.oos_start_ts,
+        "oos_end_ts": record.oos_end_ts,
+    })
     venue_value = record.params.get("venue")
     if venue_value is None:
         venue = _DEFAULT_VENUE
