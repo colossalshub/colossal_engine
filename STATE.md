@@ -12,8 +12,8 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
-current_task_status: NOT_STARTED
+current_task: 18.2d
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2c
 last_completed_phase: 17
@@ -72,15 +72,12 @@ work.
 
 ### Current task
 
-**18.2 — Remaining stage-window enforcement** — NOT_STARTED pending fresh
-narrow planning and readiness after task 18.2c publication/merge. Independent
-acceptance completed raw RunCreate declaration admission only; ordinary
-null-stage and historical response behavior remain preserved. Accepted
-18.2a/18.2b prerequisites are merged on main; 18.2b remains unwired. CLI,
-runtime eligibility, actual coverage/availability, warmup, boundaries, selection
-and provenance remain unverified. No later task is READY; next_task is null.
-Phase 18 remains IN_PROGRESS with serial roles and separate reviewer state
-commits; no automatic phase crossing.
+**18.2d — CLI research declaration admission** — READY under the independent
+bounded readiness contract below. Accepted 18.2c is merged on main. Only CLI
+admission and its direct tests are opened; runtime eligibility, actual coverage,
+availability, warmup, boundaries, selection and provenance remain unverified.
+Whole 18.2 remains incomplete; next_task is null. Phase 18 stays IN_PROGRESS
+with serial roles, separate reviewer state commits and no phase crossing.
 
 ### Phase 17 tasks
 
@@ -101,6 +98,7 @@ commits; no automatic phase crossing.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
 - [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
 - [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
+- [ ] **18.2d — CLI research declaration admission** — READY. Exact bounded contract below; no runtime eligibility claim.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -122,6 +120,67 @@ commits; no automatic phase crossing.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2d readiness contract and evidence
+
+Independent readiness reviewer accepts the following exact bounded contract.
+The supplemental plan is `/tmp/phase18d-plan.md`; the durable contract here
+stands independently of that temporary artifact.
+
+Goal: EN-01 admission parity with accepted raw declaration factory, ST-01/TW-03/EN-02/SC-03/04. Only scripts/run_backtest.py and backend/tests/test_run_backtest.py change. No STATE/protected/dependency/storage/API/engine/helper changes. No runtime eligibility claim.
+
+Exact production change:
+
+- Add absolute import quant.engine.temporal.validate_research_declaration.
+- In main(), immediately after the existing successful execution timestamp parse try/except and before symbol/name/path resolution, UUID, git capture, schema creation, RunRecord, execution or persistence, add a separate try: validate_research_declaration(vars(args)); except ValueError as exc: print(exc, file=sys.stderr) with existing noqa T201 convention; sys.exit(2). Discard factory return. Do not modify args, infer active execution bounds, normalize/reorder ranges or catch broad exceptions. vars(args) supplies the exact parsed Namespace mapping; argparse's established integer lexical conversion remains intact. Missing stage is None and factory returns early without inspecting endpoints.
+- Change only the research-stage help text from misleading 'metadata only' to 'declaration checks only; runtime eligibility unverified'. All flags, choices, defaults, parser types and inclusive execution timestamp help remain unchanged.
+
+Error behavior: argparse retains stage/lexical-int rejection and exit 2. Existing timeframe validation remains before execution timestamp validation, which remains before declaration validation; if these pass, helper's existing first-failure order/message is authoritative. Factory emits exactly one quant.engine.temporal ERROR; CLI writes that same message plus newline to stderr, exit 2, no CLI logging/rethrow/wrapper. No success run/artifact/metrics stdout on rejected declarations. No UUID/git/schema/execute/insert side effect. Configure_logging and config.repo_root already occur earlier and stay unchanged. Valid and ordinary paths otherwise retain existing persistence/output.
+
+Focused meaningful CLI main() tests, using established importlib fixture, argv monkeypatch and tmp_path SQLite, real factory and argparse:
+
+- Representative missing required IS/OOS, partial inactive range, equal/reversed range, chronological overlap, and one competing-invalid declaration proving exact helper precedence. Assert exact SystemExit(2), stderr factory message, one matching temporal ERROR, no success stdout, no created runs DB/artifact path; replace UUID generation, git capture, init_runs_schema, execute_run and insert_run with fail-if-called spies to prove early rejection. Keep configure_logging disabled for caplog.
+- Valid exploration without formal IS, validation with IS/validation, OOS with and without validation, touching boundaries; verify actual main -> RunRecord -> isolated SQLite persistence with execute_run stub inspecting exact top-level metadata outside params and execution start/end preserved (not forcibly equal to active range). Existing metadata persistence test remains unchanged.
+- Ordinary absent-stage partial/reversed/overlapping integer ranges continue through main and persist unchanged, without temporal error. Signed/zero/large integer fixture demonstrates no admission bounds added; choose SQLite-representable ints for persistence, since arbitrary huge ints are factory-only and SQLite limits are unchanged.
+- Parser's existing three invalid-metadata tests stay unchanged; add one lexical fractional endpoint case if needed to show argparse rejects before admission. Add invalid-timeframe/invalid-execution-timestamp plus invalid-research combinations to verify established error priority and no database side effects. Avoid exhaustive endpoint type/stage/overlap matrices already owned by 18.2a, fabricated raw Python values impossible in argv, redundant mocks of factory, test weakening or new dependencies.
+
+Probe: production adds only stdlib Namespace mapping access and an accepted internal pure helper call. No new third-party API calls or Nautilus behavior; existing test SQLite/pytest patterns copied. WORKFLOW §2 third-party Stage1 probe does not apply here. Future runner/extraction changes using new Nautilus APIs require Stage1 import/signature/docstring/live probes, verbatim report, STOP and human approval before implementation.
+
+Acceptance: activate existing Linux venv, from repository root run exactly:
+
+```bash
+python -m pytest backend/tests -q
+python -m ruff check .
+python -m mypy --strict backend/src
+git diff --check
+git status --short
+```
+
+Preserve complete failures/correction history under five-loop limit. Full pytest requires established command-only network permission for local TestClient sockets, unchanged proxy/TLS/options/plugins. No frontend files change, so frontend checks not required. One terminal implementation commit: feat(cli): validate research declarations before execution (Phase 18.2d). Doer never edits STATE or publishes/merges. Fresh independent reviewer reruns every command, accepts only CLI declaration admission, commits STATE separately. Coordinator publishes task PR after acceptance and verifies merge before fresh next-task planning. User has authorized task PRs/auto-merge; repository setting availability is a separate publication constraint.
+
+**Independent readiness evidence:** reviewed full AGENTS, STATE, WORKFLOW,
+REVIEWER, INCIDENTS, confirmed phase-18 spec, relevant PROJECT sections and
+applicable rules; inspected actual CLI/tests, accepted temporal helper/tests,
+and relevant persistence/read/orchestrator/runner paths. Clean branch
+`phase18/18.2d-cli-declarations` at
+`812c059f320a395344005ffc4b5671c2b58b4f38` agrees with recorded accepted 18.2c.
+Independent live `git ls-remote --heads origin main` returned exactly
+`812c059f320a395344005ffc4b5671c2b58b4f38`, exit 0, with command-only network
+grant and preserved proxy/TLS. Accepted task commits 73f81f0, b9a25ee and
+9049d6a are ancestors. This verifies present merged prerequisites/connectivity,
+not future freshness or publication. No fetch, dependency install, implementation,
+worker, push, merge or amend occurs in this readiness review.
+
+Only STATE changes in this separate terminal readiness commit. No Python files
+changed; pytest/ruff/mypy were not rerun under WORKFLOW section 5. Whole diff,
+status, staged whitespace/scope and exact baseline checks precede commit.
+Deviation: existing Linux Bash venv and command-only local socket grant replace
+historical Windows examples, preserving exact acceptance commands/options/plugins.
+No semantic or production-scope deviation was required. Last completed task
+remains 18.2c; current_task is only 18.2d READY and next_task null. Prior evidence
+is preserved. 18.3/18.4 stay NOT_STARTED; whole 18.2 and Phase 18 remain incomplete.
+No runtime eligibility, availability, coverage, warmup, gap, freezing, provenance,
+OOS contamination or walk-forward guarantee is accepted; never begin Phase 29.
 
 ### 18.2c readiness contract and evidence
 
