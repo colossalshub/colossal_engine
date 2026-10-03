@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2e
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2d
+last_completed_task: 18.2e
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,13 +72,12 @@ work.
 
 ### Current task
 
-**18.2e — Runtime raw declaration recheck** — READY under the independently
-reviewed bounded contract below. Accepted 18.2d is merged on main. Only the
-execution-entry declaration recheck is opened; runtime eligibility, actual
-coverage, availability, warmup, boundaries, selection and provenance remain
-unverified. Whole 18.2 remains incomplete; next_task is null. Phase 18 stays
-IN_PROGRESS with serial roles, separate reviewer state commits and no phase
-crossing.
+**18.2e — Runtime raw declaration recheck** — COMPLETE after fresh independent
+acceptance. Direct/queued execution now rechecks raw declarations at entry.
+Remaining **18.2 — Enforce the approved stage windows** is NOT_STARTED as a
+whole: runtime eligibility, actual coverage, availability, warmup, boundaries,
+selection and provenance remain unverified. next_task is null. Phase 18 stays
+IN_PROGRESS; no following task is READY and no phase crossing is opened.
 
 ### Phase 17 tasks
 
@@ -100,7 +99,7 @@ crossing.
 - [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
 - [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
 - [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
-- [ ] **18.2e — Runtime raw declaration recheck** — READY. Exact seven-field raw factory call at execute_run entry only; no full runtime eligibility claim.
+- [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -246,6 +245,89 @@ null. All prior evidence remains unchanged. Whole 18.2 stays incomplete,
 availability, causal warmup, boundary-state, gaps, selection freezing,
 provenance, OOS contamination or walk-forward guarantee is accepted. A runtime
 declaration check is not full runtime eligibility. Never begin Phase 29.
+
+### 18.2e completion evidence
+
+```yaml
+task_id: 18.2e
+status: COMPLETE
+reviewer_decision: accepted_runtime_raw_declaration_recheck_only
+reviewer_date: 2026-10-03
+files_changed:
+  - backend/src/quant/engine/orchestrator.py
+  - backend/tests/engine/test_orchestrator.py
+tests_added_or_updated:
+  - 20 focused cases using the real declaration factory and existing fixtures
+  - nine raw rejection cases with exact error and single temporal ERROR before six guarded actions
+  - six valid/null-stage cases preserve existing venue/timeframe/universe failure priority
+  - five actual DuckDB/Nautilus/artifact paths preserve metadata, params and execution clocks
+acceptance_commands:
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - python -m pytest backend/tests -q
+  - git diff --check
+  - git status --short
+acceptance_output:
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 32 source files; exit 0"
+  pytest: "899 passed, 91 warnings in 36.27s; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: c1eefaec202c0c5a7c0162dd786b4fc8ff14df99
+readiness_commit_sha: 054186409fca12aa64d6f26579ea1eeefb9019e3
+readiness_baseline_sha: aad2607fbb21c3de4c77e0c3b993dbe4e3764aeb
+next_task: 18.2
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux Bash venv activation and command-only local TestClient socket network grant replace Windows examples; exact options/plugins/proxy/TLS unchanged."
+notes: |
+  Serial READY proceeded through doer implementation (IN_PROGRESS), committed
+  handoff (ACCEPTANCE_PENDING), and fresh independent acceptance (COMPLETE).
+  Doer did not edit STATE or self-accept. Reviewer read full AGENTS/STATE,
+  WORKFLOW/REVIEWER/INCIDENTS/spec, required PROJECT/rules and Nautilus guide,
+  corrected /tmp/phase18e-plan.md and /tmp/phase18e-doer-report.md, actual
+  complete two-file diff, factory, RunRecord and established engine clocks.
+  Exact seven-field dict reads raw top-level values immediately after docstring
+  and before params/venue; return discarded, no mutation/coercion/normalization,
+  fallback, catch/rethrow or extra logging. Invalid declarations intentionally
+  outrank venue/timeframe/universe; same factory ValueError propagates unchanged.
+  Rejection guards cover bars, fingerprint, engine, equity, metrics and artifacts;
+  no artifact directory/database appears and record remains unchanged.
+  Actual integrations retain all five artifacts and independently enumerated
+  inclusive execution price-open and equity-close sequences. Null-stage partial,
+  reversed and overlapping metadata executes unchanged. Research bounds differ
+  from execution bounds, expressly demonstrating absence of containment checks.
+  Prior test assertions are unchanged; production adds exactly one absolute
+  import and accepted raw call. No helper/runner/worker/API/CLI/storage/frontend,
+  dependency or protected-file edits occurred. Existing-pattern/stdlib probe
+  exclusion under REVIEWER section 4 applies; no new third-party signature.
+  Every exact whole-tree command independently passed on first invocation.
+  Raw logs remain /tmp/phase18e-review-ruff.log, -mypy.log, -pytest.log,
+  -diff-check.log and -status-before.log (same phase18e-review prefix).
+  Full pytest used command-only network permission for local TestClient sockets,
+  inherited proxy/TLS/options/plugins preserved. Existing Starlette httpx and
+  Pandas Timestamp.utcnow categories account for 91 warnings, including ten
+  added warnings from five actual engine integrations. Doer likewise reported
+  899 passed, 91 warnings on first invocation (40.42s); logs were inspected.
+  No failed acceptance, retry, hidden fix, implementation/test edits, installs,
+  workers, amend, push or merge by reviewer. Cloud runtime skill/policy inspected
+  without secret values or configuration changes. No frontend checks because
+  no frontend change. Branch phase18/18.2e-runtime-declarations, exact task and
+  readiness parent, clean checkout and merged PR7 baseline ancestor verified.
+  This is local acceptance; coordinator handles authorized PR publication and
+  merge after GitHub checks, then independently verifies merged remote freshness.
+  Inherited helper docstring still says no caller wired; actual callers were
+  inspected and that already-recorded stale comment is outside two-file scope.
+  Runtime declarations certify no actual eligibility, execution containment,
+  availability/coverage, causal warmup, boundary state, gaps, frozen selection,
+  provenance, OOS contamination or walk-forward guarantee. Whole 18.2 remains
+  incomplete and current_task 18.2 NOT_STARTED identifies remaining planning
+  only; next_task null, 18.3/18.4 NOT_STARTED, Phase 18 IN_PROGRESS. No other
+  READY task, future split or phase crossing is opened; never begin Phase 29.
+  All prior readiness and completion evidence is preserved unchanged.
+```
 
 ### 18.2d readiness contract and evidence
 
