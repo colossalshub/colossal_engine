@@ -197,6 +197,27 @@ def test_real_boundary_fee_residual_and_fresh_repeat(
         assert not watch.strategy.callback_error
 
 
+def test_admitted_decimal_volume_reaches_actual_engine_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    watches = _watch(monkeypatch)
+    inputs = _inputs()
+    inputs["rows"][1]["volume"] = 1000000000000.0001
+    before = copy.deepcopy(inputs)
+    result = module.run_research_buy_hold(**inputs)
+    _assert_result(result)
+    (watch,) = watches
+    assert str(watch.bars[0].volume) == "1000000000000.000100"
+    assert Decimal(str(watch.bars[0].volume)) == Decimal(
+        str(inputs["rows"][1]["volume"])
+    )
+    for bar, row in zip(watch.bars, inputs["rows"][1:3], strict=True):
+        for field in ("open", "high", "low", "close", "volume"):
+            assert Decimal(str(getattr(bar, field))) == Decimal(str(row[field]))
+    assert inputs == before
+    assert watch.disposed
+
+
 def test_ordinary_daily_control_unchanged() -> None:
     inputs = _inputs()
     rows = inputs["rows"][1:3]

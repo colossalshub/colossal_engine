@@ -340,7 +340,7 @@ def run_research_buy_hold(
         name="BINANCE",
         oms_type="NETTING",
         account_type="CASH",
-        starting_balances=[f"{starting_balance_usdt:.0f} USDT"],
+        starting_balances=[f"{Decimal(str(starting_balance_usdt)):.0f} USDT"],
     )
     engine = BacktestEngine(config=BacktestEngineConfig())
     try:
@@ -372,11 +372,11 @@ def run_research_buy_hold(
         bars = [
             Bar(
                 bar_type=BarType.from_str(_BAR_TYPE),
-                open=Price.from_str(f"{row['open']:.2f}"),
-                high=Price.from_str(f"{row['high']:.2f}"),
-                low=Price.from_str(f"{row['low']:.2f}"),
-                close=Price.from_str(f"{row['close']:.2f}"),
-                volume=Quantity.from_str(f"{row['volume']:.6f}"),
+                open=Price.from_str(f"{Decimal(str(row['open'])):.2f}"),
+                high=Price.from_str(f"{Decimal(str(row['high'])):.2f}"),
+                low=Price.from_str(f"{Decimal(str(row['low'])):.2f}"),
+                close=Price.from_str(f"{Decimal(str(row['close'])):.2f}"),
+                volume=Quantity.from_str(f"{Decimal(str(row['volume'])):.6f}"),
                 ts_event=clock.close_ts * _NS_PER_MS,
                 ts_init=clock.close_ts * _NS_PER_MS,
             )
