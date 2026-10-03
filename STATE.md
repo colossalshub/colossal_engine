@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2d
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2c
+last_completed_task: 18.2d
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,12 +72,12 @@ work.
 
 ### Current task
 
-**18.2d — CLI research declaration admission** — READY under the independent
-bounded readiness contract below. Accepted 18.2c is merged on main. Only CLI
-admission and its direct tests are opened; runtime eligibility, actual coverage,
-availability, warmup, boundaries, selection and provenance remain unverified.
-Whole 18.2 remains incomplete; next_task is null. Phase 18 stays IN_PROGRESS
-with serial roles, separate reviewer state commits and no phase crossing.
+**18.2 — Remaining stage-window enforcement** — NOT_STARTED pending fresh
+narrow planning and readiness. 18.2d CLI declaration admission is independently
+accepted below. Runtime eligibility, actual coverage, availability, warmup,
+boundaries, selection and provenance remain unverified. Whole 18.2 remains
+incomplete; next_task is null. Phase 18 stays IN_PROGRESS with serial roles,
+separate reviewer state commits and no phase crossing.
 
 ### Phase 17 tasks
 
@@ -98,7 +98,7 @@ with serial roles, separate reviewer state commits and no phase crossing.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
 - [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
 - [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
-- [ ] **18.2d — CLI research declaration admission** — READY. Exact bounded contract below; no runtime eligibility claim.
+- [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -181,6 +181,83 @@ remains 18.2c; current_task is only 18.2d READY and next_task null. Prior eviden
 is preserved. 18.3/18.4 stay NOT_STARTED; whole 18.2 and Phase 18 remain incomplete.
 No runtime eligibility, availability, coverage, warmup, gap, freezing, provenance,
 OOS contamination or walk-forward guarantee is accepted; never begin Phase 29.
+
+### 18.2d completion evidence
+
+```yaml
+task_id: 18.2d
+status: COMPLETE
+reviewer_decision: accepted_cli_declaration_admission_only
+reviewer_date: 2026-10-03
+files_changed:
+  - scripts/run_backtest.py
+  - backend/tests/test_run_backtest.py
+tests_added_or_updated:
+  - 19 focused CLI main admission, persistence, priority and help cases
+  - exact exit 2, stderr and single temporal ERROR before UUID/git/schema/execute/insert
+  - valid exploration/validation/OOS and touching signed/zero/large integer ranges
+  - ordinary partial/reversed/overlapping ranges and unchanged execution timestamps
+  - actual isolated SQLite top-level metadata, exact params and success output
+acceptance_commands:
+  - python -m pytest backend/tests -q
+  - python -m ruff check .
+  - python -m mypy --strict backend/src
+  - git diff --check
+  - git status --short
+acceptance_output:
+  pytest: "879 passed, 81 warnings in 40.46s; exit 0"
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 32 source files; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state update; exit 0"
+git_commit_sha: fc0d2e2b6685e3c5627210042bde429583b683ba
+readiness_commit_sha: 911c2fd6d312eb01581412f65ccfbec65e5c6b47
+readiness_baseline_sha: 812c059f320a395344005ffc4b5671c2b58b4f38
+next_task: 18.2
+next_task_status: NOT_STARTED
+human_decisions: confirmed
+human_transition_required: false
+deviations:
+  - "Existing Linux Bash venv activation and command-only TestClient socket network grant replace historical Windows examples; options/plugins/proxy/TLS unchanged."
+notes: |
+  Serial READY proceeded through doer implementation (IN_PROGRESS), committed
+  handoff (ACCEPTANCE_PENDING), and fresh independent acceptance (COMPLETE).
+  Doer did not edit STATE or self-accept. Reviewer read full AGENTS/STATE,
+  WORKFLOW/REVIEWER/INCIDENTS/spec, relevant PROJECT/rules, exact supplemental
+  /tmp/phase18d-plan.md and /tmp/phase18d-doer-report.md and actual two-file
+  diff. Previous test assertions are unchanged. Exact accepted helper call
+  validates vars(args) after execution timestamp parsing and before paths,
+  UUID/git/schema/RunRecord/runtime/persistence. Return is discarded, only
+  ValueError is caught; no mutation, extra log, normalization or active-bound
+  inference. Existing timeframe/timestamp/parser priorities remain intact.
+  Real factory/argparse tests guard rejected run side effects and ordinary
+  null-stage persistence; admitted execution times remain independent of ranges.
+  All exact whole-tree commands passed on first independent invocation.
+  Full outputs remain /tmp/phase18d-review-pytest.log, -ruff.log, -mypy.log,
+  -diff-check.log and -status-before.log (same phase18d-review prefix).
+  Full pytest used command-only local TestClient socket network permission,
+  preserving inherited proxy/TLS/options/plugins. Existing warnings concern
+  Starlette httpx and Pandas Timestamp.utcnow. No reviewer implementation/test
+  edits, retries, installs, workers, amend, push or merge. Doer initial Ruff
+  E501 (99 > 88) is preserved in /tmp/phase18d-doer-ruff-1.log and inspected;
+  help literal wrapping alone corrected it in two bounded cosmetic cycles.
+  Doer startup reads first used incorrect cwd then succeeded before edits;
+  no hidden behavioral correction or test failure is reported or observed.
+  Verified exact task/readiness parent, branch phase18/18.2d-cli-declarations,
+  clean checkout, two implementation paths and main baseline ancestor.
+  This is local acceptance, not remote publication/merge or future freshness
+  evidence. Coordinator handles authorized task PR publication and merge.
+  CLI admission certifies no runtime eligibility, actual source availability
+  or coverage, execution containment, causal warmup, gaps, frozen selection,
+  provenance, OOS contamination or walk-forward guarantee. Earlier logging and
+  config root lookup remain; no claim of zero startup activity is made.
+  Accepted helper's stale unwired-caller docstring is inherited and outside
+  this two-file task; actual API/CLI callers were inspected, not inferred from it.
+  Whole 18.2 remains incomplete; current_task 18.2 NOT_STARTED identifies
+  remaining planning only, next_task null, 18.3/18.4 NOT_STARTED and Phase 18
+  IN_PROGRESS. No future READY split or phase crossing is opened; never begin
+  Phase 29. All prior readiness and completion evidence is preserved.
+```
 
 ### 18.2c readiness contract and evidence
 
