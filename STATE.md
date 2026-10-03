@@ -12,8 +12,8 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2
-current_task_status: NOT_STARTED
+current_task: 18.2f
+current_task_status: READY
 next_task: null
 last_completed_task: 18.2e
 last_completed_phase: 17
@@ -72,12 +72,12 @@ work.
 
 ### Current task
 
-**18.2e — Runtime raw declaration recheck** — COMPLETE after fresh independent
-acceptance. Direct/queued execution now rechecks raw declarations at entry.
-Remaining **18.2 — Enforce the approved stage windows** is NOT_STARTED as a
-whole: runtime eligibility, actual coverage, availability, warmup, boundaries,
-selection and provenance remain unverified. next_task is null. Phase 18 stays
-IN_PROGRESS; no following task is READY and no phase crossing is opened.
+**18.2f — Minimal Stage 1 research runtime probe** — READY for the exact
+bounded documentation/scratch-only contract below. Accepted 18.2e remains
+complete. Remaining **18.2 — Enforce the approved stage windows** remains
+NOT_STARTED as a whole; runtime eligibility is unverified. next_task is null.
+No Stage 2 implementation or later task is approved. After probe acceptance,
+explicit post-probe human approval is required under WORKFLOW §2.
 
 ### Phase 17 tasks
 
@@ -100,6 +100,7 @@ IN_PROGRESS; no following task is READY and no phase crossing is opened.
 - [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
 - [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
 - [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
+- [ ] **18.2f — Minimal Stage 1 research runtime probe** — READY. Documentation and scratch probe only; no runtime eligibility or Stage 2 approval.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -121,6 +122,95 @@ IN_PROGRESS; no following task is READY and no phase crossing is opened.
 - [x] **16.5.6 — Honest unavailable sections** — COMPLETE. Regimes and Robustness stay empty of fabricated analysis. Execution shows assumptions already on the response, not a cost breakdown.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
+
+### 18.2f readiness contract and evidence
+
+Independent readiness accepts only this Stage 1 contract. Baseline clean merged PR8 HEAD 7c8466f8ca3081b134022e9b28dc46c046c74893; remaining 18.2 NOT_STARTED. Only 18.2f is READY. Follow AGENTS/STATE/WORKFLOW, REVIEWER/INCIDENTS, approved phase-18 spec, relevant PROJECT contracts/Phases16–18, backend/project rules and Nautilus guide.
+
+Goal: probe the NEW cache.positions_open call required for explicit clean research-stage state and trace actual bar/order/fill clocks with existing BuyHold construction. No production implementation, dependency changes, real-data writes, network download or eligibility claim. Sole repo deliverable docs/specs/phase-18-runtime-probe.md. Scratch source/logs under /tmp. orders_open/orders_inflight, engine.run(), strategy market/limit orders and reports already have repository patterns; copy them. Do not probe engine.run start/end/streaming or implement EMA/walk-forward behavior.
+
+**Exact bounded probe**
+
+Doer writes standalone /tmp/phase18f-runtime-probe.py. Print Python/Nautilus versions and baseline SHA; import success; inspect.signature and full docstring for actual live engine.cache.positions_open (print signature exception and docstring fallback for Cython). Print exact expressions/kwargs before live calls: positions_open() and positions_open(instrument_id=InstrumentId.from_str('BTCUSDT.BINANCE')). Query fresh engine before run, strategy.on_start and postrun before disposal. Alongside these, copy existing orders_open(instrument_id=...) and orders_inflight(instrument_id=...) to record clean and residual order state. Print return classes, counts, IDs and actual documented state/quantity fields. A query failure is not empty state; print full traceback and STOP new API path without silent substitution. No speculative additional filters.
+
+Copy runner.py's existing engine/venue/CurrencyPair builder exactly: BTCUSDT.BINANCE NETTING CASH, explicit100000USDT, fees0.001, precision2/6. Existing Bar and Money/Price/Quantity APIs copied, not rediscovered. Four in-memory daily fixture bars: T=1735689600000 UTCms, D=86400000; closes T+D,T+2D,T+3D,T+4D, opens one D earlier, ts_event=ts_init=close*1000000, OHLC100/101/99/100, volume1000. Fixture active [T+2D,T+4D), first close warmup, last close end-exclusive sentinel. These numbers are scratch fixture choices, never experiment defaults.
+
+Exactly two cases, fresh engine each, finally dispose:
+
+1. Ordinary BuyHold control, all four bars, existing engine.run(). Scratch tracer subclasses BuyHold and preserves inherited action ordering. Trace monotonically numbered on_start, on_bar before/after, _submit_entry before/after, on_order_filled before/after and on_stop. Print bar/event ts_event/ts_init rawns and ms when present, order IDs where available, equity snapshot before/after. No new self.clock accessor or speculative event callbacks required. Record clean queries and terminal position/order queries. This observes unchanged same-bar fill/equity clocks and terminal residual position.
+2. Scratch gated BuyHold: close<T+2D records warmup without inherited trading/snapshot; T+2D<=close<T+4D calls inherited on_bar; close>=T+4D records excluded sentinel without inherited trading/snapshot. Existing engine.run() still receives all fixture bars deliberately to expose callback gate capability. Record query state at active entry and terminal state, and assert zero warmup/sentinel entry submissions/scored snapshots and clean active-start state before first eligible order. Assert unchanged inherited active fill/snapshot clock. This is a scratch capability demonstration, not an approved runtime fix; sentinel reaching engine may still affect matching/valuation, and must be disclosed.
+
+No third pending-limit case by default: orders queries and terminal market-order state are enough to establish clean-state call design. Only if two cases cannot reveal whether pending orders survive stop AND that behavior is necessary for proposed Stage2 disclosure, add one labeled passive limit case by copying EmaCross.order_factory.limit: quantity1, BUYprice1, post_onlyTrue, last eligible close submission, all lows99; print actual end state. Never cancel/liquidate or change fixture secretly to force outcome.
+
+Dump full fixture, numbered traces, equity_snapshots, existing fills/positions/account report columns/types/index and full records for each case. Preserve original timestamps and guide conversions; absence is printed rather than inferred. Include terminal residual quantity and cash/base values with valuation at last eligible close; do not fabricate liquidation. No portfolio_returns reconstruction necessary. Unsupported findings and assertion failures remain verbatim; no claimed source-availability evidence.
+
+**Execution, durable document and acceptance**
+
+From repository root after existing venv activation:
+
+```bash
+source .venv/bin/activate
+python /tmp/phase18f-runtime-probe.py > /tmp/phase18f-doer-probe.log 2>&1
+```
+
+Record exact exit code; no pipeline hides status. Doer creates durable doc containing complete fenced source and complete raw stdout/stderr verbatim (no truncation), command/version/baseline, all failures/corrections, observed state/event order and exact working positions_open calls. /tmp references are supplemental. Chat handoff is compact: paths, exit code, key findings, failures; do not print entire log into chat. No repo Python test added because sole repo artifact is documentation.
+
+Document proposes only a concrete bounded future research-only interface: explicit active range + warmup declaration + verified clock rows; pre-engine filtering feeds permitted warmup/active rows and never an end-exclusive sentinel; scratch demonstrates strategy warmup gate suppressing submissions/scoring; new engine queries proven positions_open plus existing orders queries enforce fresh clean state; residual positions disclosed at last eligible price. Ordinary runner path and timestamps preserved. Exact Stage2 signatures/calls are recommendations, derived from observations; no approval invented. Source availability transport/policy remains a separate contract task. No numeric defaults or global guarantees.
+
+Independent reviewer extracts the exact fenced source to /tmp/phase18f-review-runtime-probe.py and replays from root:
+
+```bash
+source .venv/bin/activate
+python /tmp/phase18f-review-runtime-probe.py > /tmp/phase18f-review-probe.log 2>&1
+git diff --check
+git status --short
+```
+
+Record every exit and complete replay output; compare causal clocks, query counts/states and report outcomes, explicitly identifying variable IDs/durations without hiding raw logs. Verify only declared doc changed and probe produced no data/repo mutation. Replay failure returns to doer, no secret fixes; preserve correction history/five-loop limit. No backend/scripts/frontend changes: pytest/ruff/mypy/frontend checks skipped under WORKFLOW§5. Independent replay is mandatory.
+
+One doer terminal commit: docs(engine): record research runtime probe (Phase 18.2f). After independent documentation acceptance reviewer commits STATE separately:18.2f COMPLETE, remaining18.2 NOT_STARTED, next_tasknull, human_transition_requiredtrue pending explicit post-probe approval. Coordinator may publish authorized docs PR; auto-merge authority does not approve unseen third-party implementation. WORKFLOW§2 'Report everything verbatim. STOP. Human approves.' applies to NEW positions_open call; REVIEWER§4 existing-pattern exception covers copied constructors/orders/reports/run(), not that new call. Present exact proven query call and bounded Stage2 proposal for human approval before implementation. No full18.2/Phase18 completion or later phase opened.
+
+**Independent readiness evidence (2026-10-03):** full AGENTS, STATE,
+WORKFLOW, REVIEWER, INCIDENTS and confirmed Phase 18 spec read; relevant
+PROJECT architecture/data/extraction/execution/conventions, Phases 16–18,
+completion and AI rules, project/backend rules and Nautilus guide inspected.
+Actual runner/BuyHold and existing EmaCross instrument-filtered orders query
+patterns inspected. Positions queries are NEW and unverified: no initial
+capability, documented field, empty-state, fill ordering or terminal-state
+outcome is claimed before the live probe. Missing fields are printed rather
+than invented; expected assertions that fail are retained with traceback and
+STOP, not repaired silently. Exactly two cases are authorized by default;
+any necessary passive-case exception must first be explained to coordinator,
+including why the two cases are insufficient. No new clock accessor.
+
+Clean phase18/18.2f-runtime-probe at exact baseline above verified with
+status and log. Accepted implementation c1eefaec202c0c5a7c0162dd786b4fc8ff14df99
+and completion 9a94df6 are ancestors (each command exit 0). Independent live
+`git ls-remote --heads origin main` returned exactly
+`7c8466f8ca3081b134022e9b28dc46c046c74893 refs/heads/main`, exit 0,
+with command-only network grant and inherited proxy/TLS preserved.
+Cloud runtime skill and supported current enforced network policy inspected;
+no credential values or configuration changes. This is point-in-time merged
+prerequisite/connectivity evidence, not future publication or freshness.
+
+Only STATE changes in this separate terminal readiness commit. Whole diff,
+status and staged whitespace/scope checks run before commit. No Python files
+changed; pytest/ruff/mypy were not re-run under WORKFLOW §5. No frontend
+files changed, so no frontend checks. Mandatory independent exact-source
+probe replay remains required for future documentation acceptance. No probe,
+implementation, install, data write, worker, fetch, push, merge or amend by
+readiness reviewer. Supplemental /tmp/phase18f-plan.md has a premerge local
+baseline; this durable contract explicitly records the verified merged baseline.
+No semantic deviation required. Last completed task remains 18.2e; current
+18.2f READY only, next_task null, Phase 18 IN_PROGRESS and 18.3/18.4
+NOT_STARTED. Existing evidence unchanged. Neither this readiness nor authorized
+future PR auto-merge grants unseen Stage 2 approval. WORKFLOW §2 states:
+"Report everything verbatim. STOP." and "Human approves. Adjust Stage 2
+based on what the probe found." After independent probe acceptance, separate
+completion STATE commit must set remaining 18.2 NOT_STARTED, next_task null,
+human_transition_required true pending that explicit human approval. No full
+runtime eligibility, availability, gaps, selection, provenance or walk-forward
+claim is accepted; never begin Phase 29.
 
 ### 18.2e readiness contract and evidence
 
