@@ -12,14 +12,14 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2f
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2e
+last_completed_task: 18.2f
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
-human_transition_required: false
+human_transition_required: true
 ```
 
 ### Phase status
@@ -72,12 +72,13 @@ work.
 
 ### Current task
 
-**18.2f — Minimal Stage 1 research runtime probe** — READY for the exact
-bounded documentation/scratch-only contract below. Accepted 18.2e remains
-complete. Remaining **18.2 — Enforce the approved stage windows** remains
-NOT_STARTED as a whole; runtime eligibility is unverified. next_task is null.
-No Stage 2 implementation or later task is approved. After probe acceptance,
-explicit post-probe human approval is required under WORKFLOW §2.
+**18.2f — Minimal Stage 1 research runtime probe** — COMPLETE after
+independent documentation acceptance and exact scratch replay. Remaining
+**18.2 — Enforce the approved stage windows** remains NOT_STARTED as a whole;
+runtime eligibility is unverified. next_task is null. Explicit post-probe
+human approval under WORKFLOW §2 is required before Stage 2 implementation.
+The observed new positions_open calls and future research-only interface are
+recommendations awaiting that approval; Phase 18 remains IN_PROGRESS.
 
 ### Phase 17 tasks
 
@@ -100,7 +101,7 @@ explicit post-probe human approval is required under WORKFLOW §2.
 - [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
 - [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
 - [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
-- [ ] **18.2f — Minimal Stage 1 research runtime probe** — READY. Documentation and scratch probe only; no runtime eligibility or Stage 2 approval.
+- [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -211,6 +212,102 @@ completion STATE commit must set remaining 18.2 NOT_STARTED, next_task null,
 human_transition_required true pending that explicit human approval. No full
 runtime eligibility, availability, gaps, selection, provenance or walk-forward
 claim is accepted; never begin Phase 29.
+
+### 18.2f completion evidence
+
+```yaml
+task_id: 18.2f
+status: COMPLETE
+reviewer_decision: accepted_stage1_documentation_and_scratch_observations_only
+reviewer_date: 2026-10-03
+files_changed:
+  - docs/specs/phase-18-runtime-probe.md
+tests_added_or_updated:
+  - exact standalone two-case scratch source with live clean-state and clock assertions
+  - no repository Python test; sole implementation artifact is documentation
+acceptance_commands:
+  - source .venv/bin/activate
+  - python /tmp/phase18f-review-runtime-probe.py > /tmp/phase18f-review-probe.log 2>&1
+  - git diff --check
+  - git status --short
+  - git diff 59257d1 78250cd --check
+  - git diff-tree --no-commit-id --name-only -r 78250cd
+acceptance_output:
+  probe: "CASE PASS (ordinary); CASE PASS (gated); PROBE PASS; exit 0"
+  diff_check: "no output; exit 0 (clean working tree)"
+  status: "no output; clean before STATE update; exit 0"
+  committed_diff_check: "exit 2; 12 trailing-whitespace diagnostics, all inside verbatim raw-output fences; authorized exception, not green"
+  changed_paths: "docs/specs/phase-18-runtime-probe.md; exit 0"
+git_commit_sha: 78250cd5af871c065cf96c186f95432d9227d36e
+readiness_commit_sha: 59257d113f1649138c6d768fb4ba392bfb6c7189
+readiness_baseline_sha: 7c8466f8ca3081b134022e9b28dc46c046c74893
+next_task: null
+remaining_18_2_status: NOT_STARTED
+human_transition_required: true
+deviations:
+  - "Authorized float representation correction only: math.isclose against independently reported cash plus base valuation, abs_tol=1e-8, rel_tol=0; original attempt 1 exit 1 retained."
+  - "Authorized transcript-inherent trailing-space exception only for raw output fences; authored extra EOF blank line removed, initial diagnostics retained verbatim."
+notes: |
+  Independent reviewer inspected startup/state/workflow/reviewer/incidents,
+  relevant PROJECT contracts and Phases 16–18, confirmed temporal spec,
+  project/backend rules, Nautilus guide, bounded plan, committed document,
+  actual BuyHold and runner construction/report patterns. Serial READY,
+  doer IN_PROGRESS, committed ACCEPTANCE_PENDING and independent COMPLETE
+  handoffs are recorded here; doer did not edit STATE or self-accept.
+  Corrected source was extracted byte-for-byte from the complete replay-target
+  fence to /tmp/phase18f-review-runtime-probe.py. Exactly one independent replay
+  from repository root with existing venv passed, without source edits,
+  substitution, retries, production fixes, dependency installs or data writes.
+  Complete raw reviewer stdout/stderr remains /tmp/phase18f-review-probe.log
+  (103501 bytes, 1301 lines). Baseline printed by this replay is doer commit
+  78250cd5af871c065cf96c186f95432d9227d36e, versus readiness SHA in doer runs.
+  Runtime UUIDs/event IDs, PID, wall-clock log timestamps, durations and memory
+  observations vary; original raw logs are retained without normalization.
+  124 causal/query/snapshot/outcome/report-timestamp lines match doer exactly.
+  Both proven calls are engine.cache.positions_open() and
+  engine.cache.positions_open(instrument_id=InstrumentId.from_str('BTCUSDT.BINANCE')).
+  Live signature/docstring succeeds on Python 3.12.14/NautilusTrader 1.231.0.
+  Fresh/on_start queries are all zero; gated active-start queries are all zero
+  before the first eligible submission. Terminal positions calls each return
+  one open LONG quantity 1 BTC; copied orders_open/orders_inflight return zero.
+  Ordinary snapshots occupy all four closes; entry/fill is 1735776000000 ms.
+  Gated snapshots occupy only 1735862400000 and 1735948800000 ms; entry/fill is
+  1735862400000 ms. Numbered trace order and same-bar snapshot replacement
+  match inherited BuyHold. Global exact timestamp/submission/fill assertions
+  meaningfully check exclusions; the local unchanged-list guard is redundant
+  and is not relied on as independent evidence. Latest USDT cash 99899.9 plus
+  BTC 1.0 valued at last eligible price 100 equals 99999.9, independently from
+  account rows; snapshot 99999.90000000001 agrees within absolute tolerance.
+  Report columns/types/index/records preserve timestamps, IDs, fill commission
+  0.10000000 USDT and genuinely open residual position without liquidation.
+  Complete corrected source, original attempt1 source/log and attempt2 log
+  each byte-match durable document fences and their retained /tmp originals.
+  Original assertion failure is disclosed, not hidden by corrected success.
+  Supplemental raw checks: /tmp/phase18f-review-diff-check.log,
+  /tmp/phase18f-review-status-before.log and
+  /tmp/phase18f-review-committed-diff-check.log. Committed whitespace flags are
+  lines 958,990,1585,1617,2507,2539 (pandas header padding) and
+  2661,2663,2665,2667,2669,2671 (retained diagnostic rows), exclusively inside
+  verbatim text output fences. No source/prose trailing whitespace or EOF
+  defect remains. Initial staged check exit 2 and its removed authored EOF
+  defect remain disclosed; committed check exit 2 is not reported as passing.
+  Only declared document changed in doer commit; checkout clean before STATE.
+  No Python/frontend files changed; pytest/Ruff/mypy/frontend checks skipped
+  under WORKFLOW §5; mandatory independent scratch replay was performed.
+  Both scratch engines deliberately received all four bars including sentinel;
+  gated callback suppression proves no pre-engine boundary enforcement or
+  immunity to later matching/valuation. Flat prices conceal price effects.
+  Pending-order survival is unproven and not required by the proposal. No
+  actual source-availability, eligibility, realistic fills, causal EMA warmup,
+  gap, selection, OOS contamination, provenance or walk-forward guarantee.
+  Future explicit research-only interface/pre-engine filtering/clean-state
+  query design remain recommendations, not production approval. WORKFLOW §2
+  requires explicit post-probe human approval for NEW positions_open use.
+  No Stage 2, push, PR, merge, worker or future readiness by this reviewer.
+  Separate STATE-only completion preserves all prior readiness/evidence;
+  remaining 18.2 NOT_STARTED, next_task null, human_transition_required true,
+  18.3/18.4 NOT_STARTED, Phase 18 IN_PROGRESS. Never begin Phase 29.
+```
 
 ### 18.2e readiness contract and evidence
 
