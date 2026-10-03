@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2h
-current_task_status: READY
+current_task: 18.2
+current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2g.1
+last_completed_task: 18.2h
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,9 +72,9 @@ work.
 
 ### Current task
 
-**18.2h — Immutable raw research input snapshot and exact identity** — READY.
-Only the bounded standalone contract below is open. Remaining 18.2 is NOT_STARTED;
-18.2g/g.1 remain COMPLETE, next_task null, Phase18 IN_PROGRESS.
+**18.2 — Remaining stage-window enforcement** — NOT_STARTED.
+18.2h is independently accepted for supplied evidence/content identity only.
+No future task is READY; next_task null, Phase18 IN_PROGRESS.
 
 ### Phase 17 tasks
 
@@ -100,7 +100,7 @@ Only the bounded standalone contract below is open. Remaining 18.2 is NOT_STARTE
 - [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
 - [x] **18.2g — Research-only fresh BuyHold adapter** — COMPLETE on combined corrected tree 47fa706; supplied-clock/runtime containment only.
 - [x] **18.2g.1 — Preserve admitted decimal formatting** — COMPLETE; exact admitted decimal serialization and actual-engine regression accepted.
-- [ ] **18.2h — Immutable raw research input snapshot and exact identity** — READY; supplied evidence/content identity only.
+- [x] **18.2h — Immutable raw research input snapshot and exact identity** — COMPLETE; supplied evidence/content identity only.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -266,6 +266,67 @@ notes: |
   orchestrator/API/CLI/worker integration, research eligibility/OOS inspection,
   dependencies/gaps/windows or whole18.2/Phase18 completion. No future task is
   READY; remaining18.2 NOT_STARTED, next_task null, last_completed_task18.2g.1,
+  human_transition_required false, Phase18 IN_PROGRESS. Never begin Phase29.
+```
+
+### 18.2h completion evidence
+
+```yaml
+task_id: 18.2h
+status: COMPLETE
+reviewer_decision: accepted_immutable_supplied_evidence_and_exact_content_identity_only
+reviewer_date: 2026-10-04 Asia/Manila
+git_commit_sha: a0d08e6aa2ff36ead2eac54dda698ea7ec5fb2a3
+readiness_commit_sha: 2213ee19704c28514d1051a961f1a5b64cc76484
+files_changed:
+  - backend/src/quant/engine/research_input.py
+  - backend/tests/engine/test_research_input.py
+tests_added_or_updated: 173 new public-factory and detached-record cases
+acceptance_commands:
+  - .venv/bin/python -m ruff check .
+  - .venv/bin/python -m mypy --strict backend/src
+  - .venv/bin/python -m pytest backend/tests -q
+  - git diff --check
+  - git status --short
+acceptance_output:
+  ruff: "All checks passed!; exit 0"
+  mypy: "Success: no issues found in 34 source files; exit 0"
+  pytest: "1134 passed, 121 warnings in 38.53s; exit 0"
+  diff_check: "no output; exit 0"
+  status: "no output; clean before reviewer state maintenance; exit 0"
+next_task: null
+remaining_18_2_status: NOT_STARTED
+human_transition_required: false
+deviations: []
+notes: |
+  Serial READY -> implementation IN_PROGRESS -> committed ACCEPTANCE_PENDING
+  -> independent acceptance COMPLETE. Doer never edited STATE or self-accepted.
+  Reviewer read full live STATE/AGENTS/WORKFLOW/REVIEWER/INCIDENTS in bounded
+  recovered reads, required PROJECT/spec/rules, actual two new files and relevant
+  accepted clock/runner/read/store/fingerprint boundaries. Exact factory/interface,
+  detached frozen slots/tuple/bytes, required fields/nulls, ordered fail/log behavior,
+  signed unbounded clocks and finite numeric checks, claim-only provenance and raw
+  chronological retention match the standalone contract. Independent manual typed
+  fixture reconstruction agrees with complete hardcoded bytes; separate SHA-256
+  matches df720d027a740232c362fc02a800b717083bc93c8144e219ebcb07ffc4d774f6.
+  Int/float, negative zero, nearby floats, >4300-digit positive/negative clocks and
+  OHLCV, Unicode and deep mutation isolation covered through actual public factory.
+  One fresh full reviewer suite, no retries or implementation edits. Raw logs:
+  /tmp/phase18h-review-ruff.log, -mypy.log, -pytest.log, -diff-check.log,
+  -status-before.log and -independent.log. Reviewer report: /tmp/phase18h-review-report.md.
+  Doer first full suite 1134 passed,121 warnings in38.72s is separate evidence.
+  Doer retained Ruff failures (24 E501 then2) and one mypy literal-type failure
+  in /tmp/phase18h-doer-*. Three corrective cycles preceded first full pytest;
+  cosmetic wraps and explicit literal returns, no weakened tests or hidden retries.
+  Warnings remain established Starlette httpx and Nautilus Pandas UTC deprecations.
+  Acceptance certifies supplied consistency/content identity only: no authenticated
+  publication/revision history, reproduced fixture capability, complete coverage,
+  selection freeze/OOS inspection, runtime compatibility, evidence transport or
+  orchestrator/API/CLI/worker integration, dependencies/gaps/windows, whole18.2 or
+  Phase18 completion. Duplicate discarded JSON keys cannot be recovered by Mapping.
+  Existing fingerprint and ordinary execution unchanged. No publication, merge,
+  dependency install, worker launch or archive edits by reviewer. No future READY;
+  current_task18.2 NOT_STARTED, last_completed_task18.2h, next_task null,
   human_transition_required false, Phase18 IN_PROGRESS. Never begin Phase29.
 ```
 
