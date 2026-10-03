@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import copy
+import dataclasses
+import logging
 import re
 from pathlib import Path
 
@@ -524,3 +527,172 @@ def test_execute_run_buy_hold_seed_is_none(tmp_path: Path) -> None:
     )
 
     assert updated.seed is None
+
+
+@pytest.mark.parametrize(
+    ("metadata", "message"),
+    [
+        ({"research_stage": "validation"},
+         "validation research_stage requires in_sample range"),
+        ({"research_stage": "oos", "in_sample_start_ts": 0,
+          "in_sample_end_ts": 10}, "oos research_stage requires oos range"),
+        ({"research_stage": "exploration", "oos_start_ts": 20},
+         "oos_start_ts and oos_end_ts must be supplied together"),
+        ({"research_stage": "exploration", "in_sample_start_ts": 10,
+          "in_sample_end_ts": 10},
+         "in_sample_start_ts must be less than in_sample_end_ts"),
+        ({"research_stage": "exploration", "validation_start_ts": 20,
+          "validation_end_ts": 10},
+         "validation_start_ts must be less than validation_end_ts"),
+        ({"research_stage": "oos", "in_sample_start_ts": 0,
+          "in_sample_end_ts": 20, "oos_start_ts": 10, "oos_end_ts": 30},
+         "in_sample range must end at or before oos range starts"),
+        ({"research_stage": "exploration", "in_sample_start_ts": True,
+          "in_sample_end_ts": 10},
+         "in_sample_start_ts must be an integer UTC epoch-millisecond timestamp "
+         "(bool is not allowed)"),
+        ({"research_stage": "exploration", "in_sample_start_ts": 0,
+          "in_sample_end_ts": "10"},
+         "in_sample_end_ts must be an integer UTC epoch-millisecond timestamp "
+         "(bool is not allowed)"),
+        ({"research_stage": "IS"},
+         "research_stage must be exploration, validation, oos, or None"),
+    ],
+)
+def test_execute_run_rejects_raw_declaration_before_side_effects(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    metadata: dict[str, object],
+    message: str,
+) -> None:
+    # Competing venue/timeframe/universe errors must lose to declaration errors.
+    record = dataclasses.replace(
+        _make_record(params={"venue": 42, "timeframe": "banana"}, universe=[]),
+        **metadata,
+    )
+    before = copy.deepcopy(record)
+    artifacts_dir = tmp_path / "artifacts"
+
+    def unexpected(*args: object, **kwargs: object) -> None:
+        pytest.fail("execution action reached before declaration rejection")
+
+    for name in (
+        "read_bars_json", "fingerprint_bars", "run_backtest", "extract_equity",
+        "extract_metrics", "write_artifacts",
+    ):
+        monkeypatch.setattr(f"quant.engine.orchestrator.{name}", unexpected)
+
+    with caplog.at_level(logging.ERROR), pytest.raises(ValueError) as exc:
+        execute_run(
+            record, bars_db_path=tmp_path / "bars.duckdb",
+            artifacts_dir=artifacts_dir,
+        )
+
+    assert str(exc.value) == message
+    assert [(entry.name, entry.levelno, entry.getMessage())
+            for entry in caplog.records] == [
+        ("quant.engine.temporal", logging.ERROR, message),
+    ]
+    assert record == before
+    assert not artifacts_dir.exists()
+    assert not (tmp_path / "bars.duckdb").exists()
+
+
+@pytest.mark.parametrize("stage", [None, "exploration"])
+@pytest.mark.parametrize(
+    ("params", "universe", "message"),
+    [
+        ({"venue": 42, "timeframe": "banana"}, [],
+         "record.params['venue'] must be a string, got <class 'int'>"),
+        ({"timeframe": "banana"}, [],
+         "record.params['timeframe'] must be one of "
+         "['15m', '1d', '1h', '1m', '1mo', '1w', '30m', '4h', '5m'], "
+         "got 'banana'"),
+        ({"timeframe": "1d"}, [],
+         "record.universe must contain at least one symbol"),
+    ],
+)
+def test_execute_run_preserves_existing_failure_priority(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    stage: str | None,
+    params: dict[str, object],
+    universe: list[str],
+    message: str,
+) -> None:
+    record = dataclasses.replace(
+        _make_record(params=params, universe=universe), research_stage=stage,
+    )
+    with caplog.at_level(logging.ERROR), pytest.raises(ValueError) as exc:
+        execute_run(
+            record, bars_db_path=tmp_path / "bars.duckdb",
+            artifacts_dir=tmp_path / "artifacts",
+        )
+    assert str(exc.value) == message
+    assert caplog.records == []
+    assert not (tmp_path / "artifacts").exists()
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"research_stage": "exploration"},
+        {"research_stage": "validation", "in_sample_start_ts": 0,
+         "in_sample_end_ts": 10, "validation_start_ts": 10,
+         "validation_end_ts": 20},
+        {"research_stage": "oos", "in_sample_start_ts": 0,
+         "in_sample_end_ts": 10, "oos_start_ts": 10, "oos_end_ts": 20},
+        {"research_stage": "oos", "in_sample_start_ts": 0,
+         "in_sample_end_ts": 10, "validation_start_ts": 10,
+         "validation_end_ts": 20, "oos_start_ts": 20, "oos_end_ts": 30},
+        {"research_stage": None, "in_sample_start_ts": 0,
+         "validation_start_ts": 20, "validation_end_ts": 10,
+         "oos_start_ts": 5, "oos_end_ts": 25},
+    ],
+)
+def test_execute_run_preserves_metadata_through_actual_engine(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    metadata: dict[str, object],
+) -> None:
+    db_path = tmp_path / "bars.duckdb"
+    end_ts = _store_daily_bars(db_path, start_ts=_START_TS, count=10)
+    artifacts_dir = tmp_path / "artifacts"
+    # Research bounds deliberately differ from execution: declaration checks
+    # alone do not certify containment or any other runtime eligibility.
+    record = dataclasses.replace(
+        _make_record(end_ts=end_ts),
+        experiment_id="experiment", hypothesis_id="hypothesis",
+        strategy_version="v1", trial_index=0, trial_count=2, **metadata,
+    )
+    before = copy.deepcopy(record)
+    with caplog.at_level(logging.ERROR):
+        updated = execute_run(
+            record, bars_db_path=db_path, artifacts_dir=artifacts_dir,
+        )
+
+    for field in (
+        "research_stage", "in_sample_start_ts", "in_sample_end_ts",
+        "validation_start_ts", "validation_end_ts", "oos_start_ts",
+        "oos_end_ts", "experiment_id", "hypothesis_id", "strategy_version",
+        "trial_index", "trial_count", "params", "start_ts", "end_ts",
+    ):
+        assert getattr(updated, field) == getattr(before, field)
+    assert updated.start_ts == _START_TS
+    assert updated.end_ts == end_ts
+    assert updated.params == {"timeframe": "1d", "trade_size": "1"}
+    assert updated.metrics
+    assert set(updated.artifacts) == {"equity", "drawdown", "price", "trades", "fills"}
+    for rel_path in updated.artifacts.values():
+        assert (artifacts_dir / updated.run_id / Path(rel_path).name).is_file()
+    price = pq.read_table(artifacts_dir / updated.run_id / "price.parquet")
+    assert price.column("ts").to_pylist() == [
+        _START_TS + i * _DAY_MS for i in range(10)
+    ]
+    equity = pq.read_table(artifacts_dir / updated.run_id / "equity.parquet")
+    assert equity.column("ts").to_pylist() == [
+        _START_TS + i * _DAY_MS for i in range(11)
+    ]
+    assert record == before
+    assert caplog.records == []

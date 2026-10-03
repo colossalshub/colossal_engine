@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import json
+import logging
+import sqlite3
+from collections import UserDict
+from collections.abc import Iterator
+from copy import deepcopy
+from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from quant.api.routers.runs import router
 from quant.api.schemas import (
     OHLCV,
     ApiError,
@@ -28,6 +38,7 @@ from quant.api.schemas import (
     TradePage,
     Verification,
 )
+from quant.data.runs_store import init_runs_schema
 
 
 def _run_summary_dict() -> dict[str, Any]:
@@ -561,3 +572,397 @@ def test_coverage_response_empty_rows_round_trips() -> None:
     resp = CoverageResponse(rows=[])
     rebuilt = CoverageResponse(**resp.model_dump())
     assert rebuilt.rows == []
+
+
+# Raw request admission is distinct from ordinary and historical metadata.
+_RESEARCH_RANGES = {
+    "in_sample_start_ts": -10,
+    "in_sample_end_ts": 0,
+    "validation_start_ts": 0,
+    "validation_end_ts": 10,
+    "oos_start_ts": 10,
+    "oos_end_ts": 20,
+}
+
+
+def _research_payload(**overrides: Any) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "strategy": "buy_hold",
+        "params": {"trade_size": "1", "nested": {"research_stage": "holdout"}},
+        "universe": ["BTC/USDT"],
+        "start_ts": 100,
+        "end_ts": 200,
+        "research_stage": "oos",
+        "hypothesis_id": "hyp-raw",
+        "strategy_version": "v1",
+        "trial_index": 0,
+        "trial_count": 3,
+        **_RESEARCH_RANGES,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def _assert_declaration_error(
+    error: ValidationError,
+    message: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    errors = error.errors()
+    assert len(errors) == 1
+    assert errors[0]["loc"] == ()
+    assert errors[0]["type"] == "value_error"
+    assert errors[0]["msg"] == "Value error, " + message
+    records = [record for record in caplog.records if record.levelno >= logging.ERROR]
+    assert [(record.name, record.getMessage()) for record in records] == [
+        ("quant.engine.temporal", message),
+    ]
+
+
+@pytest.mark.parametrize("field", list(_RESEARCH_RANGES))
+@pytest.mark.parametrize("raw", [True, "10", 10.0, Decimal("10")])
+def test_designated_endpoints_reject_before_coercion(
+    field: str,
+    raw: object,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = _research_payload(**{field: raw})
+    original = deepcopy(payload)
+    with pytest.raises(ValidationError) as caught:
+        RunCreate(**payload)
+    _assert_declaration_error(
+        caught.value,
+        f"{field} must be an integer UTC epoch-millisecond timestamp "
+        "(bool is not allowed)",
+        caplog,
+    )
+    assert payload == original
+
+
+@pytest.mark.parametrize(
+    "overrides, message",
+    [
+        (
+            {"research_stage": "holdout", "in_sample_start_ts": True},
+            "research_stage must be exploration, validation, oos, or None",
+        ),
+        (
+            {
+                "research_stage": "validation",
+                "in_sample_start_ts": None,
+                "in_sample_end_ts": None,
+            },
+            "validation research_stage requires in_sample range",
+        ),
+        (
+            {
+                "research_stage": "oos",
+                "in_sample_start_ts": None,
+                "in_sample_end_ts": None,
+            },
+            "oos research_stage requires in_sample range",
+        ),
+        (
+            {
+                "research_stage": "validation",
+                "validation_start_ts": None,
+                "validation_end_ts": None,
+            },
+            "validation research_stage requires validation range",
+        ),
+        (
+            {"oos_start_ts": None, "oos_end_ts": None},
+            "oos research_stage requires oos range",
+        ),
+        (
+            {"in_sample_end_ts": None, "validation_start_ts": True},
+            "in_sample_start_ts and in_sample_end_ts must be supplied together",
+        ),
+        (
+            {"in_sample_end_ts": -10},
+            "in_sample_start_ts must be less than in_sample_end_ts",
+        ),
+        (
+            {"in_sample_end_ts": -11},
+            "in_sample_start_ts must be less than in_sample_end_ts",
+        ),
+        (
+            {"validation_start_ts": -1},
+            "in_sample range must end at or before validation range starts",
+        ),
+        (
+            {
+                "validation_start_ts": None,
+                "validation_end_ts": None,
+                "oos_start_ts": -1,
+            },
+            "in_sample range must end at or before oos range starts",
+        ),
+        (
+            {"research_stage": "exploration", "oos_end_ts": 10},
+            "oos_start_ts must be less than oos_end_ts",
+        ),
+        (
+            {"in_sample_start_ts": None, "in_sample_end_ts": None, "oos_end_ts": 10},
+            "oos_start_ts must be less than oos_end_ts",
+        ),
+    ],
+)
+def test_designated_declaration_errors_and_precedence(
+    overrides: dict[str, Any],
+    message: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = _research_payload(**overrides)
+    original = deepcopy(payload)
+    for _ in range(2):
+        caplog.clear()
+        with pytest.raises(ValidationError) as caught:
+            RunCreate.model_validate(UserDict(payload))
+        _assert_declaration_error(caught.value, message, caplog)
+        assert payload == original
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"research_stage": "exploration"},
+        {
+            "research_stage": "exploration",
+            "in_sample_start_ts": None,
+            "in_sample_end_ts": None,
+        },
+        {
+            "research_stage": "exploration",
+            "in_sample_start_ts": -10,
+            "in_sample_end_ts": 0,
+        },
+        {
+            "research_stage": "validation",
+            **{k: v for k, v in _RESEARCH_RANGES.items() if not k.startswith("oos")},
+        },
+        {
+            "research_stage": "oos",
+            **{
+                k: v
+                for k, v in _RESEARCH_RANGES.items()
+                if not k.startswith("validation")
+            },
+        },
+        {"research_stage": "oos", **_RESEARCH_RANGES},
+        {"research_stage": "oos", **_RESEARCH_RANGES, "oos_end_ts": 10**100},
+    ],
+)
+def test_valid_designated_paths_preserve_payload(
+    metadata: dict[str, Any],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = _research_payload()
+    for field in ("research_stage", *_RESEARCH_RANGES):
+        del payload[field]
+    payload.update(metadata)
+    original = deepcopy(payload)
+    models = [
+        RunCreate(**payload),
+        RunCreate.model_validate(UserDict(payload)),
+        RunCreate.model_validate_json(json.dumps(payload)),
+    ]
+    for model in models:
+        dump = model.model_dump()
+        assert {field: dump[field] for field in payload} == payload
+        assert all(
+            dump[field] is None for field in _RESEARCH_RANGES if field not in payload
+        )
+        assert dump["params"] == payload["params"]
+        assert "hypothesis_id" not in dump["params"]
+        assert model.start_ts == 100 and model.end_ts == 200
+    assert models[0] == models[1] == models[2]
+    assert payload == original
+    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
+
+
+def test_designated_accepts_integer_subclass() -> None:
+    class Timestamp(int):
+        pass
+
+    model = RunCreate.model_validate(
+        _research_payload(in_sample_start_ts=Timestamp(-10))
+    )
+    assert model.in_sample_start_ts == -10
+    assert model.in_sample_end_ts == 0
+
+
+@pytest.mark.parametrize("raw", ["10", True, 10.0])
+def test_json_designated_endpoint_rejects_raw_values(
+    raw: object,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with pytest.raises(ValidationError) as caught:
+        RunCreate.model_validate_json(json.dumps(_research_payload(oos_start_ts=raw)))
+    _assert_declaration_error(
+        caught.value,
+        "oos_start_ts must be an integer UTC epoch-millisecond timestamp "
+        "(bool is not allowed)",
+        caplog,
+    )
+
+
+@pytest.mark.parametrize("explicit_null", [False, True])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"in_sample_end_ts": None},
+        {"in_sample_end_ts": -10},
+        {"in_sample_end_ts": -11},
+        {"validation_start_ts": -5},
+        {"in_sample_start_ts": "-10", "validation_start_ts": True},
+    ],
+)
+def test_ordinary_ranges_keep_semantics_and_coercion(
+    explicit_null: bool,
+    overrides: dict[str, Any],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = _research_payload(**overrides)
+    if explicit_null:
+        payload["research_stage"] = None
+    else:
+        del payload["research_stage"]
+    model = RunCreate.model_validate(payload)
+    assert model.research_stage is None
+    for field in _RESEARCH_RANGES:
+        expected = payload[field]
+        assert getattr(model, field) == (None if expected is None else int(expected))
+    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
+
+
+def test_ordinary_malformed_endpoint_keeps_field_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with pytest.raises(ValidationError) as caught:
+        RunCreate.model_validate(
+            _research_payload(research_stage=None, oos_start_ts="bad")
+        )
+    assert caught.value.errors()[0]["loc"] == ("oos_start_ts",)
+    assert caught.value.errors()[0]["type"] == "int_parsing"
+    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"in_sample_end_ts": None},
+        {"in_sample_end_ts": -11},
+        {"validation_start_ts": -5},
+    ],
+)
+def test_historical_designated_summary_remains_permissive(
+    overrides: dict[str, Any],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = {**_run_summary_dict(), **_RESEARCH_RANGES, **overrides}
+    assert RunSummary(**payload).model_dump() == payload
+    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
+
+
+def test_nonmapping_and_existing_model_use_pydantic_defaults() -> None:
+    with pytest.raises(ValidationError) as caught:
+        RunCreate.model_validate([("strategy", "buy_hold")])
+    assert caught.value.errors()[0]["type"] == "model_type"
+    assert caught.value.errors()[0]["loc"] == ()
+    model = RunCreate(**_research_payload())
+    assert RunCreate.model_validate(model) is model
+
+
+@pytest.fixture
+def research_client(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> Iterator[tuple[TestClient, Path]]:
+    path = tmp_path / "runs.sqlite"
+    monkeypatch.setenv("QUANT_RUNS_DB", str(path))
+    init_runs_schema(path)
+    app = FastAPI()
+    app.include_router(router)
+    with TestClient(app) as client:
+        yield client, path
+
+
+@pytest.mark.parametrize(
+    "overrides, message",
+    [
+        (
+            {"in_sample_end_ts": None},
+            "in_sample_start_ts and in_sample_end_ts must be supplied together",
+        ),
+        (
+            {"validation_start_ts": -1},
+            "in_sample range must end at or before validation range starts",
+        ),
+        (
+            {"oos_start_ts": "10"},
+            "oos_start_ts must be an integer UTC epoch-millisecond timestamp "
+            "(bool is not allowed)",
+        ),
+        (
+            {"oos_start_ts": True},
+            "oos_start_ts must be an integer UTC epoch-millisecond timestamp "
+            "(bool is not allowed)",
+        ),
+    ],
+)
+def test_post_rejects_raw_designation_without_inserting(
+    research_client: tuple[TestClient, Path],
+    overrides: dict[str, Any],
+    message: str,
+) -> None:
+    client, path = research_client
+    response = client.post("/api/runs", json=_research_payload(**overrides))
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert len(detail) == 1
+    assert detail[0]["loc"] == ["body"]
+    assert detail[0]["type"] == "value_error"
+    assert detail[0]["msg"] == "Value error, " + message
+    with sqlite3.connect(path) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM meta_runs").fetchone()[0] == 0
+
+
+@pytest.mark.parametrize("ordinary", [False, True])
+def test_post_preserves_designated_and_ordinary_metadata(
+    research_client: tuple[TestClient, Path],
+    ordinary: bool,
+) -> None:
+    client, path = research_client
+    payload = _research_payload()
+    if ordinary:
+        payload.update(
+            research_stage=None, in_sample_end_ts=-11, validation_start_ts=-5
+        )
+    response = client.post("/api/runs", json=payload)
+    assert response.status_code == 201
+    body = response.json()
+    assert body["status"] == "queued"
+    fields = (
+        "research_stage",
+        "hypothesis_id",
+        "strategy_version",
+        "trial_index",
+        "trial_count",
+        "start_ts",
+        "end_ts",
+        *_RESEARCH_RANGES,
+    )
+    assert {field: body[field] for field in fields} == {
+        field: payload[field] for field in fields
+    }
+    with sqlite3.connect(path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM meta_runs WHERE run_id = ?", (body["run_id"],)
+        ).fetchone()
+        assert row is not None
+        assert {field: row[field] for field in fields} == {
+            field: payload[field] for field in fields
+        }
+        assert json.loads(row["params"]) == payload["params"]

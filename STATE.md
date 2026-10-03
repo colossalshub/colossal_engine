@@ -12,10 +12,10 @@
 ```yaml
 current_phase: 18
 current_phase_status: IN_PROGRESS
-current_task: 18.2b
+current_task: 18.2
 current_task_status: NOT_STARTED
 next_task: null
-last_completed_task: 18.2a
+last_completed_task: 18.2g.1
 last_completed_phase: 17
 execution_mode: ONE_TASK_AT_A_TIME
 human_decisions: confirmed
@@ -72,28 +72,10 @@ work.
 
 ### Current task
 
-**18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED.
-18.2a has independently passed acceptance as a pure declaration helper. The next
-bounded helper requires fresh narrow planning and a readiness gate before it
-may become READY; no implementation of 18.2b has begun. Its supported clock,
-calendar and coverage contract must be established from the accepted decisions
-and existing code rather than invented defaults.
-
-18.2a implements stage applicability, complete endpoint pairs, strict start<end,
-chronological nonoverlap and [start,end) integer point membership. Null-stage
-ordinary behavior is preserved. No existing caller uses the helper. Acceptance
-certifies this declaration contract only, not runtime eligibility, actual
-coverage, causal availability, warmup, execution containment, frozen selection,
-API/CLI enforcement, gaps or walk-forward properties. Historical execution and
-metadata remain intact.
-
-Remaining admission and runtime integration, warmup and information access,
-boundary artifacts, frozen selection and provenance work require fresh narrow
-planning before their READY transitions. No task after 18.2b is opened or split
-by this acceptance; next_task is null pending that later planning. These bounds
-do not claim the entire 18.2 scope is split or complete. Continue serial
-planner/doer/independent reviewer roles and separate reviewer state commits.
-No automatic phase crossing is authorized.
+**18.2 — Remaining stage-window enforcement planning** — NOT_STARTED.
+18.2g and its bounded precision repair 18.2g.1 are COMPLETE on the combined
+accepted tree. Whole 18.2 remains incomplete; next_task null, Phase 18
+IN_PROGRESS. No further READY contract is opened by this acceptance.
 
 ### Phase 17 tasks
 
@@ -112,7 +94,13 @@ No automatic phase crossing is authorized.
 - [x] **18.1.1 — Confirmed temporal decision record** — COMPLETE. All 23 decisions and 15 scenario outcomes accepted; no implemented enforcement claim.
 - [ ] **18.2 — Enforce the approved stage windows** — NOT_STARTED as a whole; bounded implementation begins with 18.2a only and requires later accepted integration work.
 - [x] **18.2a — Pure research-range declaration helper and test** — COMPLETE. Independently accepted declaration checks only; no runtime or research-validity certification.
-- [ ] **18.2b — Verified bar-clock and coverage helper and test** — NOT_STARTED. Next bounded helper; exact supported contract requires fresh planning/readiness now that 18.2a is accepted.
+- [x] **18.2b — Verified bar-clock and coverage helper and test** — COMPLETE. Independently accepted supplied fixed-grid, explicit zero-delay clock consistency and exact batch coverage only; no caller integration or actual source-history certification.
+- [x] **18.2c — RunCreate raw research declaration admission** — COMPLETE. Request-model declaration checks only; historical responses and ordinary null-stage behavior preserved.
+- [x] **18.2d — CLI research declaration admission** — COMPLETE. Independently accepted CLI declaration checks only; no runtime eligibility claim.
+- [x] **18.2e — Runtime raw declaration recheck** — COMPLETE. Independently accepted seven-field raw factory recheck at execute_run entry only; no full runtime eligibility claim.
+- [x] **18.2f — Minimal Stage 1 research runtime probe** — COMPLETE. Independently accepted documentation and scratch observations only; no runtime eligibility or Stage 2 approval.
+- [x] **18.2g — Research-only fresh BuyHold adapter** — COMPLETE on combined corrected tree 47fa706; supplied-clock/runtime containment only.
+- [x] **18.2g.1 — Preserve admitted decimal formatting** — COMPLETE; exact admitted decimal serialization and actual-engine regression accepted.
 - [ ] **18.3 — Embargo and gap rules** — NOT_STARTED. Only EG-01's named transitions, with EG-02/EG-03 evidence and exclusions, after preceding acceptance/readiness gates.
 - [ ] **18.4 — Walk-forward window identity** — NOT_STARTED. Only WF-01's explicitly enumerated model and WF-02–WF-04 rules, after preceding acceptance/readiness gates.
 
@@ -135,729 +123,150 @@ No automatic phase crossing is authorized.
 
 Record an accepted task in this file only after the reviewer re-runs that task's acceptance commands. Do not open the next task until that evidence block is committed.
 
-### 18.2a completion evidence
+### Recorded explicit post-probe human approval
+
+The approved bounded contract formerly below this paragraph is preserved in
+[the historical readiness record](docs/evidence/STATE-archive.md#182g-readiness-contract-and-post-probe-approval).
+
+**Human approval (2026-10-03):** after the accepted 18.2f probe and exact
+bounded Stage 2 proposal were presented, the user replied directly:
+"make trustworthy decisions and continue until this phase is done".
+The coordinator and independent readiness reviewer record this as explicit
+post-probe WORKFLOW §2 approval of the observed calls
+`engine.cache.positions_open()` and
+`engine.cache.positions_open(instrument_id=InstrumentId.from_str('BTCUSDT.BINANCE'))`,
+and the bounded research-only BuyHold implementation below. It clears the
+current human-transition gate. It approves no unseen future probe, unfamiliar
+API, new dependency, automatic phase crossing or completed implementation.
+Earlier 18.2f readiness/completion evidence remains historical and unchanged.
+
+### Completed historical evidence references
+
+Implementation/readiness SHAs below are recorded source evidence; missing
+readiness SHAs are shown as —. Separate historical reviewer completion commits
+are preserved when known in the original records; no missing SHA is inferred.
+
+| Task | Implementation SHA | Readiness SHA | Recorded acceptance | Evidence |
+| --- | --- | --- | --- | --- |
+| 18.2f | `78250cd5af871c065cf96c186f95432d9227d36e` | `59257d113f1649138c6d768fb4ba392bfb6c7189` | Independent probe replay exit 0; documentation only | [Full historical record](docs/evidence/STATE-archive.md#182f-completion-evidence) |
+| 18.2e | `c1eefaec202c0c5a7c0162dd786b4fc8ff14df99` | `054186409fca12aa64d6f26579ea1eeefb9019e3` | 899 passed, 91 warnings in 36.27s; exit 0 | [Full historical record](docs/evidence/STATE-archive.md#182e-completion-evidence) |
+| 18.2d | `fc0d2e2b6685e3c5627210042bde429583b683ba` | `911c2fd6d312eb01581412f65ccfbec65e5c6b47` | 879 passed, 81 warnings in 40.46s; exit 0 | [Full historical record](docs/evidence/STATE-archive.md#182d-completion-evidence) |
+| 18.2c | `9049d6af141b61785453443a3faaef8a811da751` | `d3827ca48595d47e84cce6e78c0cab1b8eeb776b` | 860 passed, 81 warnings in 38.04s; exit 0 | [Full historical record](docs/evidence/STATE-archive.md#182c-completion-evidence) |
+| 18.2b | `b9a25ee197b637e3f3a99ee693d6c13bc34cd5e0` | `5c3d600564146d1bf287ed0427f0168a5e8dd77c` | 792 passed, 81 warnings in 41.30s; exit 0 | [Full historical record](docs/evidence/STATE-archive.md#182b-completion-evidence) |
+| 18.2a | `73f81f0636b6c715e07c3f01ba0ab03c8eb0251a` | `—` | 628 passed, 81 warnings in 34.71s; exit 0 | [Full historical record](docs/evidence/STATE-archive.md#182a-completion-evidence) |
+| 18.1.1 | `2bfe14315cb6c0152ad01e57068173e379a66f9e` | `—` | Confirmed decision documentation | [Full historical record](docs/evidence/STATE-archive.md#1811-completion-evidence) |
+| 18.1 | `f6060f8b97e2ed304e7c8a4618647d9dca725d09` | `—` | Question inventory documentation | [Full historical record](docs/evidence/STATE-archive.md#181-completion-evidence) |
+| 17.1 | `b0ad975` | `—` | 431 passed, 81 warnings | [Full historical record](docs/evidence/STATE-archive.md#171-completion-evidence) |
+| 17.2 | `62a2365` | `—` | 435 passed, 81 warnings | [Full historical record](docs/evidence/STATE-archive.md#172-completion-evidence) |
+| 17.3 | `fa311a4` | `—` | 436 passed, 81 warnings | [Full historical record](docs/evidence/STATE-archive.md#173-completion-evidence) |
+| 17.4 | `9b3fe3909116fe1eaf52d745b891489d8a6188e9` | `—` | 444 passed, 81 warnings | [Full historical record](docs/evidence/STATE-archive.md#174-completion-evidence) |
+| 17.5 | `e2ea48089cd63bd7a1115e49542b584bfe13d679` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#175-completion-evidence) |
+| 17.6 | `60aee99f550fcbf8139eb43dc0c0c910c5623833` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#176-completion-evidence) |
+| 17.7 | `a7dff301b1c008168ef29398bde4524109fc786c` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#177-completion-evidence) |
+| 17.8 | `77df5035d30446328ab45e63b3c52fec3b8bb590` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#178-completion-evidence) |
+| U.6.1 | `bff113e37788b898172bfa10bae15d533bc71e84` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u61-completion-evidence) |
+| U.6.2 | `ffc277b` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u62-completion-evidence) |
+| U.6.3 | `290be85` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u63-completion-evidence) |
+| U.6.4 | `97cd298` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u64-completion-evidence) |
+| U.6.5 | `3928376` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#u65-completion-evidence) |
+| 16.5.6 | `aa0aaff7c21011f3301d97c467f8e7f91dc2007f` | `—` | Documentation/frontend evidence | [Full historical record](docs/evidence/STATE-archive.md#1656-completion-evidence) |
+
+### 18.2g and 18.2g.1 combined completion evidence
 
 ```yaml
-task_id: 18.2a
+task_ids: [18.2g, 18.2g.1]
 status: COMPLETE
-reviewer_decision: accepted_declaration_contract_only
+reviewer_decision: accepted_supplied_daily_clock_consistency_and_runtime_containment_only
 reviewer_date: 2026-10-03
 files_changed:
-  - backend/src/quant/engine/temporal.py
-  - backend/tests/engine/test_temporal.py
+  - backend/src/quant/engine/research_runner.py
+  - backend/tests/engine/test_research_runner.py
 tests_added_or_updated:
-  - 184 deterministic parameterized declaration and point-membership cases
-  - absent/null stage exits before endpoint reads and ignores malformed legacy ranges
-  - exact stages, applicability, every complete optional/required pair and endpoint type
-  - semantic chronology, overlap rejection, signed/zero/unbounded integers and shared boundaries
-  - matching single ERROR and ValueError, first-failure precedence, caller immutability and frozen outputs
+  - 61 original expanded admission, real-engine containment, callback-failure and compatibility cases
+  - one actual-engine exact decimal-volume regression; 62 new cases combined
 acceptance_commands:
-  - python -m pytest backend/tests -q
   - python -m ruff check .
   - python -m mypy --strict backend/src
+  - python -m pytest backend/tests -q
   - git diff --check
   - git status --short
 acceptance_output:
-  pytest: "628 passed, 81 warnings in 34.71s; exit 0"
   ruff: "All checks passed!; exit 0"
-  mypy: "Success: no issues found in 31 source files; exit 0"
+  mypy: "Success: no issues found in 33 source files; exit 0"
+  pytest: "961 passed, 121 warnings in 40.42s; exit 0"
   diff_check: "no output; exit 0"
-  status: "no output; clean before reviewer state update; exit 0"
-git_commit_sha: 73f81f0636b6c715e07c3f01ba0ab03c8eb0251a
-next_task: 18.2b
-next_task_status: NOT_STARTED
-human_decisions: confirmed
+  status: "no output; clean before reviewer state maintenance; exit 0"
+git_commit_sha: 47fa7068077952fe9894483ee373ab5873f000df
+original_unaccepted_implementation_sha: 5a24edce407b4d3da75ee54c123ee14f0f928d3a
+readiness_commit_shas:
+  - 568822e9adc6e96e9e8923ea2747875a8773e00f
+  - 8154fdebdbde089a95b8b6839df3a94eb73dc1aa
+next_task: null
+remaining_18_2_status: NOT_STARTED
 human_transition_required: false
 deviations:
-  - "Existing Linux venv/Bash activation and command-only network grant instead of documented Windows example; acceptance commands unchanged."
+  - "Independent blocking precision finding required separate authorized g.1 repair; original g SHA preserved, never accepted alone or amended."
+  - "One corrected-g task PR is the necessary publication unit for original unaccepted adapter plus blocking repair on the same branch; no buggy precursor merge or dependent PR."
+  - "Authorized reviewer documentation maintenance includes STATE.md and docs/evidence/STATE-archive.md: completed historical records moved verbatim, original archive prefix and current rules preserved."
 notes: |
-  The authorized serial task moved from READY through planner contract/readiness,
-  doer implementation (IN_PROGRESS), committed handoff (ACCEPTANCE_PENDING),
-  and fresh independent reviewer acceptance (COMPLETE). The intervening role
-  handoffs are recorded here; the doer did not advance STATE or self-accept.
-  Reviewer read the full actual two-file commit, accepted narrow plan, doer
-  report, full workflow/reviewer/incident/spec records and relevant project
-  contracts. Stage requirements, every supplied inactive pair, fixed semantic
-  order, half-open membership, immutable detached records, early ordinary exit
-  and deterministic log-plus-raise behavior match the approved contract.
-  All exact whole-tree acceptance commands independently passed on their first
-  reviewer invocation using the existing venv; no installs or code changes.
-  Full pytest used command-only network permission for local TestClient socket
-  operation, preserving configured proxy/TLS and all command options/plugins.
-  Doer's initial restricted pytest stalled without a result; only verified
-  owned PID was terminated after the network-granted diagnostic succeeded.
-  Its original shell exit was unavailable, not reported as a passed run.
-  Two precommit cosmetic lint correction cycles (5 issues then one remaining
-  long line) and all original failures remain in the doer report/logs.
-  Reviewer found no hidden semantic correction or weakened test assertion.
-  Independent output is preserved in /tmp/phase18a-review-pytest.log,
-  /tmp/phase18a-review-ruff.log and /tmp/phase18a-review-mypy.log; temporary
-  reports are supplemental, while this evidence and task commit are durable.
-  Live git ls-remote --heads origin main work independently returned main
-  81824f70aaeeb7efc07b8afc127a43a2b888bcd7 and work
-  90c35911d95515fde0f25e856fd9858e99332a9f before this state commit.
-  That observation verifies current connectivity, not publication of this task.
-  This separate reviewer commit changes STATE only. No caller/API/CLI/runtime
-  integration, bar/calendar coverage, warmup, gaps, frozen selection, provenance
-  or walk-forward guarantee is accepted. API coercion cannot be undone here;
-  missing versus null is intentionally equivalent, validation use cannot be
-  inferred, and integer points/touching boundaries prove no availability/gap
-  eligibility. 18.2b remains NOT_STARTED pending fresh narrow planning/readiness.
-  Whole 18.2 remains incomplete, Phase 18 remains IN_PROGRESS, and no later
-  task or phase is opened. Historical evidence below is preserved unchanged.
-```
-
-### 18.1.1 completion evidence
-
-```yaml
-task_id: 18.1.1
-status: COMPLETE
-reviewer_decision: accepted_confirmed_decision_record_only
-reviewer_date: 2026-10-03
-files_changed:
-  - docs/specs/phase-18.md
-tests_added_or_updated: []
-acceptance_commands:
-  - python /tmp/phase18-verify-decision-record.py
-  - python /tmp/phase18-reviewer-compare.py
-  - git diff --check
-  - git status --short
-  - git show --check 2bfe14315cb6c0152ad01e57068173e379a66f9e
-  - git diff-tree --no-commit-id --name-only -r 2bfe14315cb6c0152ad01e57068173e379a66f9e
-acceptance_output:
-  source_comparison: "PASS: all 23 stable decision IDs match the source record exactly (whitespace normalized). PASS: all 15 stable scenario IDs match the source record exactly."
-  provenance_scope: "PASS: approval/provenance, historical inventory acceptance, scope gates, stage applicability, and absence of decision placeholders verified."
-  changed_paths: "PASS: only docs/specs/phase-18.md changed; protected/state/code/test/dependency files unchanged."
-  independent_comparison: "All 23 unique IDs/decisions and 15 outcomes exact; original headings, scenarios, question links, established contract bullets/source links preserved; exit 0."
-  diff_check: "no output; exit 0"
-  status: "no output; clean before reviewer state update"
-  commit_check: "commit header/message only; no whitespace errors; exit 0"
-  file_list: "docs/specs/phase-18.md"
-git_commit_sha: 2bfe14315cb6c0152ad01e57068173e379a66f9e
-next_task: 18.2a
-next_task_status: READY
-human_decisions: confirmed
-human_transition_required: false
-deviations:
-  - "Question prose replaced with confirmed answers; stable headings/IDs and original inventory commit preserve historical evidence. Coordinator explicitly accepted this approach; no amendment requested."
-notes: |
-  Fresh independent reviewer read the full spec and actual one-file task diff,
-  applicable project/workflow/reviewer/rules and incident records, doer report,
-  and independently supplied /tmp/phase18-confirmed-decisions.md. All 23
-  decision paragraphs and 15 scenario outcomes match that approved source.
-  Manual review confirmed stage applicability, approval provenance, scope gates,
-  historical preservation, explicit experiment inputs and limited guarantees.
-  The user approved seven initial decisions, delegated remaining choices, saw
-  the complete record, and explicitly confirmed/authorized the first task with
-  "just fix the git connectivity and start the first task auto now".
-  Reviewer independently re-ran every documentation acceptance command.
-  A supplemental comparison first failed at SC-01 because its temporary parser
-  included the trailing table delimiter; the parser alone was corrected outside
-  the checkout. Its full rerun passed; no specification correction was needed.
-  Live git ls-remote origin refs/heads/main independently returned
-  81824f70aaeeb7efc07b8afc127a43a2b888bcd7 using configured proxy/network permission.
-  No backend, scripts, or frontend files changed; pytest, ruff, mypy, tsc,
-  vitest and build were not rerun under WORKFLOW.md section 5.
-  This separate reviewer state commit opens only 18.2a. 18.2b, 18.3 and 18.4
-  remain NOT_STARTED. Phase 18 remains IN_PROGRESS; no phase crossing or
-  runtime eligibility, warmup, gap/window, API/CLI or freeze enforcement is
-  certified. Further narrow task planning and independent acceptance remain
-  required. The original 18.1 evidence block below is historical and unchanged.
-```
-
-### 18.1 completion evidence
-
-```yaml
-task_id: 18.1
-status: COMPLETE
-reviewer_decision: accepted_question_inventory_only
-reviewer_date: 2026-10-03
-files_changed:
-  - docs/specs/phase-18.md
-tests_added_or_updated: []
-acceptance_commands:
-  - git diff --check
-  - git status --short
-  - git show --check f6060f8b97e2ed304e7c8a4618647d9dca725d09
-  - git diff-tree --no-commit-id --name-only -r f6060f8b97e2ed304e7c8a4618647d9dca725d09
-acceptance_output:
-  diff_check: "no output; exit 0"
-  status: "no output; clean before state evidence update"
-  commit_check: "commit header only; no whitespace errors; exit 0"
-  file_list: "docs/specs/phase-18.md"
-git_commit_sha: f6060f8b97e2ed304e7c8a4618647d9dca725d09
-next_task: 18.2
-next_task_status: NOT_STARTED
-human_transition_required: true
-deviations: []
-notes: |
-  Fresh independent reviewer inspected the entire 364-line questions document
-  and actual one-file commit, current metadata schemas/persistence/wire types,
-  accepted Phase 17 evidence, and the Phase 16 clock contract and test evidence.
-  Manual documentation acceptance verified all 23 question groups and 15
-  scenario outcomes remain unresolved; all human approval fields remain blank.
-  Coverage includes stage meaning, boundaries and membership, warmup and
-  information access, boundary state, gaps, walk-forward identity and reselection,
-  final holdout, enforcement, legacy records, provenance, and guarantee limits.
-  No defaults, recommendations, numeric window sizes, implementation design,
-  inferred human decisions, or authorization for 18.2 were introduced.
-  No backend, scripts, or frontend files changed; pytest, ruff, mypy, tsc,
-  vitest, and build were not rerun for this documentation-only task.
-  Implementation and acceptance review of 18.1 have concluded; this separate
-  reviewer evidence commit records completion. The next task is identified
-  without opening it: 18.2 remains NOT_STARTED pending human decisions.
-  Phase 18 remains IN_PROGRESS; 18.3 and 18.4 remain NOT_STARTED.
-```
-
-### 17.1 completion evidence
-
-```yaml
-task_id: 17.1
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - backend/src/quant/data/runs_store.py
-  - backend/tests/data/test_runs_store.py
-tests_added_or_updated:
-  - fresh meta_runs schemas contain all nullable research metadata columns
-  - legacy schemas migrate in place with NULL research metadata
-  - insert_run preserves every research metadata field
-  - insert_run_with_connection preserves every research metadata field
-  - claim_next_queued preserves every research metadata field
-acceptance_commands:
-  - python -m pytest backend/tests -q
-  - python -m ruff check .
-  - python -m mypy --strict backend/src
-  - git diff --check
-  - git status --short
-acceptance_output:
-  pytest: "431 passed, 81 warnings"
-  ruff: "All checks passed!"
-  mypy: "Success: no issues found in 30 source files"
-  diff_check: "exit 0"
-  status: "clean"
-git_commit_sha: b0ad975
-next_task: 17.2
-deviations: []
-notes: |
-  Commit b0ad975 was cherry-picked into the primary checkout as
-  1a925cc. Before final acceptance, separate commit 0c5d842 replaced
-  the known I-005 Rust-bridge capfd polling tests with deterministic
-  warning spies. The reviewer then re-ran every whole-tree acceptance
-  command without retries. No API, frontend, optimizer, or Phase 18
-  validation behavior is included.
-```
-
-### 17.2 completion evidence
-
-```yaml
-task_id: 17.2
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - backend/src/quant/api/schemas.py
-  - backend/tests/api/test_schemas.py
-tests_added_or_updated:
-  - RunSummary accepts and serializes all nullable research metadata
-  - RunCreate accepts all nullable research metadata
-  - omitted research metadata defaults to None
-  - invalid research_stage values are rejected
-acceptance_commands:
-  - python -m pytest backend/tests -q
-  - python -m ruff check .
-  - python -m mypy --strict backend/src
-  - git diff --check
-  - git status --short
-acceptance_output:
-  pytest: "435 passed, 81 warnings"
-  ruff: "All checks passed!"
-  mypy: "Success: no issues found in 30 source files"
-  diff_check: "exit 0"
-  status: "clean"
-git_commit_sha: 62a2365
-next_task: 17.3
-deviations: []
-notes: |
-  Reviewer independently re-ran every whole-tree acceptance command.
-  The implementation changes only API schema contracts and their direct
-  tests. No API transport wiring, frontend, optimizer, or Phase 18
-  validation behavior is included.
-```
-
-### 17.3 completion evidence
-
-```yaml
-task_id: 17.3
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - backend/src/quant/api/routers/runs.py
-  - backend/tests/api/test_runs_create.py
-tests_added_or_updated:
-  - research metadata round-trips through run creation and persistence
-  - run-list responses preserve all research metadata
-  - tear-sheet run summaries preserve all research metadata
-acceptance_commands:
-  - python -m pytest backend/tests -q
-  - python -m ruff check .
-  - python -m mypy --strict backend/src
-  - git diff --check
-  - git status --short
-acceptance_output:
-  pytest: "436 passed, 81 warnings"
-  ruff: "All checks passed!"
-  mypy: "Success: no issues found in 30 source files"
-  diff_check: "exit 0"
-  status: "clean"
-git_commit_sha: fa311a4
-next_task: 17.4
-deviations: []
-notes: |
-  Reviewer independently re-ran every whole-tree acceptance command
-  without retries. All eleven research metadata fields flow through the
-  API create, list, and tear-sheet paths. No CLI, frontend, optimizer, or
-  Phase 18 validation behavior is included.
-```
-
-### 17.4 completion evidence
-
-```yaml
-task_id: 17.4
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - scripts/run_backtest.py
-  - backend/tests/test_run_backtest.py
-tests_added_or_updated:
-  - omitted CLI research metadata persists as NULL and remains outside params
-  - all CLI research metadata inputs persist with their established names and types
-  - exploration, validation, and oos research stages are accepted
-  - invalid research stages and integer metadata inputs are rejected
-acceptance_commands:
-  - python -m pytest backend/tests -q
-  - python -m ruff check .
-  - python -m mypy --strict backend/src
-  - git diff --check
-  - git status --short
-acceptance_output:
-  pytest: "444 passed, 81 warnings"
-  ruff: "All checks passed!"
-  mypy: "Success: no issues found in 30 source files"
-  diff_check: "exit 0"
-  status: "clean"
-git_commit_sha: 9b3fe3909116fe1eaf52d745b891489d8a6188e9
-next_task: 17.5
-deviations: []
-notes: |
-  Reviewer independently inspected the committed CLI and test diff and
-  re-ran every whole-tree backend acceptance command. Research metadata
-  remains separate from strategy params. The task adds metadata inputs only;
-  it does not add frontend behavior or Phase 18 temporal enforcement.
-```
-
-### 17.5 completion evidence
-
-```yaml
-task_id: 17.5
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - frontend/src/api/types.ts
-  - frontend/src/api/runs.test.ts
-  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
-  - frontend/src/pages/CommandCenter/StrategyForm.test.tsx
-  - frontend/src/pages/Compare/index.test.tsx
-  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_added_or_updated:
-  - populated and explicit-null metadata remains top-level in create requests
-  - omitted request metadata is supported and response metadata is explicitly null
-  - run-list and tear-sheet responses preserve populated and null research metadata
-  - incomplete RunSummary metadata is rejected at compile time
-  - exploration, validation, and oos typecheck while unsupported stage literals fail
-  - five existing RunSummary fixtures explicitly provide all eleven nullable fields
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-  - git diff --check
-  - git status --short
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "Test Files  30 passed (30); Tests  215 passed (215)"
-  build: "142 modules transformed; built in 387ms; exit 0"
-  diff_check: "exit 0"
-  status: "clean"
-git_commit_sha: e2ea48089cd63bd7a1115e49542b584bfe13d679
-next_task: 17.6
-deviations:
-  - "Human approved amendment and expansion to five existing response fixture files so RunSummary fields remain required nullable."
-notes: |
-  Fresh independent reviewer inspected the full seven-file committed diff
-  and re-ran every whole-tree frontend acceptance command from the repo
-  root using PowerShell Push-Location/Pop-Location and preserved exit codes.
-  The eleven new RunSummary fields are required nullable; RunCreate metadata
-  is optional nullable. Existing API helpers are unchanged. No runtime
-  component, dependency, optimizer, or Phase 18 temporal enforcement changed.
-  The production build reported the existing large-chunk advisory. No backend
-  or scripts files changed; pytest, ruff, and mypy were not re-run under
-  WORKFLOW.md section 5 path-scoped acceptance.
-```
-
-### 17.6 completion evidence
-
-```yaml
-task_id: 17.6
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - frontend/src/pages/CommandCenter/StrategyForm.tsx
-  - frontend/src/pages/CommandCenter/StrategyForm.test.tsx
-tests_added_or_updated:
-  - all twelve optional research controls are accessible and initially blank
-  - all metadata submits at top level with trimmed strings and UTC epoch-ms dates
-  - exploration, validation, and oos stages submit with their exact wire values
-  - whitespace, cleared fields, and unset stage are omitted
-  - each single date endpoint is accepted without requiring its paired endpoint
-  - reversed and overlapping ranges and trial index greater than count are accepted
-  - zero, signed integers, and safe-integer boundaries are accepted
-  - invalid calendar dates and malformed, fractional, nonfinite, or unsafe integers block submission
-  - existing strategy, timeframe, universe, fees, deployment, benchmark, navigation, error, and pending behavior remains covered
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-  - git diff --check
-  - git status --short
-acceptance_output:
-  tsc: "npm notice run frontend@0.0.0 npx; npm notice run tsc -b; exit 0"
-  vitest: "Test Files  30 passed (30); Tests  242 passed (242); Duration  7.97s; exit 0"
-  build: "142 modules transformed; built in 713ms; exit 0"
-  diff_check: "no output; exit 0"
-  status: "no output; clean"
-git_commit_sha: 60aee99f550fcbf8139eb43dc0c0c910c5623833
-next_task: 17.7
-deviations: []
-notes: |
-  Fresh independent reviewer read the actual two-file committed diff,
-  checked backend schemas and accepted frontend wire types, and reran all
-  whole-tree frontend acceptance commands from the repository root using
-  PowerShell Push-Location/Pop-Location with preserved exit codes. Tests
-  exercise real form inputs and payload construction at the createRun
-  boundary. No Phase 18 temporal or trial-relationship enforcement was
-  added. The production build reported the existing large-chunk advisory.
-  No backend or scripts files changed; pytest, ruff, and mypy were not
-  rerun under WORKFLOW.md section 5 path-scoped acceptance. Phase 17
-  remains IN_PROGRESS; task 17.7 is opened but not implemented.
-```
-
-### 17.7 completion evidence
-
-```yaml
-task_id: 17.7
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - frontend/src/pages/CommandCenter/RunHistoryTable.tsx
-  - frontend/src/pages/CommandCenter/RunHistoryTable.test.tsx
-tests_added_or_updated:
-  - real grid renders exact column order and populated and null metadata
-  - mixed experiments and all three stages remain in API order
-  - strings preserve whitespace and UTC ranges preserve full milliseconds
-  - partial endpoints, epoch zero, reversed and overlapping ranges remain visible
-  - trial zero, negative values and index greater than count remain exact
-  - all nine research columns sort through real grid header interactions
-  - shared experiment and stage retain distinct selected run IDs
-  - existing loading, empty, error, polling and double-click navigation tests remain
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-  - git diff --check
-  - git status --short
-acceptance_output:
-  tsc: "npm notice run frontend@0.0.0 npx; npm notice run tsc -b; exit 0"
-  vitest: "Test Files  30 passed (30); Tests  254 passed (254); Duration  14.08s; exit 0"
-  build: "142 modules transformed; built in 379ms; exit 0"
-  diff_check: "no output; exit 0"
-  status: "no output; clean"
-git_commit_sha: a7dff301b1c008168ef29398bde4524109fc786c
-next_task: 17.8
-deviations:
-  - "Supplementary whole-tree npx vitest run --retry=0 probe: 2 failed files, 28 passed; 2 failed tests, 252 passed; duration 13.46s; exit 1. This was not a required acceptance command."
-notes: |
-  Fresh independent reviewer inspected the full two-file committed diff
-  against the task prompt, accepted wire types and backend schemas, then
-  reran every required frontend acceptance command from the repository root
-  using PowerShell Push-Location/Pop-Location with preserved exit codes.
-  Required acceptance passed on its first invocation. No inferred research
-  validity, filtering, grouping, Phase 18 enforcement or tear-sheet work was
-  added. Existing query, navigation, theme and KPI behavior is unchanged.
-  Earlier debugging attempts corrected grid header selectors and the blank
-  selection-column header expectation; final assertions verify exact DOM
-  values and real sorting rather than weakening the behavior checks.
-  To audit I-013, the reviewer additionally disabled retries for one full
-  suite probe. RunHistoryTable > renders rows when data loads and
-  TradeLedger > renders rows when data loads timed out finding their row
-  text; failure DOM showed hidden grid containers and empty headers. Both
-  assertions predate this task and are unchanged. All metadata-specific
-  tests passed. frontend-tooling.md and original commit dfaafcb explicitly
-  authorize retry: 2 for parallel AG Grid jsdom layout timing; this task
-  does not change that setting. The supplemental failures are retained here,
-  not reported as green or hidden behind a rerun. Production build reported
-  the existing large-chunk advisory. No backend or scripts files changed;
-  pytest, ruff and mypy were not rerun under WORKFLOW.md section 5.
-  Phase 17 remains IN_PROGRESS; task 17.8 is opened but not implemented.
-```
-
-### 17.8 completion evidence
-
-```yaml
-task_id: 17.8
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-02
-files_changed:
-  - frontend/src/pages/TearSheet/ExperimentHeader.tsx
-  - frontend/src/pages/TearSheet/ExperimentHeader.test.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-  - frontend/src/pages/TearSheet/tearSheet.css
-tests_added_or_updated:
-  - null research metadata renders as em dashes in run-history label order
-  - populated strings, all three stages, and full UTC ranges stay exact
-  - partial endpoints, a reversed range, trial zero, and a negative trial count stay exact
-  - the Data tab timeframe em dash assertion is scoped to that row
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-  - git diff --check
-  - git status --short
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "Test Files  30 passed (30); Tests  256 passed (256); Duration  11.95s; exit 0"
-  build: "142 modules transformed; built in 561ms; exit 0"
-  diff_check: "no output; exit 0"
-  status: "no output; clean"
-git_commit_sha: 77df5035d30446328ab45e63b3c52fec3b8bb590
-next_task: 18.1
-deviations:
-  - "Display formatters live in ExperimentHeader instead of being shared with RunHistoryTable."
-  - "The reversed-range test title also says overlapping; the asserted OOS case is reversed (1000 to 0), not a separate overlap fixture."
-  - "Supplementary whole-tree npx vitest run --retry=0: 30 files passed, 256 tests passed, duration 11.88s, exit 0. This was not a required acceptance command."
-notes: |
-  Fresh reviewer read the four-file committed diff against the task,
-  accepted wire types, and run-history display rules, then reran every
-  required frontend acceptance command from the repository root.
-  Required acceptance passed on its first invocation. The header shows
-  all eleven persisted fields, including explicit nulls, without
-  inferring validity or adding Phase 18 enforcement. The Data tab still
-  omits a null experiment id. The production build reported the existing
-  large-chunk advisory. No backend or scripts files changed; pytest,
-  ruff, and mypy were not rerun under WORKFLOW.md section 5. Phase 17
-  is complete. Phase 18.1 is opened as questions only because embargo,
-  inclusivity, and walk-forward sizes are not specified.
-```
-
-### U.6.1 completion evidence
-
-```yaml
-task_id: U.6.1
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/pages/TearSheet/tabs/RiskTab.tsx
-  - frontend/src/pages/TearSheet/tabs/RiskTab.test.tsx
-tests_added:
-  - RiskTab shows the five supplied risk KPIs and drawdown series
-  - RiskTab renders five null KPI values as em dashes
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "30 files, 205 passed"
-  build: "exit 0"
-git_commit_sha: bff113e37788b898172bfa10bae15d533bc71e84
-next_task: U.6.2
-deviations: []
-notes: |
-  Reviewer re-ran all frontend acceptance commands. No backend or
-  scripts files changed, so pytest, ruff, and mypy were not re-run.
-```
-
-### U.6.2 completion evidence
-
-```yaml
-task_id: U.6.2
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/App.tsx
-  - frontend/src/pages/TearSheet/TearSheetNav.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_updated:
-  - nav renders eight items in the approved order with intended badges
-  - Risk route renders and marks its navigation item active
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "30 files, 205 passed"
-  build: "exit 0"
-git_commit_sha: ffc277b
-next_task: U.6.3
-deviations: []
-notes: |
-  Reviewer re-ran all frontend acceptance commands. No backend or
-  scripts files changed, so pytest, ruff, and mypy were not re-run.
-```
-
-### U.6.3 completion evidence
-
-```yaml
-task_id: U.6.3
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/pages/TearSheet/OverviewSummary.tsx
-  - frontend/src/pages/TearSheet/OverviewSummary.test.tsx
-  - frontend/src/pages/TearSheet/tabs/OverviewTab.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_updated:
-  - Overview keeps the approved headline and secondary KPI bands
-  - Overview omits Win Rate, Trades, Avg Duration, and Underwater
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "30 files, 205 passed"
-  build: "exit 0"
-git_commit_sha: 290be85
-next_task: U.6.4
-deviations:
-  - "The first full-suite run exposed an over-broad negative assertion that matched the permanent Trades nav item; the assertion was scoped to the KPI section before commit."
-notes: |
-  Reviewer re-ran all frontend acceptance commands after the test fix.
-  No backend or scripts files changed, so pytest, ruff, and mypy were
-  not re-run.
-```
-
-### U.6.4 completion evidence
-
-```yaml
-task_id: U.6.4
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/pages/TearSheet/tabs/PerformanceTab.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_updated:
-  - Performance keeps Price + Fills followed by dominant equity
-  - Performance omits Underwater, whose route remains Risk
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "30 files, 205 passed"
-  build: "exit 0"
-git_commit_sha: 97cd298
-next_task: U.6.5
-deviations: []
-notes: |
-  Reviewer re-ran all frontend acceptance commands. No backend or
-  scripts files changed, so pytest, ruff, and mypy were not re-run.
-```
-
-### U.6.5 completion evidence
-
-```yaml
-task_id: U.6.5
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/pages/TearSheet/tabs/DataTab.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_updated:
-  - Data renders a non-null experiment id
-  - Data omits a null experiment id and shows the UTC date range
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "30 files, 206 passed"
-  build: "exit 0"
-git_commit_sha: 3928376
-next_task: null
-deviations: []
-notes: |
-  Reviewer re-ran all frontend acceptance commands. Compare and all
-  existing frontend tests passed. No backend or scripts files changed,
-  so pytest, ruff, and mypy were not re-run. U.6 is complete; Phase 17
-  remains unopened.
-```
-
-### 16.5.6 completion evidence
-
-```yaml
-task_id: 16.5.6
-status: COMPLETE
-reviewer_decision: accepted
-reviewer_date: 2026-10-01
-files_changed:
-  - frontend/src/pages/TearSheet/tabs/ExecutionTab.tsx
-  - frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx
-  - frontend/src/App.tsx
-  - frontend/src/pages/TearSheet/tabs/PlaceholderTab.tsx
-  - frontend/src/pages/TearSheet/index.test.tsx
-tests_added:
-  - frontend/src/pages/TearSheet/tabs/ExecutionTab.test.tsx (2)
-  - frontend/src/pages/TearSheet/index.test.tsx::robustness tab says no analysis is attached
-  - frontend/src/pages/TearSheet/index.test.tsx::execution tab shows assumption strings from the tear sheet
-tests_updated:
-  - frontend/src/pages/TearSheet/index.test.tsx::regimes tab says classification is not attached
-acceptance_commands:
-  - cd frontend && npx tsc -b
-  - cd frontend && npx vitest run
-  - cd frontend && npm run build
-acceptance_output:
-  tsc: "exit 0"
-  vitest: "29 files, 203 passed"
-  build: "exit 0"
-git_commit_sha: aa0aaff7c21011f3301d97c467f8e7f91dc2007f
-next_task: null
-deviations:
-  - "PlaceholderTab now takes the unavailable sentence directly. The old phase template could not show the required copy."
-  - "A non-object assumptions value, or one whose maker_fee is not a string, uses the same missing sentence as the Data tab."
-  - "No Python files changed, so pytest, ruff, and mypy were not re-run."
-notes: |
-  Reviewer re-ran tsc -b, vitest, and the production build on aa0aaff.
-  Regimes and Robustness show the unavailable sentences and no
-  fabricated analysis. Execution lists every assumption string
-  verbatim. Fees are not summed. A missing assumptions object shows
-  the missing sentence once. The Data tab was not changed. Phase 17
-  is not started.
+  Serial g READY -> implementation IN_PROGRESS -> committed ACCEPTANCE_PENDING
+  -> blocking review IN_PROGRESS; bounded g.1 READY -> implementation
+  IN_PROGRESS -> committed ACCEPTANCE_PENDING -> fresh combined acceptance
+  COMPLETE. Doer did not edit STATE or self-accept. Only the combined final
+  tree at 47fa706 is accepted. Reviewer completed previously truncated mandatory
+  reads in bounded chunks: full STATE/workflow/reviewer/incidents, relevant
+  PROJECT/rules, approved spec, full runtime-probe source/evidence and Nautilus
+  guide; exact original two-file implementation/tests and corrective diff read.
+  Exact keyword-only signature/no defaults, key-based joined clocks, structural
+  integer/grid/availability validation, admitted-only OHLCV and ns bounds,
+  complete active/warmup coverage, warmup without exposure/scoring and explicit
+  daily BTC capability match the contract. Excluded earlier/sentinel/later data
+  never reaches engine; last eligible close alone values residual exposure.
+  Live on_start and first-active clean queries fail on nonempty or unknown state.
+  Actual fill membership checked before inherited snapshot replacement; first
+  callback Exception retained, later callbacks abort and postrun guard prevents
+  successful extraction even after deliberately swallowed dispatch. Finally
+  disposes. Terminal open/inflight orders fail; genuine open positions remain
+  disclosed without fabricated liquidation. Latest account rows independently
+  value cash plus BTC; missing required currencies fail. Actual first fill/fee
+  returns and ordinary daily runner control agree; ordinary source unchanged.
+  Original volume 1000000000000.0001 was admitted but serialized to
+  1000000000000.000122. Complete real public-run blocker evidence retained in
+  /tmp/phase18g-review-blocker.log and /tmp/phase18g-review-report.md.
+  Authorized g.1 changes only five OHLCV and initial-cash formatting sites to
+  Decimal(str(value)); regression sees actual Quantity 1000000000000.000100,
+  rejects observed original value, verifies all actual admitted OHLCV decimal
+  equality, normal fill/fee/results and deep input immutability. No new API.
+  Every exact final whole command independently passed. Single completed full
+  pytest invocation used current enabled network permission with unchanged
+  options/plugins/proxy/TLS; no dependency install or services. Earlier tool
+  executions interrupted after cheap checks never started pytest and are not
+  reported green. Original independent g pytest NOT RUN after confirmed blocker.
+  Final raw logs: /tmp/phase18g1-review-ruff.log, -mypy.log, -pytest.log,
+  -diff-check.log and -status-before.log. Full review report:
+  /tmp/phase18g1-review-report.md. Original doer Ruff failures (25 then 2 E501)
+  remain /tmp/phase18g-doer-ruff-1.log and -2.log; cosmetic wraps disclosed.
+  Original doer 960-test pass is historical. Corrective doer first full suite
+  961 passed,121 warnings in35.84s; no hidden test retry or weakened assertions.
+  Current 121 warnings concern established Starlette httpx and Nautilus Pandas
+  Timestamp.utcnow behavior, including added live-engine fixtures.
+  Acceptance is local, not publication/merge. Coordinator verifies authorized
+  corrected-g PR checks/merge before fresh next planning. Reviewer neither
+  amends, pushes, creates PR, merges, launches workers nor edits implementation.
+  Completed historical contract/evidence blocks are archived verbatim with a
+  compact live reference table and explicit post-probe human approval retained.
+  This supports mandatory full live-STATE reads without discarding evidence.
+  Initial documentation diff check exited2 for a new blank line at archive EOF,
+  inherited from the verbatim moved separator. Exact slice was preserved and
+  an authored end-of-records marker appended; final diff check exit0. Raw
+  /tmp/phase18g1-review-state-diff-check.log and -state-diff-check-final.log
+  retain the initial diagnostic and final success. No historical bytes changed.
+  Only supplied-clock consistency/runtime containment is accepted: no historical
+  source availability/revision, frozen selection, evidence transport/binding,
+  orchestrator/API/CLI/worker integration, research eligibility/OOS inspection,
+  dependencies/gaps/windows or whole18.2/Phase18 completion. No future task is
+  READY; remaining18.2 NOT_STARTED, next_task null, last_completed_task18.2g.1,
+  human_transition_required false, Phase18 IN_PROGRESS. Never begin Phase29.
 ```
 
 ## 3. Important Limitations
