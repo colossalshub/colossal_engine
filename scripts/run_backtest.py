@@ -18,6 +18,7 @@ from quant import config
 from quant.data.normalize import to_epoch_ms
 from quant.data.runs_store import RunRecord, init_runs_schema, insert_run
 from quant.engine.orchestrator import _CANONICAL_TIMEFRAMES, execute_run
+from quant.engine.temporal import validate_research_declaration
 from quant.git_state import capture_git_state
 from quant.logging_setup import configure_logging
 
@@ -123,7 +124,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--research-stage",
         choices=("exploration", "validation", "oos"),
-        help="Designated research stage (metadata only)",
+        help=(
+            "Designated research stage (declaration checks only; "
+            "runtime eligibility unverified)"
+        ),
     )
     parser.add_argument("--hypothesis-id", help="Research hypothesis identifier")
     parser.add_argument("--strategy-version", help="Strategy version identity")
@@ -162,6 +166,12 @@ def main() -> None:
         start_ms = parse_cli_timestamp(args.start)
         end_ms = parse_cli_timestamp(args.end)
     except (ValueError, TypeError) as exc:
+        print(exc, file=sys.stderr)  # noqa: T201
+        sys.exit(2)
+
+    try:
+        validate_research_declaration(vars(args))
+    except ValueError as exc:
         print(exc, file=sys.stderr)  # noqa: T201
         sys.exit(2)
 
